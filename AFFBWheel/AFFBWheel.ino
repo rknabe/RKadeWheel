@@ -1576,8 +1576,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold)
           Serial.print("\tDist:");
           Serial.print(dist);
           Serial.print("\tTime:");
-          Serial.print(currTime - prevTime);
-          
+          Serial.print(currTime - prevTime);          
           Serial.println();
 
           switch (_state)
@@ -1614,8 +1613,10 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold)
                   Serial.println(posMin);
                   
                   //calculate range
-                  range=((posMax-posMin) * 360 / (1<<(STEER_BITDEPTH)))-AFC_RANGE_FIX;
-                  
+                  range=(((posMax-posMin) * 360 / (1<<(STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
+                  Serial.print("Range:");
+                  Serial.println(range);
+                                  
                   if (range<2)
                   {
                     Serial.println("Error: no movement");
@@ -1623,15 +1624,14 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold)
                   }
                   
                   #ifndef AFC_NORANGE
-                  Serial.print("Range:");
-                  Serial.println(range);
-                  wheel.axisWheel->setRange(range / STEER_TM_RATIO_DIV);
+                  wheel.axisWheel->setRange(range);
                   #endif
 
                   //Set center by setting new current position                  
                   Serial.print("Found Center:");
-                  Serial.println((posMin - posMax) / 2);
-                  SET_WHEEL_POSITION(abs(posMin - posMax) / 2 / 16);
+                  Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 2));
+                  //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
+                  SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 2)); 
 
                   //Go to center - should be safe now
                   motor.setForce(force);
