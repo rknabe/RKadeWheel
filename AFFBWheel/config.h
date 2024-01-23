@@ -33,7 +33,7 @@
 //settings for encoder
 #define ENCODER_PIN1  0       //encoder pins must be interrupt pins:[0, 1, 2, 3]
 #define ENCODER_PIN2  1    
-#define ENCODER_PPR   400    //PPR = CPR/4
+#define ENCODER_PPR   600    //PPR = CPR/4
 
 //settings for TLE5010
 #define TLE5010_PIN_CS 1
@@ -44,12 +44,12 @@
 //wheel sensor bitdepth. Not supposed to be changed.
 #define STEER_BITDEPTH 13
 //default wheel range in degrees.
-#define WHEEL_RANGE_DEFAULT 900
+#define WHEEL_RANGE_DEFAULT 270
 
 //transmission ratio (see readme)
-//#define STEER_TM_RATIO_ENABLED       //Uncomment to enable feature
-#define STEER_TM_RATIO_MUL       1   //Multiplication factor
-#define STEER_TM_RATIO_DIV       1   //Division factor
+#define STEER_TM_RATIO_ENABLED       //Uncomment to enable feature
+#define STEER_TM_RATIO_MUL       -1   //Multiplication factor
+#define STEER_TM_RATIO_DIV       4   //Division factor
 
 //---------------------------I2C----------------------------------------
 //bitbang I2С pins - for MCP23017 and ADS1015
@@ -212,7 +212,8 @@
 #define HAT_CLR_BTNS   //clear buttons state
 
 //----------------------------FFB settings-------------------------------
-//#define MOTOR_ENABLE_PIN      5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
+//rknabe, use motor option 2, enabled next line
+#define MOTOR_ENABLE_PIN      5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
 
 //default FFB PWM bitdepth
 #define DEFAULT_FFB_BITDEPTH  9   //15.6 KHz
@@ -226,8 +227,8 @@
 
 //Auto find center
 //#define AFC_ON                                //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
-#define AFC_FORCE     9000                      //Force [0...16383] to exert when finding center. 
-#define AFC_PERIOD    50                        //Position check period in milliseconds
-#define AFC_TRESHOLD  10                        //Minimum position change to detect movement
+#define AFC_FORCE     4000                      //Force [0...16383] to exert when finding center. 
+#define AFC_PERIOD    50   //default 50         //Position check period in milliseconds
+#define AFC_TRESHOLD  10   //default 10         //Minimum position change to detect movement
 //#define AFC_NORANGE                           //Uncomment to disable range setting
 #define AFC_RANGE_FIX 1                         //range will be decreased by this value (in degrees), to prevent wheel kicking on limiters.
