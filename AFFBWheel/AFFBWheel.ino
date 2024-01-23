@@ -1541,7 +1541,7 @@ void save()
     Serial.println(F("Settings saved"));
 }
 
-void autoFindCenter(int16_t force, int16_t period, int16_t treshold)
+void autoFindCenter(int16_t force, int16_t period, int16_t threshold)
 {
     uint8_t _state=1;
 
@@ -1590,12 +1590,12 @@ void autoFindCenter(int16_t force, int16_t period, int16_t treshold)
                   return;
                 }
                 
-                if (-dist<treshold)  //Minimum found
+                if (-dist<threshold)  //Minimum found
                 {
                   motor.setForce(0);
                 
                   posMin=pos;   
-                  Serial.print("Min:");
+                  Serial.print("Found Min:");
                   Serial.println(posMin);
 
                   motor.setForce(-force);
@@ -1603,13 +1603,15 @@ void autoFindCenter(int16_t force, int16_t period, int16_t treshold)
                 }
                 break;
               case 2:
-                if (dist<treshold)  //Maximum found
+                if (dist<threshold)  //Maximum found
                 {
                   motor.setForce(0);
 
                   posMax=pos;   
-                  Serial.print("Max:");
+                  Serial.print("Found Max:");
                   Serial.println(posMax);
+                  Serial.print("Min:");
+                  Serial.println(posMin);
                   
                   //calculate range
                   range=((posMax-posMin) * 360 / (1<<(STEER_BITDEPTH)))-AFC_RANGE_FIX;
@@ -1626,8 +1628,10 @@ void autoFindCenter(int16_t force, int16_t period, int16_t treshold)
                   wheel.axisWheel->setRange(range);
                   #endif
 
-                  //Set center by setting new current position
-                  SET_WHEEL_POSITION((posMax - posMin) / 2);
+                  //Set center by setting new current position                  
+                  Serial.print("Found Center:");
+                  Serial.println((posMin - posMax) / 2);
+                  SET_WHEEL_POSITION(abs(posMin - posMax) / 2 / 16);
 
                   //Go to center - should be safe now
                   motor.setForce(force);
