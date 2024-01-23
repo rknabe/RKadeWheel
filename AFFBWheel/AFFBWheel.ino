@@ -1625,7 +1625,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold)
                   #ifndef AFC_NORANGE
                   Serial.print("Range:");
                   Serial.println(range);
-                  wheel.axisWheel->setRange(range);
+                  wheel.axisWheel->setRange(range / STEER_TM_RATIO_DIV);
                   #endif
 
                   //Set center by setting new current position                  
