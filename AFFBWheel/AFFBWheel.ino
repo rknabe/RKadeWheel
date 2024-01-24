@@ -430,7 +430,7 @@ void processFFB()
     }
     
     force=applyForceLimit(force);
-    motor.setForce(force);
+    motor.setForce(force * STEER_TM_RATIO_MUL);
 }
 
 
