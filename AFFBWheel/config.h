@@ -227,8 +227,8 @@
 
 //Auto find center
 #define AFC_ON                                  //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
-#define AFC_FORCE     3000                      //Force [0...16383] to exert when finding center. 
-#define AFC_PERIOD    100  //default 50         //Position check period in milliseconds
+#define AFC_FORCE     3500                      //Force [0...16383] to exert when finding center. 
+#define AFC_PERIOD    50   //default 50         //Position check period in milliseconds
 #define AFC_TRESHOLD  10   //default 10         //Minimum position change to detect movement
-#define AFC_NORANGE                           //Uncomment to disable range setting
+#define AFC_NORANGE                             //Uncomment to disable range setting
 #define AFC_RANGE_FIX 1                         //range will be decreased by this value (in degrees), to prevent wheel kicking on limiters.
