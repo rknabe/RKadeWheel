@@ -115,6 +115,7 @@ PCF857x_BBI2C pcf857x[4];
 
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
+void zeroAnalogPedals();
 
 //------------------------ steering wheel sensor ----------------------------
 #if STEER_TYPE == ST_TLE5010
@@ -328,6 +329,8 @@ void setup() {
   load();
 
   center();
+
+  zeroAnalogPedals();
 
 #ifdef AFC_ON
   autoFindCenter();
@@ -1320,6 +1323,10 @@ void processSerial() {
     }
 #endif
 
+    if (strcmp_P(cmd, PSTR("zeropedals")) == 0) {
+      zeroAnalogPedals();
+    }
+
 #ifdef APB
     if (strcmp_P(cmd, PSTR("apbout")) == 0) {
       apb_out = !apb_out;
@@ -1437,6 +1444,16 @@ void save() {
   EEPROM.put(0, settingsE);
 
   Serial.println(F("Settings saved"));
+}
+
+void zeroAnalogPedals() {
+#if (PEDALS_TYPE == PT_INTERNAL)
+#ifndef AA_PULLUP_LINEARIZE
+  wheel.analogAxes[AXIS_ACC]->setValue(0);
+  wheel.analogAxes[AXIS_BRAKE]->setValue(0);
+  wheel.analogAxes[AXIS_CLUTCH]->setValue(0);
+#endif
+#endif
 }
 
 void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
