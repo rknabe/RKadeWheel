@@ -1,25 +1,25 @@
 /*
-MIT License
+  MIT License
 
-Copyright (c) 2022 Sulako
+  Copyright (c) 2022 Sulako
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
 */
 
 #include <SPI.h>
@@ -115,7 +115,6 @@ PCF857x_BBI2C pcf857x[4];
 
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
-void zeroAnalogPedals();
 
 //------------------------ steering wheel sensor ----------------------------
 #if STEER_TYPE == ST_TLE5010
@@ -129,7 +128,6 @@ MultiTurn MT;
 #define GET_WHEEL_POS (-MT.setValue(getWheelPos()))
 #define CENTER_WHEEL MT.zero();
 #define SET_WHEEL_POSITION(val) MT.setPosition(-val)
-
 
 inline int16_t getWheelPos() {
   SPI.begin();
@@ -236,7 +234,7 @@ void setup() {
   //Steering axis sensor setup
   SETUP_WHEEL_SENSOR;
 
-//set up analog axes
+  //set up analog axes
 #ifdef AA_PULLUP
   analogReference(INTERNAL);  //2.56v reference to get more resolution.
 #endif
@@ -266,7 +264,7 @@ void setup() {
   ads7828.begin();
 #endif
 
-//setup buttons
+  //setup buttons
 #if (BUTTONS_TYPE == BT_74HC165)
   pinMode(HC165_PIN_DATA1, INPUT_PULLUP);
   pinMode(HC165_PIN_DATA2, INPUT_PULLUP);
@@ -290,7 +288,6 @@ void setup() {
   mcp23017_2.begin(MCP23017_ADDR2);
 #endif
 
-
 #if BUTTONS_TYPE == BT_PCF857x
 
 #if PCF857x_L1_TYPE == PCF8574
@@ -310,13 +307,13 @@ void setup() {
 #endif
 #endif
 
-//direct pin buttons
+  //direct pin buttons
 #ifdef DPB
   for (uint8_t i = 0; i < sizeof(dpb); i++)
     pinMode(dpb[i], INPUT_PULLUP);
 #endif
 
-//button matrix
+    //button matrix
 #ifdef BM
   for (uint8_t i = 0; i < sizeof(bm_cols); i++)
     pinMode(bm_cols[i], INPUT_PULLUP);
@@ -329,8 +326,6 @@ void setup() {
   load();
 
   center();
-
-  zeroAnalogPedals();
 
 #ifdef AFC_ON
   autoFindCenter();
@@ -445,7 +440,7 @@ int16_t applyForceLimit(int16_t force) {
 
 
 /*
-communicating with GUI:
+  communicating with GUI:
 */
 void processUsbCmd() {
   USB_GUI_Command *usbCmd = &wheel.ffbEngine.ffbReportHandler->usbCommand;
@@ -512,7 +507,6 @@ void processUsbCmd() {
         ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
         break;
 
-
       // set
       case 10:  //set range for steering axis
         wheel.axisWheel->setRange(usbCmd->arg[0]);
@@ -529,18 +523,15 @@ void processUsbCmd() {
       case 14:  //set autolimits for analog axis
         wheel.analogAxes[usbCmd->arg[0]]->setAutoLimits(usbCmd->arg[1] > 0);
         break;
-
       case 15:  //set center button
         settings.centerButton = usbCmd->arg[0];
         break;
       case 16:  //set debounce value
         settings.debounce = usbCmd->arg[0];
         break;
-
       case 17:  //set gain
         settings.gain[usbCmd->arg[0]] = usbCmd->arg[1];
         break;
-
       case 18:  //set misc settings
         switch (usbCmd->arg[0]) {
           case 0:
@@ -574,7 +565,6 @@ void processUsbCmd() {
         wheel.analogAxes[usbCmd->arg[0]]->outputDisabled = (usbCmd->arg[1] > 0);
         wheel.analogAxes[usbCmd->arg[0]]->bitTrim = usbCmd->arg[2];
         break;
-
       //commands
       case 20:  //load settings from EEPROM
         load();
@@ -651,7 +641,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_CLUTCH]->setValue(ads7828.readADC(2));
 #endif
 
-//additional axes
+  //additional axes
 #ifdef AA_PULLUP_LINEARIZE
 
 #ifdef PIN_AUX1
@@ -718,7 +708,6 @@ int16_t MCP3204_SPI_read(uint8_t channel) {
 
   return val;
 }
-
 
 int16_t MCP3204_BB_read(uint8_t channel) {
 #if (MCP3204_4W_PIN_MOSI == MCP3204_4W_PIN_MISO)
@@ -846,34 +835,27 @@ void readButtons() {
 #ifdef HC165_PIN_PL
   digitalWriteFast(HC165_PIN_PL, 0);
 #endif
-
-
 #endif
 
-
 #if BUTTONS_TYPE == BT_CD4021B
-
   digitalWriteFast(CD4021_PIN_SCK, 1);
   digitalWriteFast(CD4021_PIN_SCK, 0);
 
-//защелка работает наоборот
+  //The latch works the other way around
 #ifdef CD4021_PIN_PL
   digitalWriteFast(CD4021_PIN_PL, 0);
 #endif
 
   i = 0x80;
   do {
-
-
     if (!digitalReadFast(CD4021_PIN_DATA1))
       d[0] |= i;
     if (!digitalReadFast(CD4021_PIN_DATA2))
       d[2] |= i;
     digitalWriteFast(CD4021_PIN_SCK, 1);
     digitalWriteFast(CD4021_PIN_SCK, 0);
-
-
   } while (i >>= 1);
+
   i = 0x80;
   do {
     if (!digitalReadFast(CD4021_PIN_DATA1))
@@ -890,8 +872,6 @@ void readButtons() {
 #endif
 #endif
 
-
-
 #if BUTTONS_TYPE == BT_MCP23017
   mcp23017_1.read16((uint16_t *)d);
   mcp23017_2.read16((uint16_t *)(d + 2));
@@ -899,7 +879,7 @@ void readButtons() {
 #endif
 
 #if BUTTONS_TYPE == BT_PCF857x
-//read 1-16
+  //read 1-16
 #if PCF857x_L1_TYPE == PCF8574
   pcf857x[0].read(d);
   pcf857x[1].read(d + 1);
@@ -908,7 +888,7 @@ void readButtons() {
   pcf857x[0].read16((uint16_t *)d);
 #endif
 
-//read 17-32
+  //read 17-32
 #if PCF857x_L2_TYPE == PCF8574
   pcf857x[2].read(d + 2);
   pcf857x[3].read(d + 3);
@@ -920,7 +900,7 @@ void readButtons() {
   *((uint32_t *)d) = ~*((uint32_t *)d);
 #endif
 
-//analog pin to buttons
+  //analog pin to buttons
 #ifdef APB
   static const uint8_t apb_values[] = { APB_VALUES };
   static const uint8_t apb_btns[] = { APB_BTNS };
@@ -935,13 +915,13 @@ void readButtons() {
     bitWrite(*((uint32_t *)d), apb_btns[i] - 1, ((apb_val > apb_values[i] - APB_TOLERANCE) && (apb_val < apb_values[i] + APB_TOLERANCE)));
 #endif
 
-//direct pin buttons
+    //direct pin buttons
 #ifdef DPB
   for (i = 0; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
 
-//button matrix
+    //button matrix
 #ifdef BM
   uint8_t btn = BM_1ST_BTN - 1;
   for (i = 0; i < sizeof(bm_rows); i++) {
@@ -956,7 +936,6 @@ void readButtons() {
     *portModeRegister(digitalPinToPort(bm_rows[i])) &= ~digitalPinToBitMask(bm_rows[i]);
   }
 #endif
-
 
   //debounce
   if (settings.debounce) {
@@ -981,7 +960,7 @@ void readButtons() {
       bitClear(wheel.buttons, settings.centerButton);
     }
 
-//analog shifter
+    //analog shifter
 #ifdef ASHIFTER
   uint8_t x = analogReadFast(ASHIFTER_PINX) >> 2;
   uint8_t y = analogReadFast(ASHIFTER_PINY) >> 2;
@@ -994,7 +973,7 @@ void readButtons() {
     Serial.println(y);
   }
 
-//clear bits
+  //clear bits
 #if ASHIFTER_POS == 8
   wheel.buttons &= ~((uint32_t)0xff << (ASHIFTER_1ST_BTN - 1));
 #endif
@@ -1114,8 +1093,6 @@ void processSerial() {
     //center
     if (strcmp_P(cmd, PSTR("center")) == 0)
       center();
-
-
 
     if (strcmp_P(cmd, PSTR("load")) == 0)
       load();
@@ -1323,10 +1300,6 @@ void processSerial() {
     }
 #endif
 
-    if (strcmp_P(cmd, PSTR("zeropedals")) == 0) {
-      zeroAnalogPedals();
-    }
-
 #ifdef APB
     if (strcmp_P(cmd, PSTR("apbout")) == 0) {
       apb_out = !apb_out;
@@ -1446,16 +1419,6 @@ void save() {
   Serial.println(F("Settings saved"));
 }
 
-void zeroAnalogPedals() {
-#if (PEDALS_TYPE == PT_INTERNAL)
-#ifndef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_ACC]->setValue(0);
-  wheel.analogAxes[AXIS_BRAKE]->setValue(0);
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(0);
-#endif
-#endif
-}
-
 void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   uint8_t _state = 1;
 
@@ -1483,13 +1446,13 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       prevPos = pos;
 
       //debug output
-      Serial.print("Pos:");
-      Serial.print(pos);
-      Serial.print("\tDist:");
-      Serial.print(dist);
-      Serial.print("\tTime:");
-      Serial.print(currTime - prevTime);
-      Serial.println();
+      //Serial.print("Pos:");
+      //Serial.print(pos);
+      //Serial.print("\tDist:");
+      //Serial.print(dist);
+      //Serial.print("\tTime:");
+      //Serial.print(currTime - prevTime);
+      //Serial.println();
 
       switch (_state) {
         case 1:
@@ -1505,8 +1468,8 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMin = pos;
-            Serial.print("Found Min:");
-            Serial.println(posMin);
+            //Serial.print("Found Min:");
+            //Serial.println(posMin);
 
             motor.setForce(-force);
             _state = 2;
@@ -1518,15 +1481,15 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMax = pos;
-            Serial.print("Found Max:");
-            Serial.println(posMax);
-            Serial.print("Min:");
-            Serial.println(posMin);
+            //Serial.print("Found Max:");
+            //Serial.println(posMax);
+            //Serial.print("Min:");
+            //Serial.println(posMin);
 
             //calculate range
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
-            Serial.print("Range:");
-            Serial.println(range);
+            //Serial.print("Range:");
+            // Serial.println(range);
 
             if (range < 2) {
               Serial.println("Error: no movement");
@@ -1538,10 +1501,10 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            Serial.print("Found Center:");
-            Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
+            //Serial.print("Found Center:");
+            //Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4) - 1);
             //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
+            SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4) - 1);
 
             //Go to center - should be safe now
             motor.setForce(force);
