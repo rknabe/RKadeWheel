@@ -22,6 +22,7 @@
 //---------------------------Configuration-------------------------------
 
 #define SERIAL_BAUDRATE 2000000
+//#define USE_TIMING
 
 //---------------------------Steering axis-------------------------------
 //different types of wheel sensor. Choose only one!
@@ -60,10 +61,10 @@
 //---------------------------analog axes---------------------------
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
-#define PIN_AUX1    A3
-#define PIN_AUX2    A8
-#define PIN_AUX3    A6
-#define PIN_AUX4    A7
+//#define PIN_AUX1    A3
+//#define PIN_AUX2    A8
+//#define PIN_AUX3    A6
+//#define PIN_AUX4    A7
 
 
 //different ways of connecting pedals. Choose only one!
@@ -138,11 +139,11 @@
 
 //----------------------------Buttons-------------------------------------
 //different ways of connecting buttons. Choose only one!
-#define BUTTONS_TYPE BT_74HC165       //Use 74HC165 shift registers
+//#define BUTTONS_TYPE BT_74HC165       //Use 74HC165 shift registers
 //#define BUTTONS_TYPE BT_MCP23017    //Use MCP23017 I2C port expanders
 //#define BUTTONS_TYPE BT_CD4021B     //Use CD4021B shift registers
 //#define BUTTONS_TYPE BT_PCF857x     //Use PCF857x I2C port expanders
-//#define BUTTONS_TYPE BT_NONE          //No buttons
+#define BUTTONS_TYPE BT_NONE          //No buttons
 
 
 //settings for 74HC165

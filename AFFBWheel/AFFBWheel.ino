@@ -42,6 +42,7 @@ SettingsData settings;
 int16_t force;
 
 bool timing = false;
+
 bool fvaOut = false;
 
 #ifdef DPB
@@ -61,7 +62,10 @@ bool ashifter_out = false;
 #endif
 
 uint16_t timerInfo;
+
+#ifdef USE_TIMING
 uint16_t loopCount;
+#endif
 
 int8_t axisInfo = -1;
 
@@ -337,10 +341,13 @@ void setup() {
 
 void mainLoop() {
 
+#ifdef USE_TIMING
   uint16_t t[5];
+#endif
 
   //Gathering data and measuring time
   if (timing) {
+#ifdef USE_TIMING
     t[0] = micros();
     wheel.axisWheel->setValue(GET_WHEEL_POS);
     t[1] = micros();
@@ -353,17 +360,20 @@ void mainLoop() {
     t[4] = micros();
     processFFB();
     t[5] = micros();
+#endif
   } else {
     wheel.axisWheel->setValue(GET_WHEEL_POS);
     readAnalogAxes();
+#ifndef BT_NONE
     readButtons();
+#endif
     processUsbCmd();
     wheel.update();
     processFFB();
   }
 
+#ifdef USE_TIMING
   loopCount++;
-
   if ((uint16_t)(millis() - timerInfo) > 1000) {
     if (timing) {
 
@@ -385,6 +395,7 @@ void mainLoop() {
       timerInfo = millis();
     }
   }
+#endif
 
   processSerial();
 }
@@ -1008,7 +1019,7 @@ void readButtons() {
 void center() {
   CENTER_WHEEL;
   wheel.axisWheel->center();
-  Serial.println(F("Centered"));
+  //Serial.println(F("Centered"));
 }
 
 //Serial port - commands and output.
@@ -1016,7 +1027,6 @@ void processSerial() {
 
   //output axis data
   if (axisInfo == 0) {
-
     Serial.print(F("Axis#0 Raw:"));
     Serial.print(wheel.axisWheel->rawValue);
     Serial.print(F("\tAbs: "));
@@ -1033,7 +1043,6 @@ void processSerial() {
     Serial.print(wheel.axisWheel->acceleration);
     Serial.print(F("\tFFB:"));
     Serial.println(force);
-
   } else if ((axisInfo > 0) && (axisInfo <= 7)) {
     Serial.print(F("Axis#"));
     Serial.print(axisInfo);
@@ -1086,9 +1095,11 @@ void processSerial() {
         Serial.println(F("off"));
     }
 
+#ifdef USE_TIMING
     if (strcmp_P(cmd, PSTR("timing")) == 0) {
       timing = !timing;
     }
+#endif
 
     //center
     if (strcmp_P(cmd, PSTR("center")) == 0)
