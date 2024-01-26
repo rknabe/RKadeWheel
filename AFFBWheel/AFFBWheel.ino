@@ -329,11 +329,13 @@ void setup() {
   //load settings
   load();
 
-  center();
+  //center();
 
 #ifdef AFC_ON
   autoFindCenter();
 #endif
+
+  center();
 
   while (true)
     mainLoop();
@@ -428,7 +430,6 @@ void processFFB() {
   motor.setForce(force * STEER_TM_RATIO_MUL);
 }
 
-
 //scaling force to minForce & maxForce and cut at cutForce
 int16_t applyForceLimit(int16_t force) {
   if (force == 0)
@@ -448,7 +449,6 @@ int16_t applyForceLimit(int16_t force) {
   else
     return constrain(force, -settings.cutForce, settings.cutForce);
 }
-
 
 /*
   communicating with GUI:
@@ -593,7 +593,6 @@ void processUsbCmd() {
   }
   usbCmd->command = 0;
 }
-
 
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
@@ -1513,9 +1512,9 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
             //Set center by setting new current position
             //Serial.print("Found Center:");
-            //Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4) - 1);
+            //Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
             //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION(((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4)) - 4);
+            SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
 
             //Go to center - should be safe now
             motor.setForce(force);
