@@ -48,9 +48,11 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
     effect = &ffbReportHandler->gEffectStates[id];
     tmpForce = 0;
 
-    if (effect->effectType == USB_EFFECT_SPRING /**TODO** and config is on**/) {
-      effect->state = MEFFECTSTATE_PLAYING;
-    }
+    //if (effect->effectType == USB_EFFECT_SPRING /**TODO** and config is on**/) {
+    // effect->state = MEFFECTSTATE_PLAYING;
+    // effect->duration = USB_DURATION_INFINITE;
+    //Serial.println("spring");
+    //}
 
     //stop effect if it reached duration
     if ((effect->state & MEFFECTSTATE_PLAYING) && !ffbReportHandler->devicePaused) {
