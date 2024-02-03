@@ -1499,7 +1499,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             //calculate range
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
             //Serial.print("Range:");
-            // Serial.println(range);
+            //Serial.println(range);
 
             if (range < 2) {
               Serial.println("Error: no movement");
@@ -1512,9 +1512,9 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
             //Set center by setting new current position
             //Serial.print("Found Center:");
-            //Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
+            //Serial.println((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4) + 4);
             //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4));
+            SET_WHEEL_POSITION((abs(posMin - posMax) / 2) / (STEER_TM_RATIO_DIV * 4) + 4);
 
             //Go to center - should be safe now
             motor.setForce(force);
