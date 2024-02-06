@@ -75,7 +75,9 @@ void FfbEngine::constantSpringForce() {
         effect->positiveSaturation = 9463;
         effect->period = 1;
         effect->duration = USB_DURATION_INFINITE;
-        ffbReportHandler->StartEffect(id);
+        if (!(effect->state & MEFFECTSTATE_PLAYING)) {
+          ffbReportHandler->StartEffect(id);
+        }
       } else {
         Serial.println("Could not create constant spring force");
       }
@@ -87,6 +89,15 @@ void FfbEngine::constantSpringForce() {
     id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
     if (id > 0) {
       Serial.println("Stopping constant spring force");
+      volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
+      effect->effectType = 0;
+      effect->gain = 0;
+      effect->negativeCoefficient = 0;
+      effect->positiveCoefficient = 0;
+      effect->negativeSaturation = 0;
+      effect->positiveSaturation = 0;
+      effect->period = 0;
+      effect->duration = 0;
       ffbReportHandler->StopEffect(id);
       ffbReportHandler->FreeEffect(id);
     }
@@ -257,7 +268,7 @@ int16_t FfbEngine::stdown(volatile TEffectState* effect, int32_t magnitude) {
 }
 
 int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) {
-  int32_t tempForce;
+  int32_t tempForce = 0;
 
   position = position >> 1;
 
@@ -267,8 +278,26 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
   } else if (position > (effect->cpOffset + (int16_t)effect->deadBand)) {
     tempForce = ((position - (effect->cpOffset + (int32_t)effect->deadBand)) * effect->positiveCoefficient) >> 14;
     tempForce = constrain(tempForce, -(int16_t)effect->positiveSaturation, effect->positiveSaturation);
-  } else
-    return 0;
+  }
+
+  Serial.print("cpOffset:");
+  Serial.println(effect->cpOffset);
+  Serial.print("deadBand:");
+  Serial.println(effect->deadBand);
+  Serial.print("gain:");
+  Serial.println(effect->gain);
+  Serial.print("negativeCoefficient:");
+  Serial.println(effect->negativeCoefficient);
+  Serial.print("positiveCoefficient:");
+  Serial.println(effect->positiveCoefficient);
+  Serial.print("negativeSaturation:");
+  Serial.println(effect->negativeSaturation);
+  Serial.print("positiveSaturation:");
+  Serial.println(effect->positiveSaturation);
+  Serial.print("period:");
+  Serial.println(effect->period);
+  Serial.print("duration:");
+  Serial.println(effect->duration);
 
   return tempForce;
 }
