@@ -32,27 +32,43 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
 
+bool FfbEngine::hasSpringForce() {
+  TEffectState* effect;
+  for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
+    effect = &ffbReportHandler->gEffectStates[id];
+    if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state & MEFFECTSTATE_PLAYING) && (!ffbReportHandler->devicePaused)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 //returns 15-bit force value in range [-16384..16384]
 int16_t FfbEngine::calculateForce(AxisWheel* axis) {
   int32_t totalForce = 0;
   int16_t tmpForce;
-
   volatile TEffectState* effect;
-
   int16_t _millis = millis();
   int16_t timeDiff = _millis - prevTime;
   prevTime = _millis;
 
+  if (settings.spring > 0 && !hasSpringForce()) {
+    uint8_t id = ffbReportHandler->GetNextFreeEffect();
+    effect = &ffbReportHandler->gEffectStates[id];
+    effect->state = MEFFECTSTATE_PLAYING;
+    effect->effectType = USB_EFFECT_SPRING;
+    effect->gain = 255;
+    effect->negativeCoefficient = 15000;
+    effect->positiveCoefficient = 15000;
+    effect->negativeSaturation = 9463;
+    effect->positiveSaturation = 9463;
+    effect->period = 1;
+    effect->duration = USB_DURATION_INFINITE;
+  }
+
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
     tmpForce = 0;
-
-    //if (effect->effectType == USB_EFFECT_SPRING /**TODO** and config is on**/) {
-    // effect->state = MEFFECTSTATE_PLAYING;
-    // effect->duration = USB_DURATION_INFINITE;
-    //Serial.println("spring");
-    //}
 
     //stop effect if it reached duration
     if ((effect->state & MEFFECTSTATE_PLAYING) && !ffbReportHandler->devicePaused) {
@@ -282,7 +298,6 @@ int16_t FfbEngine::inertiaForce(volatile TEffectState* effect, AxisWheel* axis) 
 
   return tempForce;
 }
-
 
 
 /*

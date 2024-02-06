@@ -31,53 +31,54 @@
 #include "settings.h"
 #include "trig_fixed.h"
 
-#define GAIN_TOTAL        0x00
-#define GAIN_CONSTANT     USB_EFFECT_CONSTANT
-#define GAIN_RAMP         USB_EFFECT_RAMP
-#define GAIN_SQUARE       USB_EFFECT_SQUARE
-#define GAIN_SINE         USB_EFFECT_SINE
-#define GAIN_TRIANGLE     USB_EFFECT_TRIANGLE
+#define GAIN_TOTAL 0x00
+#define GAIN_CONSTANT USB_EFFECT_CONSTANT
+#define GAIN_RAMP USB_EFFECT_RAMP
+#define GAIN_SQUARE USB_EFFECT_SQUARE
+#define GAIN_SINE USB_EFFECT_SINE
+#define GAIN_TRIANGLE USB_EFFECT_TRIANGLE
 #define GAIN_SAWTOOTHDOWN USB_EFFECT_SAWTOOTHDOWN
-#define GAIN_SAWTOOTHUP   USB_EFFECT_SAWTOOTHUP
-#define GAIN_SPRING       USB_EFFECT_SPRING
-#define GAIN_DAMPER       USB_EFFECT_DAMPER
-#define GAIN_INERTIA      USB_EFFECT_INERTIA
-#define GAIN_FRICTION     USB_EFFECT_FRICTION
-#define GAIN_ENDSTOP      0x0c
+#define GAIN_SAWTOOTHUP USB_EFFECT_SAWTOOTHUP
+#define GAIN_SPRING USB_EFFECT_SPRING
+#define GAIN_DAMPER USB_EFFECT_DAMPER
+#define GAIN_INERTIA USB_EFFECT_INERTIA
+#define GAIN_FRICTION USB_EFFECT_FRICTION
+#define GAIN_ENDSTOP 0x0c
 
 #define sign(x) ((x > 0) - (x < 0))
 
 extern SettingsData settings;
 
 class FfbEngine {
-  public:
-    FfbEngine();
-    void SetFfb(FfbReportHandler* reporthandler);
-    FfbReportHandler* ffbReportHandler;
-    
-    int16_t calculateForce(AxisWheel* axis);
-    
-    int16_t constantForce(volatile TEffectState*  effect);
-    int16_t rampForce(volatile TEffectState*  effect);
-    int32_t periodicForce(volatile TEffectState*  effect);
-    int16_t envelope(volatile TEffectState* effect);
-    
-    int16_t sinefix(volatile TEffectState*  effect, int16_t magnitude);
+public:
+  FfbEngine();
+  void SetFfb(FfbReportHandler* reporthandler);
+  FfbReportHandler* ffbReportHandler;
 
-    int16_t square(volatile TEffectState*  effect, int16_t magnitude);
-    int16_t triangle(volatile TEffectState*  effect, int32_t magnitude);
-    int16_t stdown(volatile TEffectState*  effect, int32_t magnitude);
-    int16_t stup(volatile TEffectState*  effect, int32_t magnitude);
-    
-    int16_t springForce(volatile TEffectState*  effect, int16_t position);
-    int16_t damperForce(volatile TEffectState*  effect, int16_t velocity);
-    int16_t inertiaForce(volatile TEffectState*  effect, AxisWheel* axis);
-    int16_t frictionForce(volatile TEffectState*  effect, int16_t velocity);
-    
-    float maxVelocityDamperC, maxVelocityFrictionC, maxAccelerationInertiaC;
-    
-  private:
-    int16_t prevTime;
+  int16_t calculateForce(AxisWheel* axis);
+  bool FfbEngine::hasSpringForce();
+
+  int16_t constantForce(volatile TEffectState* effect);
+  int16_t rampForce(volatile TEffectState* effect);
+  int32_t periodicForce(volatile TEffectState* effect);
+  int16_t envelope(volatile TEffectState* effect);
+
+  int16_t sinefix(volatile TEffectState* effect, int16_t magnitude);
+
+  int16_t square(volatile TEffectState* effect, int16_t magnitude);
+  int16_t triangle(volatile TEffectState* effect, int32_t magnitude);
+  int16_t stdown(volatile TEffectState* effect, int32_t magnitude);
+  int16_t stup(volatile TEffectState* effect, int32_t magnitude);
+
+  int16_t springForce(volatile TEffectState* effect, int16_t position);
+  int16_t damperForce(volatile TEffectState* effect, int16_t velocity);
+  int16_t inertiaForce(volatile TEffectState* effect, AxisWheel* axis);
+  int16_t frictionForce(volatile TEffectState* effect, int16_t velocity);
+
+  float maxVelocityDamperC, maxVelocityFrictionC, maxAccelerationInertiaC;
+
+private:
+  int16_t prevTime;
 };
 
 int16_t applyGain(int32_t force, int16_t gain);

@@ -323,6 +323,8 @@ void setup() {
     pinMode(bm_cols[i], INPUT_PULLUP);
 #endif
 
+  settings.spring = 0;
+
   //motor setup
   motor.begin();
 
@@ -1282,6 +1284,13 @@ void processSerial() {
         settings.debounce = arg1;
       Serial.print(F("Debounce:"));
       Serial.println(settings.debounce);
+    }
+
+    if (strcmp_P(cmd, PSTR("spring")) == 0) {
+      if (arg1 >= 0)
+        settings.spring = arg1;
+      Serial.print(F("spring:"));
+      Serial.println(settings.spring);
     }
 
     //Endstop
