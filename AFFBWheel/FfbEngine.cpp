@@ -37,7 +37,6 @@ bool FfbEngine::hasSpringForce() {
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
     if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state & MEFFECTSTATE_PLAYING) && (!ffbReportHandler->devicePaused)) {
-      Serial.println("Found spring force");
       return true;
     }
   }
