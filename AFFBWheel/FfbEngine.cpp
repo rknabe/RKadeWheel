@@ -37,10 +37,60 @@ bool FfbEngine::hasSpringForce() {
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
     if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state & MEFFECTSTATE_PLAYING) && (!ffbReportHandler->devicePaused)) {
+      Serial.println("Found spring force");
       return true;
     }
   }
   return false;
+}
+
+uint8_t FfbEngine::getEffectType(uint8_t effectType) {
+  volatile TEffectState* effect;
+  for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
+    effect = &ffbReportHandler->gEffectStates[id];
+    if ((effect->effectType == effectType)) {
+      return id;
+    }
+  }
+  return 0;
+}
+
+void FfbEngine::constantSpringForce() {
+  uint8_t id;
+
+  if (settings.spring > 0) {
+    if (!hasSpringForce()) {
+      id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
+      if (id == 0) {
+        Serial.println("Creating new constant spring force");
+        id = ffbReportHandler->GetNextFreeEffect();
+      }
+      if (id > 0) {
+        volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
+        effect->effectType = USB_EFFECT_SPRING_CONSTANT;
+        effect->gain = 255;
+        effect->negativeCoefficient = 15000;
+        effect->positiveCoefficient = 15000;
+        effect->negativeSaturation = 9463;
+        effect->positiveSaturation = 9463;
+        effect->period = 1;
+        effect->duration = USB_DURATION_INFINITE;
+        ffbReportHandler->StartEffect(id);
+      } else {
+        Serial.println("Could not create constant spring force");
+      }
+    } else {
+      Serial.println("Already has spring force, ignoring constant spring");
+    }
+  } else {
+    //clear existing constant spring
+    id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
+    if (id > 0) {
+      Serial.println("Stopping constant spring force");
+      ffbReportHandler->StopEffect(id);
+      ffbReportHandler->FreeEffect(id);
+    }
+  }
 }
 
 //returns 15-bit force value in range [-16384..16384]
@@ -51,20 +101,6 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
   int16_t _millis = millis();
   int16_t timeDiff = _millis - prevTime;
   prevTime = _millis;
-
-  if (settings.spring > 0 && !hasSpringForce()) {
-    uint8_t id = ffbReportHandler->GetNextFreeEffect();
-    effect = &ffbReportHandler->gEffectStates[id];
-    effect->state = MEFFECTSTATE_PLAYING;
-    effect->effectType = USB_EFFECT_SPRING;
-    effect->gain = 255;
-    effect->negativeCoefficient = 15000;
-    effect->positiveCoefficient = 15000;
-    effect->negativeSaturation = 9463;
-    effect->positiveSaturation = 9463;
-    effect->period = 1;
-    effect->duration = USB_DURATION_INFINITE;
-  }
 
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
@@ -95,6 +131,7 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
             effect->periodTime += timeDiff;
             tmpForce = periodicForce(effect);
             break;
+          case USB_EFFECT_SPRING_CONSTANT:
           case USB_EFFECT_SPRING:
             tmpForce = springForce(effect, axis->value);
             break;

@@ -424,7 +424,7 @@ void processFFB() {
     if (settings.gain[GAIN_ENDSTOP] != 1024)
       force = applyGain(force, settings.gain[GAIN_ENDSTOP]);
   } else {
-
+    wheel.ffbEngine.constantSpringForce();
     force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   }
 

@@ -46,6 +46,8 @@ public:
 
   int16_t calculateForce(AxisWheel* axis);
   bool hasSpringForce();
+  uint8_t getEffectType(uint8_t effectType);
+  void constantSpringForce();
 
   int16_t constantForce(volatile TEffectState* effect);
   int16_t rampForce(volatile TEffectState* effect);
