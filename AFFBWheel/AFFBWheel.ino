@@ -800,7 +800,6 @@ void ADS1015_read() {
 void readButtons() {
   uint32_t buttons = 0;
   bool changed;
-  uint8_t i;
 
   uint8_t *d;
   if (settings.debounce) {
@@ -821,7 +820,7 @@ void readButtons() {
   digitalWriteFast(HC165_PIN_SCK, 0);
 #endif
 
-  i = 0x80;
+  uint8_t i = 0x80;
   do {
     if (!digitalReadFast(HC165_PIN_DATA1))
       d[0] |= i;
@@ -1447,7 +1446,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   int32_t dist;
 
   int32_t posMax;
-  int32_t posMin;
+  int32_t posMin = 0;
   int32_t range;
 
   int32_t prevTime;

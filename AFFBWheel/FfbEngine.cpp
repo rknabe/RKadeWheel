@@ -33,7 +33,7 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
 }
 
 bool FfbEngine::hasSpringForce() {
-  TEffectState* effect;
+  volatile TEffectState* effect;
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
     if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state & MEFFECTSTATE_PLAYING) && (!ffbReportHandler->devicePaused)) {
