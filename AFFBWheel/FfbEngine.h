@@ -45,7 +45,8 @@ public:
   FfbReportHandler* ffbReportHandler;
 
   int16_t calculateForce(AxisWheel* axis);
-  bool hasSpringForce();
+  //void printEffect(volatile TEffectState* effect);
+  //bool hasSpringForce();
   uint8_t getEffectType(uint8_t effectType);
   void constantSpringForce();
 

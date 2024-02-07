@@ -32,16 +32,39 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
 
-bool FfbEngine::hasSpringForce() {
+/*bool FfbEngine::hasSpringForce() {
   volatile TEffectState* effect;
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
     effect = &ffbReportHandler->gEffectStates[id];
-    if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state & MEFFECTSTATE_PLAYING) && (!ffbReportHandler->devicePaused)) {
+    if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state == MEFFECTSTATE_PLAYING)) {
       return true;
     }
   }
   return false;
-}
+}*/
+
+/*void FfbEngine::printEffect(volatile TEffectState* effect) {
+    Serial.print("cpOffset:");
+  Serial.println(effect->cpOffset);
+  Serial.print("deadBand:");
+  Serial.println(effect->deadBand);
+  Serial.print("gain:");
+  Serial.println(effect->gain);
+  Serial.print("negativeCoefficient:");
+  Serial.println(effect->negativeCoefficient);
+  Serial.print("positiveCoefficient:");
+  Serial.println(effect->positiveCoefficient);
+  Serial.print("negativeSaturation:");
+  Serial.println(effect->negativeSaturation);
+  Serial.print("positiveSaturation:");
+  Serial.println(effect->positiveSaturation);
+  Serial.print("period:");
+  Serial.println(effect->period);
+  Serial.print("duration:");
+  Serial.println(effect->duration);
+  Serial.print("state:");
+  Serial.println(effect->state);
+}*/
 
 uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   volatile TEffectState* effect;
@@ -58,49 +81,52 @@ void FfbEngine::constantSpringForce() {
   uint8_t id;
 
   if (settings.spring > 0) {
-    if (!hasSpringForce()) {
-      id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
-      if (id == 0) {
-        Serial.println(F("Creating new constant spring"));
-        id = ffbReportHandler->GetNextFreeEffect();
-      }
-      if (id > 0) {
-        volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
-        effect->effectType = USB_EFFECT_SPRING_CONSTANT;
-        effect->gain = 255;
-        effect->negativeCoefficient = 15000;
-        effect->positiveCoefficient = 15000;
-        effect->negativeSaturation = 9463;
-        effect->positiveSaturation = 9463;
-        effect->period = 1;
-        effect->gain = 255;
-        effect->deadBand = 100;
-        effect->duration = 5000;
-        if (!(effect->state & MEFFECTSTATE_PLAYING)) {
-          ffbReportHandler->StartEffect(id);
-        }
-      } else {
-        Serial.println(F("Could not create constant spring"));
-      }
-    } else {
-      Serial.println(F("Already has spring, ignoring constant spring"));
+    //if (!hasSpringForce()) {
+    //Serial.println(F("not has spring"));
+    id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
+    if (id == 0) {
+      id = ffbReportHandler->GetNextFreeEffect();
+      //Serial.print(F("Creating new constant spring:"));
+      //Serial.println(id);
     }
+    if (id > 0) {
+      volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
+      effect->effectType = USB_EFFECT_SPRING_CONSTANT;
+      effect->gain = 255;
+      effect->negativeCoefficient = 15000;
+      effect->positiveCoefficient = 15000;
+      effect->negativeSaturation = 9463;
+      effect->positiveSaturation = 9463;
+      effect->period = 1;
+      effect->gain = 255;
+      effect->deadBand = 100;
+      effect->duration = USB_DURATION_INFINITE;
+      //if (!(effect->state & MEFFECTSTATE_PLAYING)) {
+      //Serial.println(F("start effect"));
+      ffbReportHandler->StartEffect(id);
+      //} else {
+      // Serial.println(F("not start effect"));
+      //}
+    } else {
+      Serial.println(F("Could not create constant spring"));
+    }
+    //} else {
+    // id = getEffectType(USB_EFFECT_SPRING);
+    //  Serial.print(F("Already has spring, ignoring constant spring:"));
+    //   Serial.println(id);
+    // volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
+    // printEffect(effect);
+    //}
   } else {
     //clear existing constant spring
     id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
     if (id > 0) {
-      Serial.println(F("Stopping constant spring force"));
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
-      effect->effectType = 0;
-      effect->gain = 0;
-      effect->negativeCoefficient = 0;
-      effect->positiveCoefficient = 0;
-      effect->negativeSaturation = 0;
-      effect->positiveSaturation = 0;
-      effect->period = 0;
-      effect->duration = 0;
-      ffbReportHandler->StopEffect(id);
-      ffbReportHandler->FreeEffect(id);
+      if (effect->state & MEFFECTSTATE_PLAYING) {
+        Serial.println(F("Stopping constant spring force"));
+        ffbReportHandler->StopEffect(id);
+        //ffbReportHandler->FreeEffect(id);
+      }
     }
   }
 }
@@ -280,25 +306,6 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
     tempForce = ((position - (effect->cpOffset + (int32_t)effect->deadBand)) * effect->positiveCoefficient) >> 14;
     tempForce = constrain(tempForce, -(int16_t)effect->positiveSaturation, effect->positiveSaturation);
   }
-
-  /*Serial.print("cpOffset:");
-  Serial.println(effect->cpOffset);
-  Serial.print("deadBand:");
-  Serial.println(effect->deadBand);
-  Serial.print("gain:");
-  Serial.println(effect->gain);
-  Serial.print("negativeCoefficient:");
-  Serial.println(effect->negativeCoefficient);
-  Serial.print("positiveCoefficient:");
-  Serial.println(effect->positiveCoefficient);
-  Serial.print("negativeSaturation:");
-  Serial.println(effect->negativeSaturation);
-  Serial.print("positiveSaturation:");
-  Serial.println(effect->positiveSaturation);
-  Serial.print("period:");
-  Serial.println(effect->period);
-  Serial.print("duration:");
-  Serial.println(effect->duration);*/
 
   return tempForce;
 }

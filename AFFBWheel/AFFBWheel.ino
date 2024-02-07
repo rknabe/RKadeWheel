@@ -1290,7 +1290,7 @@ void processSerial() {
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
       settings.spring = 0;
       settings.springDeadband = 100;
-      settings.springDuration = 5000;
+      settings.springDuration = USB_DURATION_INFINITE;
       settings.springGain = 255;
       if (arg1 >= 0) {
         settings.spring = arg1;
@@ -1425,7 +1425,7 @@ void load(bool defaults) {
 
   settings.spring = 0;
   settings.springDeadband = 100;
-  settings.springDuration = 5000;
+  settings.springDuration = USB_DURATION_INFINITE;
   settings.springGain = 255;
 
   Serial.println(F("Settings loaded"));
