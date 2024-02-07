@@ -323,8 +323,6 @@ void setup() {
     pinMode(bm_cols[i], INPUT_PULLUP);
 #endif
 
-  settings.spring = 0;
-
   //motor setup
   motor.begin();
 
@@ -407,6 +405,9 @@ void mainLoop() {
 //Processing endstop and force feedback
 void processFFB() {
   int32_t excess = 0;
+
+  wheel.ffbEngine.constantSpringForce();
+
   if (wheel.axisWheel->rawValue > wheel.axisWheel->axisMax)
     excess = wheel.axisWheel->rawValue - wheel.axisWheel->axisMax;
   if (wheel.axisWheel->rawValue < -wheel.axisWheel->axisMax)
@@ -424,7 +425,6 @@ void processFFB() {
     if (settings.gain[GAIN_ENDSTOP] != 1024)
       force = applyGain(force, settings.gain[GAIN_ENDSTOP]);
   } else {
-    wheel.ffbEngine.constantSpringForce();
     force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   }
 
@@ -1070,11 +1070,12 @@ void processSerial() {
   if (Serial.available()) {
     char cmd[16];
     uint8_t cmdLength;
-    int32_t arg1, arg2, arg3;
+    int32_t arg1, arg2, arg3, arg4;
 
     arg1 = -32768;
     arg2 = -32768;
     arg3 = -32768;
+    arg4 = -32768;
 
     cmdLength = Serial.readBytesUntil(' ', cmd, 15);
     cmd[cmdLength] = 0;
@@ -1085,6 +1086,8 @@ void processSerial() {
       arg2 = Serial.parseInt(SKIP_WHITESPACE);
     if (Serial.available())
       arg3 = Serial.parseInt(SKIP_WHITESPACE);
+    if (Serial.available())
+      arg4 = Serial.parseInt(SKIP_WHITESPACE);
 
     if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
       fvaOut = !fvaOut;
@@ -1175,7 +1178,6 @@ void processSerial() {
         if ((arg2 >= 0) && (arg2 <= 32767)) {
           settings.gain[arg1] = arg2;
         }
-
         Serial.print(F("Gain "));
         Serial.print(arg1);
         Serial.print(" ");
@@ -1286,10 +1288,30 @@ void processSerial() {
     }
 
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
-      if (arg1 >= 0)
+      settings.spring = 0;
+      settings.springDeadband = 100;
+      settings.springDuration = 5000;
+      settings.springGain = 255;
+      if (arg1 >= 0) {
         settings.spring = arg1;
+        if (arg2 >= 0) {
+          settings.springDeadband = arg2;
+        }
+        if (arg3 >= 0) {
+          settings.springDuration = arg3;
+        }
+        if (arg4 >= 0) {
+          settings.springGain = arg4;
+        }
+      }
       Serial.print(F("spring:"));
       Serial.println(settings.spring);
+      Serial.print(F("springDeadband:"));
+      Serial.println(settings.springDeadband);
+      Serial.print(F("springDuration:"));
+      Serial.println(settings.springDuration);
+      Serial.print(F("springGain:"));
+      Serial.println(settings.springGain);
     }
 
     //Endstop
@@ -1400,6 +1422,11 @@ void load(bool defaults) {
   wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
   wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
   wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
+
+  settings.spring = 0;
+  settings.springDeadband = 100;
+  settings.springDuration = 5000;
+  settings.springGain = 255;
 
   Serial.println(F("Settings loaded"));
 }
@@ -1520,9 +1547,9 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
             //Set center by setting new current position
             //Serial.print("Found Center:");
-            //Serial.println((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0));
+            //Serial.println((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
             //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0));
+            SET_WHEEL_POSITION((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
 
             //Go to center - should be safe now
             motor.setForce(force);

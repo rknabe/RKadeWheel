@@ -61,7 +61,7 @@ void FfbEngine::constantSpringForce() {
     if (!hasSpringForce()) {
       id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
       if (id == 0) {
-        Serial.println("Creating new constant spring force");
+        Serial.println(F("Creating new constant spring"));
         id = ffbReportHandler->GetNextFreeEffect();
       }
       if (id > 0) {
@@ -73,21 +73,23 @@ void FfbEngine::constantSpringForce() {
         effect->negativeSaturation = 9463;
         effect->positiveSaturation = 9463;
         effect->period = 1;
-        effect->duration = USB_DURATION_INFINITE;
+        effect->gain = 255;
+        effect->deadBand = 100;
+        effect->duration = 5000;
         if (!(effect->state & MEFFECTSTATE_PLAYING)) {
           ffbReportHandler->StartEffect(id);
         }
       } else {
-        Serial.println("Could not create constant spring force");
+        Serial.println(F("Could not create constant spring"));
       }
     } else {
-      Serial.println("Already has spring force, ignoring constant spring");
+      Serial.println(F("Already has spring, ignoring constant spring"));
     }
   } else {
     //clear existing constant spring
     id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
     if (id > 0) {
-      Serial.println("Stopping constant spring force");
+      Serial.println(F("Stopping constant spring force"));
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       effect->effectType = 0;
       effect->gain = 0;
@@ -279,7 +281,7 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
     tempForce = constrain(tempForce, -(int16_t)effect->positiveSaturation, effect->positiveSaturation);
   }
 
-  Serial.print("cpOffset:");
+  /*Serial.print("cpOffset:");
   Serial.println(effect->cpOffset);
   Serial.print("deadBand:");
   Serial.println(effect->deadBand);
@@ -296,7 +298,7 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
   Serial.print("period:");
   Serial.println(effect->period);
   Serial.print("duration:");
-  Serial.println(effect->duration);
+  Serial.println(effect->duration);*/
 
   return tempForce;
 }

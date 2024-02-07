@@ -25,6 +25,9 @@ struct SettingsData {
   int16_t endstopOffset;
   int16_t endstopWidth;
   uint8_t spring;
+  uint8_t springGain;
+  int16_t springDeadband;
+  int16_t springDuration;
 };
 
 //all settings
