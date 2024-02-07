@@ -295,7 +295,7 @@ int16_t FfbEngine::stdown(volatile TEffectState* effect, int32_t magnitude) {
 }
 
 int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) {
-  int32_t tempForce = 0;
+  int32_t tempForce;
 
   position = position >> 1;
 
@@ -305,7 +305,8 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
   } else if (position > (effect->cpOffset + (int16_t)effect->deadBand)) {
     tempForce = ((position - (effect->cpOffset + (int32_t)effect->deadBand)) * effect->positiveCoefficient) >> 14;
     tempForce = constrain(tempForce, -(int16_t)effect->positiveSaturation, effect->positiveSaturation);
-  }
+  } else
+    return 0;
 
   return tempForce;
 }
