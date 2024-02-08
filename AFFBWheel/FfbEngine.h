@@ -30,19 +30,9 @@
 #include "axis.h"
 #include "settings.h"
 #include "trig_fixed.h"
+#include "filters.h"
 
 #define GAIN_TOTAL 0x00
-#define GAIN_CONSTANT USB_EFFECT_CONSTANT
-#define GAIN_RAMP USB_EFFECT_RAMP
-#define GAIN_SQUARE USB_EFFECT_SQUARE
-#define GAIN_SINE USB_EFFECT_SINE
-#define GAIN_TRIANGLE USB_EFFECT_TRIANGLE
-#define GAIN_SAWTOOTHDOWN USB_EFFECT_SAWTOOTHDOWN
-#define GAIN_SAWTOOTHUP USB_EFFECT_SAWTOOTHUP
-#define GAIN_SPRING USB_EFFECT_SPRING
-#define GAIN_DAMPER USB_EFFECT_DAMPER
-#define GAIN_INERTIA USB_EFFECT_INERTIA
-#define GAIN_FRICTION USB_EFFECT_FRICTION
 #define GAIN_ENDSTOP 0x0c
 
 #define sign(x) ((x > 0) - (x < 0))
@@ -56,6 +46,7 @@ public:
   FfbReportHandler* ffbReportHandler;
 
   int16_t calculateForce(AxisWheel* axis);
+  int32_t calculateConditionalForce(volatile TEffectState* effect, float metric);
   //void printEffect(volatile TEffectState* effect);
   //bool hasSpringForce();
   uint8_t getEffectType(uint8_t effectType);

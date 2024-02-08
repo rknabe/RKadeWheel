@@ -24,6 +24,15 @@
 
 #include "FfbEngine.h"
 #include "HIDReportType.h"
+#include "filters.h"
+#include "filters_defs.h"
+
+const float cutoff_freq_damper = 5.0;      //Cutoff frequency in Hz
+const float sampling_time_damper = 0.001;  //Sampling time in seconds.
+IIR::ORDER order = IIR::ORDER::OD1;        // Order (OD1 to OD4)
+Filter damperFilter(cutoff_freq_damper, sampling_time_damper, order);
+Filter interiaFilter(cutoff_freq_damper, sampling_time_damper, order);
+Filter frictionFilter(cutoff_freq_damper, sampling_time_damper, order);
 
 FfbEngine::FfbEngine() {
 }
@@ -31,40 +40,6 @@ FfbEngine::FfbEngine() {
 void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
-
-/*bool FfbEngine::hasSpringForce() {
-  volatile TEffectState* effect;
-  for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
-    effect = &ffbReportHandler->gEffectStates[id];
-    if ((effect->effectType == USB_EFFECT_SPRING) && (effect->state == MEFFECTSTATE_PLAYING)) {
-      return true;
-    }
-  }
-  return false;
-}*/
-
-/*void FfbEngine::printEffect(volatile TEffectState* effect) {
-    Serial.print("cpOffset:");
-  Serial.println(effect->cpOffset);
-  Serial.print("deadBand:");
-  Serial.println(effect->deadBand);
-  Serial.print("gain:");
-  Serial.println(effect->gain);
-  Serial.print("negativeCoefficient:");
-  Serial.println(effect->negativeCoefficient);
-  Serial.print("positiveCoefficient:");
-  Serial.println(effect->positiveCoefficient);
-  Serial.print("negativeSaturation:");
-  Serial.println(effect->negativeSaturation);
-  Serial.print("positiveSaturation:");
-  Serial.println(effect->positiveSaturation);
-  Serial.print("period:");
-  Serial.println(effect->period);
-  Serial.print("duration:");
-  Serial.println(effect->duration);
-  Serial.print("state:");
-  Serial.println(effect->state);
-}*/
 
 uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   volatile TEffectState* effect;
@@ -123,7 +98,7 @@ void FfbEngine::constantSpringForce() {
     if (id > 0) {
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       if (effect->state & MEFFECTSTATE_PLAYING) {
-        Serial.println(F("Stopping constant spring force"));
+        //Serial.println(F("Stopping constant spring force"));
         ffbReportHandler->StopEffect(id);
         //ffbReportHandler->FreeEffect(id);
       }
@@ -174,13 +149,13 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
             tmpForce = springForce(effect, axis->value);
             break;
           case USB_EFFECT_DAMPER:
-            tmpForce = damperForce(effect, axis->velocity);
+            tmpForce = calculateConditionalForce(effect, axis->velocity);
             break;
           case USB_EFFECT_INERTIA:
-            tmpForce = inertiaForce(effect, axis);
+            tmpForce = calculateConditionalForce(effect, axis->acceleration);
             break;
           case USB_EFFECT_FRICTION:
-            tmpForce = frictionForce(effect, axis->velocity);
+            tmpForce = calculateConditionalForce(effect, axis->velocity);
             break;
         }
 
@@ -311,13 +286,45 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
   return tempForce;
 }
 
+int32_t FfbEngine::calculateConditionalForce(volatile TEffectState* effect, float metric) {
+  //float deadBand = effect->deadBand;
+  //float cpOffset = effect->cpOffset;
+  //float negativeCoefficient = -effect->negativeCoefficient;
+  //float positiveSaturation = effect->positiveSaturation;
+  //float positiveCoefficient = effect->positiveCoefficient;
+  float tempForce = 0;
+  if (metric < (effect->cpOffset - effect->deadBand)) {
+    tempForce = ((float)1.00 * (effect->cpOffset - effect->deadBand) / 10000 - metric) * -effect->negativeCoefficient;
+  } else if (metric > (effect->cpOffset + effect->deadBand)) {
+    tempForce = (metric - (float)1.00 * (effect->cpOffset + effect->deadBand) / 10000) * effect->positiveCoefficient;
+    tempForce = (tempForce > effect->positiveSaturation ? effect->positiveSaturation : tempForce);
+  }
+  tempForce = tempForce * effect->gain / 255;
+  switch (effect->effectType) {
+    case USB_EFFECT_DAMPER:
+      tempForce = damperFilter.filterIn(tempForce);
+      break;
+    case USB_EFFECT_INERTIA:
+      tempForce = interiaFilter.filterIn(tempForce);
+      break;
+    case USB_EFFECT_FRICTION:
+      tempForce = frictionFilter.filterIn(tempForce);
+      break;
+    default:
+      break;
+  }
+
+  return (int32_t)tempForce;
+}
+
+int16_t applyGain(int32_t force, int16_t gain) {
+  force = force * gain;
+  force = constrain(force, -16383L << 10, 16383L << 10);
+  return force >> 10;
+}
 
 /*
  * damper, inertia, friction 
- * 
- * Про эти эффекты внятного описания найти не удалось
- * возможно, реализация неверна
- * 
  * Could not find any decent information about these effects
  * implementation may be incorrect.
  */
@@ -326,6 +333,7 @@ int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) 
  * damper creates force agains velocity. 
  * Maximum value for velocity is needed for scaling, so it is set with maxVelocityDamper
  */
+/*
 int16_t FfbEngine::damperForce(volatile TEffectState* effect, int16_t velocity) {
   int32_t tempForce;
 
@@ -341,13 +349,14 @@ int16_t FfbEngine::damperForce(volatile TEffectState* effect, int16_t velocity) 
     return 0;
 
   return tempForce;
-}
+}*/
 
 
 /*
  * Inertia effect should oppose acceleration.
  * maximum value for acceleration is set with maxAccelerationInertia
 */
+/*
 int16_t FfbEngine::inertiaForce(volatile TEffectState* effect, AxisWheel* axis) {
   int32_t tempForce;
 
@@ -372,7 +381,7 @@ int16_t FfbEngine::inertiaForce(volatile TEffectState* effect, AxisWheel* axis) 
     return 0;
 
   return tempForce;
-}
+}*/
 
 
 /*
@@ -382,6 +391,7 @@ int16_t FfbEngine::inertiaForce(volatile TEffectState* effect, AxisWheel* axis) 
  * 
  * cpOffset and saturation ignored
  */
+/*
 int16_t FfbEngine::frictionForce(volatile TEffectState* effect, int16_t velocity) {
 
   if (velocity == 0)
@@ -406,10 +416,28 @@ int16_t FfbEngine::frictionForce(volatile TEffectState* effect, int16_t velocity
   }
 
   return 0;
-}
+}*/
 
-int16_t applyGain(int32_t force, int16_t gain) {
-  force = force * gain;
-  force = constrain(force, -16383L << 10, 16383L << 10);
-  return force >> 10;
-}
+
+/*void FfbEngine::printEffect(volatile TEffectState* effect) {
+    Serial.print("cpOffset:");
+  Serial.println(effect->cpOffset);
+  Serial.print("deadBand:");
+  Serial.println(effect->deadBand);
+  Serial.print("gain:");
+  Serial.println(effect->gain);
+  Serial.print("negativeCoefficient:");
+  Serial.println(effect->negativeCoefficient);
+  Serial.print("positiveCoefficient:");
+  Serial.println(effect->positiveCoefficient);
+  Serial.print("negativeSaturation:");
+  Serial.println(effect->negativeSaturation);
+  Serial.print("positiveSaturation:");
+  Serial.println(effect->positiveSaturation);
+  Serial.print("period:");
+  Serial.println(effect->period);
+  Serial.print("duration:");
+  Serial.println(effect->duration);
+  Serial.print("state:");
+  Serial.println(effect->state);
+}*/

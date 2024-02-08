@@ -1,7 +1,7 @@
 #include "effNames.h"
 
 void printEffect(uint8_t e)
-{
+{/*
   switch(e)
   {
     case 0:
@@ -43,5 +43,5 @@ void printEffect(uint8_t e)
     case 12:
       Serial.print(F("Endstop"));
       break;    
-  }
+  }*/
 }

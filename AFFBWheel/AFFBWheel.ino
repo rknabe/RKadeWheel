@@ -797,6 +797,7 @@ void ADS1015_read() {
 //-----------------------------------end analog axes------------------------------
 
 //-----------------------------------reading buttons------------------------------
+#ifndef BT_NONE
 void readButtons() {
   uint32_t buttons = 0;
   bool changed;
@@ -1013,6 +1014,7 @@ void readButtons() {
   wheel.buttons |= ((uint32_t)g << (ASHIFTER_1ST_BTN - 1));
 #endif
 }
+#endif
 //---------------------------------------- end buttons ----------------------------------------------
 
 //Centering wheel
@@ -1026,6 +1028,7 @@ void center() {
 void processSerial() {
 
   //output axis data
+  /*
   if (axisInfo == 0) {
     Serial.print(F("Axis#0 Raw:"));
     Serial.print(wheel.axisWheel->rawValue);
@@ -1065,7 +1068,7 @@ void processSerial() {
     Serial.print(F(" ("));
     Serial.print((int8_t)(wheel.analogAxes[axisInfo - 1]->value * (100.0 / 65534)) + 50);
     Serial.println(F("%)"));
-  }
+  }*/
 
   if (Serial.available()) {
     char cmd[16];
@@ -1091,11 +1094,11 @@ void processSerial() {
 
     if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
       fvaOut = !fvaOut;
-      Serial.print(F("Force-velocity-acc output "));
-      if (fvaOut)
-        Serial.println(F("on"));
-      else
-        Serial.println(F("off"));
+      //Serial.print(F("Force-velocity-acc output "));
+      //if (fvaOut)
+      //Serial.println(F("on"));
+      //else
+      //Serial.println(F("off"));
     }
 
 #ifdef USE_TIMING
@@ -1121,40 +1124,40 @@ void processSerial() {
       if ((arg1 >= 0) && (arg1 <= 32)) {
         settings.centerButton = arg1 - 1;
       }
-      Serial.print(F("Center button: "));
-      Serial.println(settings.centerButton + 1);
+      //Serial.print(F("Center button: "));
+      //Serial.println(settings.centerButton + 1);
     }
 
     if (strcmp_P(cmd, PSTR("range")) == 0) {
       if (arg1 > 0) {
         wheel.axisWheel->setRange(arg1);
       }
-      Serial.print(F("Wheel range: "));
-      Serial.println(wheel.axisWheel->range);
+      //Serial.print(F("Wheel range: "));
+      //Serial.println(wheel.axisWheel->range);
     }
 
     if (strcmp_P(cmd, PSTR("maxvd")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxVelocityDamperC = 16384.0 / arg1;
       }
-      Serial.print(F("max velocity damper: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityDamperC));
+      //Serial.print(F("max velocity damper: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityDamperC));
     }
 
     if (strcmp_P(cmd, PSTR("maxvf")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / arg1;
       }
-      Serial.print(F("max velocity friction: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC));
+      //Serial.print(F("max velocity friction: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC));
     }
 
     if (strcmp_P(cmd, PSTR("maxacc")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / arg1;
       }
-      Serial.print(F("max acceleration: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC));
+      //Serial.print(F("max acceleration: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC));
     }
 
     if (strcmp_P(cmd, PSTR("forcelimit")) == 0) {
@@ -1165,12 +1168,12 @@ void processSerial() {
       if ((arg3 >= 0) && (arg3 <= 16383))
         settings.cutForce = arg3;
 
-      Serial.print(F("MinForce: "));
-      Serial.print(settings.minForce);
-      Serial.print(F(" MaxForce: "));
-      Serial.print(settings.maxForce);
-      Serial.print(F(" CutForce: "));
-      Serial.println(settings.cutForce);
+      //Serial.print(F("MinForce: "));
+      //Serial.print(settings.minForce);
+      //Serial.print(F(" MaxForce: "));
+      //Serial.print(settings.maxForce);
+      //Serial.print(F(" CutForce: "));
+      //Serial.println(settings.cutForce);
     }
 
     if (strcmp_P(cmd, PSTR("gain")) == 0) {
@@ -1178,12 +1181,12 @@ void processSerial() {
         if ((arg2 >= 0) && (arg2 <= 32767)) {
           settings.gain[arg1] = arg2;
         }
-        Serial.print(F("Gain "));
-        Serial.print(arg1);
-        Serial.print(" ");
-        printEffect(arg1);
-        Serial.print(F(": "));
-        Serial.println(settings.gain[arg1]);
+        //Serial.print(F("Gain "));
+        //Serial.print(arg1);
+        //Serial.print(" ");
+        //printEffect(arg1);
+        //Serial.print(F(": "));
+        //Serial.println(settings.gain[arg1]);
       }
     }
 
@@ -1201,12 +1204,12 @@ void processSerial() {
         if ((arg2 > -32768) && (arg3 > -32768))
           wheel.analogAxes[arg1 - 1]->setLimits(arg2, arg3);
 
-        Serial.print(F("Limits axis#"));
-        Serial.print(arg1);
-        Serial.print(F(": "));
-        Serial.print(wheel.analogAxes[arg1 - 1]->axisMin);
-        Serial.print(" ");
-        Serial.println(wheel.analogAxes[arg1 - 1]->axisMax);
+        //Serial.print(F("Limits axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(": "));
+        //Serial.print(wheel.analogAxes[arg1 - 1]->axisMin);
+        //Serial.print(" ");
+        //Serial.println(wheel.analogAxes[arg1 - 1]->axisMax);
       }
 
     //axiscenter <axis> <pos>
@@ -1214,10 +1217,10 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= 7)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setCenter(arg2);
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" center:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->getCenter());
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" center:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->getCenter());
       }
 
     //axisdz <axis> <pos>
@@ -1225,10 +1228,10 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= 7)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setDZ(arg2);
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" Deadzone:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->getDZ());
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" Deadzone:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->getDZ());
       }
 
     //axisdisable <axis> <pos>
@@ -1236,12 +1239,12 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= 7)) {
         wheel.analogAxes[arg1 - 1]->outputDisabled = !wheel.analogAxes[arg1 - 1]->outputDisabled;
 
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        if (wheel.analogAxes[arg1 - 1]->outputDisabled)
-          Serial.println(F(" disabled"));
-        else
-          Serial.println(F(" enabled"));
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //if (wheel.analogAxes[arg1 - 1]->outputDisabled)
+        //Serial.println(F(" disabled"));
+        //else
+        //Serial.println(F(" enabled"));
       }
 
     //axistrim <axis> <level>
@@ -1250,41 +1253,41 @@ void processSerial() {
         if ((arg2 >= 0) && (arg2 < 8))
           wheel.analogAxes[arg1 - 1]->bitTrim = arg2;
 
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" trim:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->bitTrim);
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" trim:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->bitTrim);
       }
 
     //autolimits <axis>
     if (strcmp_P(cmd, PSTR("autolimit")) == 0)
       if ((arg1 >= 1) && (arg1 <= 7)) {
         wheel.analogAxes[arg1 - 1]->setAutoLimits(!wheel.analogAxes[arg1 - 1]->autoLimit);
-        Serial.print(F("Axis #"));
-        Serial.print(arg1);
-        Serial.print(F(" autolimit"));
-        if (wheel.analogAxes[arg1 - 1]->autoLimit)
-          Serial.println(F(" on"));
-        else
-          Serial.println(F(" off"));
+        //Serial.print(F("Axis #"));
+        //Serial.print(arg1);
+        //Serial.print(F(" autolimit"));
+        //if (wheel.analogAxes[arg1 - 1]->autoLimit)
+        //Serial.println(F(" on"));
+        //  else
+        //Serial.println(F(" off"));
       }
 
     //FFB PWM bitdepth/frequency
     if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
       if (arg1 > 0)
         motor.setBitDepth(arg1);
-      Serial.print(F("FFB Bitdepth:"));
-      Serial.print(motor.bitDepth);
-      Serial.print(F(" Freq:"));
-      Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
+      //Serial.print(F("FFB Bitdepth:"));
+      //Serial.print(motor.bitDepth);
+      //Serial.print(F(" Freq:"));
+      //Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
     }
 
     //Debounce
     if (strcmp_P(cmd, PSTR("debounce")) == 0) {
       if (arg1 >= 0)
         settings.debounce = arg1;
-      Serial.print(F("Debounce:"));
-      Serial.println(settings.debounce);
+      //Serial.print(F("Debounce:"));
+      //Serial.println(settings.debounce);
     }
 
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
@@ -1304,14 +1307,14 @@ void processSerial() {
           settings.springGain = arg4;
         }
       }
-      Serial.print(F("spring:"));
-      Serial.println(settings.spring);
-      Serial.print(F("springDeadband:"));
-      Serial.println(settings.springDeadband);
-      Serial.print(F("springDuration:"));
-      Serial.println(settings.springDuration);
-      Serial.print(F("springGain:"));
-      Serial.println(settings.springGain);
+      //Serial.print(F("spring:"));
+      //Serial.println(settings.spring);
+      //Serial.print(F("springDeadband:"));
+      //Serial.println(settings.springDeadband);
+      //Serial.print(F("springDuration:"));
+      //Serial.println(settings.springDuration);
+      //Serial.print(F("springGain:"));
+      //Serial.println(settings.springGain);
     }
 
     //Endstop
@@ -1320,10 +1323,10 @@ void processSerial() {
         settings.endstopOffset = arg1;
       if (arg2 >= 0)
         settings.endstopWidth = arg2;
-      Serial.print(F("Endstop: offset:"));
-      Serial.print(settings.endstopOffset);
-      Serial.print(F(" width:"));
-      Serial.println(settings.endstopWidth);
+      //Serial.print(F("Endstop: offset:"));
+      //Serial.print(settings.endstopOffset);
+      //Serial.print(F(" width:"));
+      //Serial.println(settings.endstopWidth);
     }
 
 #ifdef AFC_ON
@@ -1490,21 +1493,12 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       dist = pos - prevPos;
       prevPos = pos;
 
-      //debug output
-      //Serial.print("Pos:");
-      //Serial.print(pos);
-      //Serial.print("\tDist:");
-      //Serial.print(dist);
-      //Serial.print("\tTime:");
-      //Serial.print(currTime - prevTime);
-      //Serial.println();
-
       switch (_state) {
         case 1:
           if (pos - initialPos > 100)  //distance must be negative
           {
             motor.setForce(0);
-            Serial.println("Error: FFB inverted!");
+            Serial.println(F("Error: FFB inverted!"));
             return;
           }
 
@@ -1537,7 +1531,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             //Serial.println(range);
 
             if (range < 2) {
-              Serial.println("Error: no movement");
+              Serial.println(F("Error: no movement"));
               return;
             }
 

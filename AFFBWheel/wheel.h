@@ -86,7 +86,7 @@ class Wheel_
 {
   public:
     AxisWheel* axisWheel;
-    Axis* analogAxes[7];
+    Axis* analogAxes[ANALOG_AXIS_COUNT];
     uint32_t buttons;
     Wheel_();
     void update();

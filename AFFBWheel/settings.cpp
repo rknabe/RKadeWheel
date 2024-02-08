@@ -1,17 +1,15 @@
 #include "settings.h"
 
-uint8_t  SettingsEEPROM::calcChecksum()
-{
+uint8_t SettingsEEPROM::calcChecksum() {
   uint8_t i, checksum;
-  
-  checksum=~((uint8_t*)this)[0];
-  for(i=1;i<sizeof(SettingsEEPROM)-1;i++)
-    checksum=checksum ^ ~((uint8_t*)this)[i];
+
+  checksum = ~((uint8_t*)this)[0];
+  for (i = 1; i < sizeof(SettingsEEPROM) - 1; i++)
+    checksum = checksum ^ ~((uint8_t*)this)[i];
   return checksum;
 }
 
-void SettingsEEPROM::print()
-{
+void SettingsEEPROM::print() { /*
   uint8_t i;
 
   Serial.print(F("Range: "));
@@ -67,5 +65,5 @@ void SettingsEEPROM::print()
   Serial.println(maxAcceleration);
   
   Serial.print(F("Checksum: "));
-  Serial.println(checksum);
+  Serial.println(checksum);*/
 }
