@@ -93,8 +93,8 @@ void FfbEngine::constantSpringForce() {
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       effect->effectType = USB_EFFECT_SPRING_CONSTANT;
       effect->gain = 255;
-      effect->negativeCoefficient = 15000;
-      effect->positiveCoefficient = 15000;
+      effect->negativeCoefficient = 10000;
+      effect->positiveCoefficient = 10000;
       effect->negativeSaturation = 9463;
       effect->positiveSaturation = 9463;
       effect->period = 1;
