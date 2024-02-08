@@ -1410,7 +1410,7 @@ void load(bool defaults) {
 
   settings = settingsE.data;
 
-  for (i = 0; i < 7; i++) {
+  for (i = 0; i < ANALOG_AXIS_COUNT; i++) {
     wheel.analogAxes[i]->setLimits(settingsE.axes[i].axisMin, settingsE.axes[i].axisMax);
     wheel.analogAxes[i]->setCenter(settingsE.axes[i].axisCenter);
     if (!wheel.analogAxes[i]->autoCenter)
@@ -1443,7 +1443,7 @@ void save() {
 
   settingsE.range = wheel.axisWheel->range;
 
-  for (i = 0; i < 7; i++) {
+  for (i = 0; i < ANALOG_AXIS_COUNT; i++) {
     settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
     settingsE.axes[i].axisMax = wheel.analogAxes[i]->axisMax;
     if (!wheel.analogAxes[i]->autoCenter)
