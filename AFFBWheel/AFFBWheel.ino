@@ -1075,7 +1075,6 @@ void processSerial() {
     arg1 = -32768;
     arg2 = -32768;
     arg3 = -32768;
-    arg4 = -32768;
 
     cmdLength = Serial.readBytesUntil(' ', cmd, 15);
     cmd[cmdLength] = 0;
@@ -1086,8 +1085,6 @@ void processSerial() {
       arg2 = Serial.parseInt(SKIP_WHITESPACE);
     if (Serial.available())
       arg3 = Serial.parseInt(SKIP_WHITESPACE);
-    if (Serial.available())
-      arg4 = Serial.parseInt(SKIP_WHITESPACE);
 
     if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
       fvaOut = !fvaOut;
@@ -1288,30 +1285,11 @@ void processSerial() {
     }
 
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
-      settings.spring = 0;
-      settings.springDeadband = 100;
-      settings.springDuration = USB_DURATION_INFINITE;
-      settings.springGain = 255;
       if (arg1 >= 0) {
         settings.spring = arg1;
-        if (arg2 >= 0) {
-          settings.springDeadband = arg2;
-        }
-        if (arg3 >= 0) {
-          settings.springDuration = arg3;
-        }
-        if (arg4 >= 0) {
-          settings.springGain = arg4;
-        }
       }
       Serial.print(F("spring:"));
       Serial.println(settings.spring);
-      Serial.print(F("springDeadband:"));
-      Serial.println(settings.springDeadband);
-      Serial.print(F("springDuration:"));
-      Serial.println(settings.springDuration);
-      Serial.print(F("springGain:"));
-      Serial.println(settings.springGain);
     }
 
     //Endstop
@@ -1424,9 +1402,6 @@ void load(bool defaults) {
   wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
 
   settings.spring = 0;
-  settings.springDeadband = 100;
-  settings.springDuration = USB_DURATION_INFINITE;
-  settings.springGain = 255;
 
   Serial.println(F("Settings loaded"));
 }

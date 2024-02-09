@@ -1,9 +1,7 @@
 #include "effNames.h"
 
-void printEffect(uint8_t e)
-{
-  switch(e)
-  {
+void printEffect(uint8_t e) {
+  switch (e) {
     case 0:
       Serial.print(F("Total"));
       break;
@@ -42,6 +40,9 @@ void printEffect(uint8_t e)
       break;
     case 12:
       Serial.print(F("Endstop"));
-      break;    
+      break;
+    case 13:
+      Serial.print(F("Constant Spring"));
+      break;
   }
 }
