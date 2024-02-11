@@ -32,8 +32,8 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
 
-void FfbEngine::printEffect(volatile TEffectState* effect) {
-  /*Serial.print("attackLevel:");
+//void FfbEngine::printEffect(volatile TEffectState* effect) {
+/*Serial.print("attackLevel:");
   Serial.println(effect->attackLevel);
   Serial.print("attackTime:");
   Serial.println(effect->attackTime);
@@ -65,7 +65,7 @@ void FfbEngine::printEffect(volatile TEffectState* effect) {
   Serial.println(effect->fadeTimeC);
   Serial.print("periodC:");
   Serial.println(effect->periodC);*/
-}
+//}
 
 uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   volatile TEffectState* effect;
@@ -80,26 +80,32 @@ uint8_t FfbEngine::getEffectType(uint8_t effectType) {
 
 void FfbEngine::constantSpringForce() {
   uint8_t id;
+  bool isNew = false;
 
   if (settings.spring > 0) {
     id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
     if (id == 0) {
       id = ffbReportHandler->GetNextFreeEffect();
+      isNew = true;
     }
     if (id > 0) {
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
-      effect->effectType = USB_EFFECT_SPRING_CONSTANT;
-      effect->negativeCoefficient = 32000;
-      effect->positiveCoefficient = 32000;
-      effect->negativeSaturation = 32000;
-      effect->positiveSaturation = 32000;
-      effect->period = 1;
-      effect->enableAxis = 4;
-      effect->directionX = 63;
-      effect->gain = 255;
-      effect->deadBand = 0;
-      effect->duration = 5000;
-      ffbReportHandler->StartEffect(id);
+      if (isNew) {
+        effect->effectType = USB_EFFECT_SPRING_CONSTANT;
+        effect->negativeCoefficient = 32767;
+        effect->positiveCoefficient = 32767;
+        effect->negativeSaturation = 32767;
+        effect->positiveSaturation = 32767;
+        effect->period = 1;
+        effect->enableAxis = 4;
+        effect->directionX = 63;
+        effect->gain = 255;
+        effect->deadBand = 100;
+        effect->duration = USB_DURATION_INFINITE;
+      }
+      if (!(effect->state & MEFFECTSTATE_PLAYING)) {
+        ffbReportHandler->StartEffect(id);
+      }
     }
   } else {
     //clear existing constant spring

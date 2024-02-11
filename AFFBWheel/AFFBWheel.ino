@@ -404,11 +404,11 @@ void mainLoop() {
 
 //Processing endstop and force feedback
 void processFFB() {
-  int32_t excess = 0;
+  //int32_t excess = 0;
 
   wheel.ffbEngine.constantSpringForce();
 
-  if (wheel.axisWheel->rawValue > wheel.axisWheel->axisMax)
+  /*if (wheel.axisWheel->rawValue > wheel.axisWheel->axisMax)
     excess = wheel.axisWheel->rawValue - wheel.axisWheel->axisMax;
   if (wheel.axisWheel->rawValue < -wheel.axisWheel->axisMax)
     excess = wheel.axisWheel->rawValue + wheel.axisWheel->axisMax;
@@ -424,9 +424,9 @@ void processFFB() {
 
     if (settings.gain[GAIN_ENDSTOP] != 1024)
       force = applyGain(force, settings.gain[GAIN_ENDSTOP]);
-  } else {
-    force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
-  }
+  } else {*/
+  force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
+  //}
 
   force = applyForceLimit(force);
   motor.setForce(force * STEER_TM_RATIO_MUL);
@@ -1479,7 +1479,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
           if (pos - initialPos > 100)  //distance must be negative
           {
             motor.setForce(0);
-            Serial.println("Error: FFB inverted!");
+            Serial.println(F("Error: FFB inverted!"));
             return;
           }
 
@@ -1512,7 +1512,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             //Serial.println(range);
 
             if (range < 2) {
-              Serial.println("Error: no movement");
+              Serial.println(F("Error: no movement"));
               return;
             }
 
