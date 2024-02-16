@@ -366,9 +366,9 @@ void mainLoop() {
   } else {
     wheel.axisWheel->setValue(GET_WHEEL_POS);
     readAnalogAxes();
-#ifndef BT_NONE
+//#ifndef BT_NONE
     readButtons();
-#endif
+//#endif
     processUsbCmd();
     wheel.update();
     processFFB();
@@ -928,7 +928,7 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
-  for (i = 0; i < sizeof(dpb); i++)
+  for (int i = 0; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
 

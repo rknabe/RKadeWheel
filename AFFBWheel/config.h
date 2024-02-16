@@ -181,8 +181,8 @@
 #define APB_BTNS       25,26
 
 //buttons directly connected to pins 
-//#define DPB        //Enable
-#define DPB_PINS       3,4
+#define DPB            //Enable
+#define DPB_PINS       2,3,4,6
 #define DPB_1ST_BTN    1
 
 //button matrix
