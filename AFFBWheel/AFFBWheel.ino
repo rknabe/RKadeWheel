@@ -945,14 +945,15 @@ void readButtons() {
     gear = 4;
     if (switch1) {
       gear = 2;
-    } else if (switch4) {
+    } else if (switch2) {
       gear = 6;
     }
   }
-  Serial.print("Gear:");
-  Serial.println(gear);
+  if (gear > 0) {
+    bitWrite(*((uint32_t *)d), gear - 1, gear);
+  }
 
-  for (int i = 0; i < sizeof(dpb); i++)
+  for (int i = 6; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
 
