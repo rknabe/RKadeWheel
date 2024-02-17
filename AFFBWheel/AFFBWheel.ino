@@ -366,9 +366,9 @@ void mainLoop() {
   } else {
     wheel.axisWheel->setValue(GET_WHEEL_POS);
     readAnalogAxes();
-//#ifndef BT_NONE
+    //#ifndef BT_NONE
     readButtons();
-//#endif
+    //#endif
     processUsbCmd();
     wheel.update();
     processFFB();
@@ -928,6 +928,30 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
+  //first six switches are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
+  bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
+  bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
+  bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
+  bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
+  uint8_t gear = 0;
+  if (switch3) {
+    gear = 3;
+    if (switch1) {
+      gear = 1;
+    } else if (switch2) {
+      gear = 5;
+    }
+  } else if (switch4) {
+    gear = 4;
+    if (switch1) {
+      gear = 2;
+    } else if (switch4) {
+      gear = 6;
+    }
+  }
+  Serial.print("Gear:");
+  Serial.println(gear);
+
   for (int i = 0; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
