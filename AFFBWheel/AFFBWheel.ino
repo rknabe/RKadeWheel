@@ -928,7 +928,7 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
-  //first six switches are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
+  //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
   bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
   bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
   bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
