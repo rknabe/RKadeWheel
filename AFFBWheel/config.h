@@ -26,7 +26,8 @@
 
 //---------------------------Steering axis-------------------------------
 //different types of wheel sensor. Choose only one!
-#define STEER_TYPE ST_ENCODER
+//#define STEER_TYPE ST_ENCODER
+#define STEER_TYPE ST_ANALOG
 //#define STEER_TYPE ST_TLE5010
 //#define STEER_TYPE ST_AS5600
 //#define STEER_TYPE ST_MLX90316
@@ -80,6 +81,7 @@
 #define PIN_ACC     A0
 #define PIN_BRAKE   A1
 #define PIN_CLUTCH  A2
+#define PIN_WHEEL   A3
 
 //#define AA_PULLUP              //internal ADC with pullups for analog axes
 //#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
@@ -132,6 +134,7 @@
 #define MA_LEVEL_AXIS_ACC     4
 #define MA_LEVEL_AXIS_BRAKE   4
 #define MA_LEVEL_AXIS_CLUTCH  4
+#define MA_LEVEL_AXIS_WHEEL   4
 #define MA_LEVEL_AXIS_AUX1    0
 #define MA_LEVEL_AXIS_AUX2    0
 #define MA_LEVEL_AXIS_AUX3    0

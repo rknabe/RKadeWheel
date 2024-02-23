@@ -228,6 +228,27 @@ void setupMLX() {
   delay(16);  //let sensor start
 }
 #endif
+
+
+#if STEER_TYPE == ST_ANALOG
+
+#define SETUP_WHEEL_SENSOR setupAnalogWheel()
+#define GET_WHEEL_POS (getWheelPos())
+#define CENTER_WHEEL wheel.axisWheel->center();
+#define SET_WHEEL_POSITION(val) wheel.axisWheel->setValue(val)
+
+inline int16_t getWheelPos() {
+#ifdef AA_PULLUP_LINEARIZE
+  wheel.analogAxes[AXIS_WHEEL]->setValue(pullup_linearize(analogReadFast(PIN_WHEEL)));
+#else
+  wheel.analogAxes[AXIS_WHEEL]->setValue(analogReadFast(PIN_WHEEL));
+#endif
+}
+
+void setupAnalogWheel() {
+}
+#endif
+
 //-------------------------------------------------------------------------------------
 
 void setup() {
@@ -598,6 +619,14 @@ void processUsbCmd() {
 
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
+
+#if STEER_TYPE == ST_ANALOG
+#ifdef AA_PULLUP_LINEARIZE
+  wheel.analogAxes[AXIS_WHEEL]->setValue(pullup_linearize(analogReadFast(PIN_WHEEL)));
+#else
+  wheel.analogAxes[AXIS_WHEEL]->setValue(analogReadFast(PIN_WHEEL));
+#endif
+#endif
 
 #if (PEDALS_TYPE == PT_INTERNAL)
 #ifdef AA_PULLUP_LINEARIZE
