@@ -4,6 +4,7 @@
 #define ST_TLE5010  1
 #define ST_AS5600   2
 #define ST_MLX90316 3
+#define ST_ANALOG   4
 
 #define PT_INTERNAL     0
 #define PT_HC164        1

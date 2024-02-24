@@ -239,9 +239,9 @@ void setupMLX() {
 
 inline int16_t getWheelPos() {
 #ifdef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_WHEEL]->setValue(pullup_linearize(analogReadFast(PIN_WHEEL)));
+  return pullup_linearize(analogReadFast(PIN_WHEEL));
 #else
-  wheel.analogAxes[AXIS_WHEEL]->setValue(analogReadFast(PIN_WHEEL));
+  return analogReadFast(PIN_WHEEL);
 #endif
 }
 
