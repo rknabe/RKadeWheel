@@ -63,7 +63,7 @@
 //---------------------------analog axes---------------------------
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
-//#define PIN_AUX1    A3
+#define PIN_AUX1      A3
 //#define PIN_AUX2    A8
 //#define PIN_AUX3    A6
 //#define PIN_AUX4    A7
@@ -82,7 +82,6 @@
 #define PIN_ACC     A0
 #define PIN_BRAKE   A1
 #define PIN_CLUTCH  A2
-#define PIN_WHEEL   A3
 
 //#define AA_PULLUP              //internal ADC with pullups for analog axes
 //#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
@@ -135,7 +134,6 @@
 #define MA_LEVEL_AXIS_ACC     4
 #define MA_LEVEL_AXIS_BRAKE   4
 #define MA_LEVEL_AXIS_CLUTCH  4
-#define MA_LEVEL_AXIS_WHEEL   4
 #define MA_LEVEL_AXIS_AUX1    0
 #define MA_LEVEL_AXIS_AUX2    0
 #define MA_LEVEL_AXIS_AUX3    0

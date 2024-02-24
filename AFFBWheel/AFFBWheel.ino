@@ -229,23 +229,14 @@ void setupMLX() {
 }
 #endif
 
-
 #if STEER_TYPE == ST_ANALOG
-
-#define SETUP_WHEEL_SENSOR setupAnalogWheel()
-#define GET_WHEEL_POS (getWheelPos())
-#define CENTER_WHEEL wheel.axisWheel->center();
-#define SET_WHEEL_POSITION(val) wheel.axisWheel->setValue(val)
+#define SETUP_WHEEL_SENSOR
+#define GET_WHEEL_POS getWheelPos()
+#define CENTER_WHEEL wheel.analogAxes[AXIS_AUX1]->setValue(0)
+#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_AUX1]->setValue(val)
 
 inline int16_t getWheelPos() {
-#ifdef AA_PULLUP_LINEARIZE
-  return pullup_linearize(analogReadFast(PIN_WHEEL));
-#else
-  return analogReadFast(PIN_WHEEL);
-#endif
-}
-
-void setupAnalogWheel() {
+  return wheel.analogAxes[AXIS_AUX1]->value * -0.4;
 }
 #endif
 
@@ -620,14 +611,6 @@ void processUsbCmd() {
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
 
-#if STEER_TYPE == ST_ANALOG
-#ifdef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_WHEEL]->setValue(pullup_linearize(analogReadFast(PIN_WHEEL)));
-#else
-  wheel.analogAxes[AXIS_WHEEL]->setValue(analogReadFast(PIN_WHEEL));
-#endif
-#endif
-
 #if (PEDALS_TYPE == PT_INTERNAL)
 #ifdef AA_PULLUP_LINEARIZE
   wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogReadFast(PIN_ACC)));
@@ -957,7 +940,7 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
-  //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
+  //first six switches are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
   bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
   bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
   bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
