@@ -228,6 +228,18 @@ void setupMLX() {
   delay(16);  //let sensor start
 }
 #endif
+
+#if STEER_TYPE == ST_ANALOG
+#define SETUP_WHEEL_SENSOR
+#define GET_WHEEL_POS getWheelPos()
+#define CENTER_WHEEL wheel.analogAxes[AXIS_AUX1]->setValue(0)
+#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_AUX1]->setValue(val)
+
+inline int16_t getWheelPos() {
+  return wheel.analogAxes[AXIS_AUX1]->value * -0.4;
+}
+#endif
+
 //-------------------------------------------------------------------------------------
 
 void setup() {
