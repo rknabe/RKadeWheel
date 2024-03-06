@@ -185,7 +185,6 @@ void setupAS5600() {
 }
 #endif
 
-
 #if STEER_TYPE == ST_MLX90316
 #include "multiturn.h"
 
@@ -228,6 +227,27 @@ void setupMLX() {
   delay(16);  //let sensor start
 }
 #endif
+
+#if STEER_TYPE == ST_ANALOG
+#define SETUP_WHEEL_SENSOR
+#define GET_WHEEL_POS getAnalogPos()
+uint32_t getAnalogPos() {
+  uint32_t pos = analogReadFast(PIN_AUX1);
+  wheel.analogAxes[AXIS_AUX1]->setValue(pos);
+  pos = wheel.analogAxes[AXIS_AUX1]->value;
+  wheel.axisWheel->setValue(pos);
+  return pos;
+}
+
+#define SET_WHEEL_POSITION(val) setAnalogPos(pos);
+void setAnalogPos(uint32_t pos) {
+  wheel.analogAxes[AXIS_AUX1]->setValue(pos);
+  //wheel.axisWheel->setValue(pos);
+}
+
+#define CENTER_WHEEL setAnalogPos(0);
+#endif
+
 //-------------------------------------------------------------------------------------
 
 void setup() {
@@ -928,7 +948,7 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
-  //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
+  //first six switches are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
   bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
   bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
   bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
@@ -1044,7 +1064,6 @@ void readButtons() {
 void center() {
   CENTER_WHEEL;
   wheel.axisWheel->center();
-  //Serial.println(F("Centered"));
 }
 
 //Serial port - commands and output.
@@ -1478,43 +1497,69 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
   int32_t prevTime;
   int32_t currTime;
+  int32_t startTime;
+
+  Serial.print("force:");
+  Serial.println(force);
+  Serial.print("period:");
+  Serial.println(period);
+  Serial.print("threshold:");
+  Serial.println(threshold);
 
   motor.setForce(force);
+#if (STEER_TYPE == ST_ANALOG)
   initialPos = prevPos = GET_WHEEL_POS;
+#else
+  initialPos = prevPos = GET_WHEEL_POS;
+#endif
+  Serial.print("init pos:");
+  Serial.println(initialPos);
 
-  prevTime = millis();
+  startTime = prevTime = millis();
+
   while (_state) {
     currTime = millis();
+    if (currTime - startTime > 5000) {
+      Serial.println("Timeout");
+      return;
+    }
     if ((currTime - prevTime) > period) {
+#if (STEER_TYPE == ST_ANALOG)
       pos = GET_WHEEL_POS;
+#else
+      pos = GET_WHEEL_POS;
+#endif
+
       dist = pos - prevPos;
       prevPos = pos;
 
       //debug output
-      //Serial.print("Pos:");
-      //Serial.print(pos);
-      //Serial.print("\tDist:");
-      //Serial.print(dist);
-      //Serial.print("\tTime:");
-      //Serial.print(currTime - prevTime);
-      //Serial.println();
+      if (abs(dist) > 5) {
+        Serial.print("Pos:");
+        Serial.println(pos);
+        Serial.print("\tDist:");
+        Serial.print(dist);
+        Serial.print("\tTime:");
+        Serial.print(currTime - prevTime);
+        Serial.println();
+      }
 
       switch (_state) {
         case 1:
-          if (pos - initialPos > 100)  //distance must be negative
-          {
-            motor.setForce(0);
-            Serial.println(F("Error: FFB inverted!"));
-            return;
-          }
+          //if (pos - initialPos > 100)  //distance must be negative
+          //{
+           // motor.setForce(0);
+            //Serial.println(F("Error: FFB inverted!"));
+            //return;
+          //}
 
           if (-dist < threshold)  //Minimum found
           {
             motor.setForce(0);
 
             posMin = pos;
-            //Serial.print("Found Min:");
-            //Serial.println(posMin);
+            Serial.print("Found Min:");
+            Serial.println(posMin);
 
             motor.setForce(-force);
             _state = 2;
@@ -1526,30 +1571,37 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMax = pos;
-            //Serial.print("Found Max:");
-            //Serial.println(posMax);
-            //Serial.print("Min:");
-            //Serial.println(posMin);
+            Serial.print("Found Max:");
+            Serial.println(posMax);
 
-            //calculate range
+//calculate range
+#if (STEER_TYPE == ST_ANALOG)
+            range = posMax - posMin;
+#else
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
-            //Serial.print("Range:");
-            //Serial.println(range);
+#endif
+            Serial.print("Range:");
+            Serial.println(range);
 
-            if (range < 2) {
-              Serial.println(F("Error: no movement"));
-              return;
-            }
+            //if (range < 2) {
+            //  Serial.println(F("Error: no movement"));
+            //  return;
+            // }
 
 #ifndef AFC_NORANGE
-            wheel.axisWheel->setRange(range);
+            //wheel.axisWheel->setRange(range);
 #endif
-
             //Set center by setting new current position
-            //Serial.print("Found Center:");
-            //Serial.println((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
+#if (STEER_TYPE == ST_ANALOG)
+            pos = (posMax - posMin) / 2.0;
+#else
             //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
+            pos = ((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
+#endif
+            SET_WHEEL_POSITION(pos);
+            Serial.print("Found Center:");
+            Serial.println(pos);
+           // delay(4000);
 
             //Go to center - should be safe now
             motor.setForce(force);
