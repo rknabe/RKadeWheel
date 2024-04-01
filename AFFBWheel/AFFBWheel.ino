@@ -165,7 +165,7 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS (((int32_t)encoder.read() << STEER_BITDEPTH) / ENCODER_PPR)
 #define CENTER_WHEEL encoder.write(0);
-#define SET_WHEEL_POSITION(val) encoder.write(val)
+#define SET_WHEEL_POSITION(val) encoder.write((val * ENCODER_PPR) / (1 << STEER_BITDEPTH))
 #endif
 
 #if STEER_TYPE == ST_AS5600
@@ -1546,10 +1546,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            //Serial.print("Found Center:");
-            //Serial.println((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
-            //TODO rknabe: not sure why last divisor is 16, should be 4 (STEER_TM_RATIO_DIV), but 16 works perfectly
-            SET_WHEEL_POSITION((abs(posMin - posMax) / 2.0) / (STEER_TM_RATIO_DIV * 4.0) + 16);
+            SET_WHEEL_POSITION((posMax - posMin) / 2);
 
             //Go to center - should be safe now
             motor.setForce(force);
