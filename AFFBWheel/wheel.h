@@ -4,6 +4,7 @@
 #include "FfbEngine.h"
 #include "WHID.h"
 #include "hidDescriptor.h"
+#include "settings.h"
 
 #define AXIS_ACC 0
 #define AXIS_BRAKE 1
@@ -13,10 +14,10 @@
 #define AXIS_AUX3 5
 #define AXIS_AUX4 6
 
-//Input Report 
+//Input Report
 typedef struct
 {
-  int16_t axes[8]={-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768};
+  int16_t axes[8] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
   uint32_t buttons;
 #ifdef HATSWITCH
   uint8_t hat;
@@ -33,7 +34,7 @@ typedef struct
 
 typedef struct
 {
-  char id[6]="AFFBW";
+  char id[6] = FIRMWARE_TYPE;
   char ver[12];
 } GUI_Report_Version;
 
@@ -82,17 +83,16 @@ typedef struct
 } GUI_Report_Settings;
 
 
-class Wheel_ 
-{
-  public:
-    AxisWheel* axisWheel;
-    Axis* analogAxes[7];
-    uint32_t buttons;
-    Wheel_();
-    void update();
-    FfbEngine ffbEngine;
-    
-    GUI_Report USB_GUI_Report;
-  private:
-    uint8_t getHatSwitch();
+class Wheel_ {
+public:
+  AxisWheel* axisWheel;
+  Axis* analogAxes[7];
+  uint32_t buttons;
+  Wheel_();
+  void update();
+  FfbEngine ffbEngine;
+
+  GUI_Report USB_GUI_Report;
+private:
+  uint8_t getHatSwitch();
 };

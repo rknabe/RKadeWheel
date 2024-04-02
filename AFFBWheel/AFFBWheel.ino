@@ -32,8 +32,6 @@
 #include "motor.h"
 #include "settings.h"
 
-#define AFFB_VER "1.0.2"
-
 //global variables
 Wheel_ wheel;
 Motor motor;
@@ -329,13 +327,13 @@ void setup() {
   //load settings
   load();
 
-  //center();
+  center();
 
 #ifdef AFC_ON
   autoFindCenter();
 #endif
 
-  center();
+  //center();
 
   while (true)
     mainLoop();
@@ -471,9 +469,9 @@ void processUsbCmd() {
 
     switch (usbCmd->command) {
       //get data
-      case 1:  //return string "AFFBW "+version
-        strcpy_P(((GUI_Report_Version *)data)->id, PSTR("AFFBW"));
-        strcpy_P(((GUI_Report_Version *)data)->ver, PSTR(AFFB_VER));
+      case 1:  //return string model+version
+        strcpy_P(((GUI_Report_Version *)data)->id, PSTR(FIRMWARE_TYPE));
+        strcpy_P(((GUI_Report_Version *)data)->ver, PSTR(FIRMWARE_VER));
         break;
       case 2:  //return steering axis data
         ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
@@ -1546,7 +1544,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            SET_WHEEL_POSITION((posMax - posMin) / 2);
+            SET_WHEEL_POSITION(((posMax - posMin) / 2.2));
 
             //Go to center - should be safe now
             motor.setForce(force);
@@ -1564,4 +1562,8 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       prevTime = currTime;
     }
   }
+
+  //delay 1 second before zeroing the wheel to let it stop first
+  delay(1000);
+  center();
 }
