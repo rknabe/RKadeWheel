@@ -516,6 +516,7 @@ void processUsbCmd() {
 
         ((GUI_Report_Settings *)data)->endstopOffset = settings.endstopOffset;
         ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
+        ((GUI_Report_Settings *)data)->constantSpring = settings.constantSpring;
         break;
 
       // set
@@ -569,6 +570,9 @@ void processUsbCmd() {
           case 7:
             settings.endstopOffset = usbCmd->arg[1];
             settings.endstopWidth = usbCmd->arg[2];
+            break;
+          case 8:
+            settings.constantSpring = usbCmd->arg[1];
             break;
         }
         break;
@@ -1309,10 +1313,10 @@ void processSerial() {
 
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
       if (arg1 >= 0) {
-        settings.spring = arg1;
+        settings.constantSpring = arg1;
       }
       Serial.print(F("spring:"));
-      Serial.println(settings.spring);
+      Serial.println(settings.constantSpring);
     }
 
     //Endstop
@@ -1402,6 +1406,7 @@ void load(bool defaults) {
 
     settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
     settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
+    settings.constantSpring = 0;
   }
 
   settingsE.print();
@@ -1424,18 +1429,13 @@ void load(bool defaults) {
   wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
   wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
 
-  settings.spring = 0;
-
   Serial.println(F("Settings loaded"));
 }
 
-
 void save() {
-  SettingsEEPROM settingsE;
   uint8_t i;
-
+  SettingsEEPROM settingsE;
   settingsE.data = settings;
-
   settingsE.range = wheel.axisWheel->range;
 
   for (i = 0; i < 7; i++) {

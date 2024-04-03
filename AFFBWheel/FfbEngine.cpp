@@ -82,7 +82,7 @@ void FfbEngine::constantSpringForce() {
   uint8_t id;
   bool isNew = false;
 
-  if (settings.spring > 0) {
+  if (settings.constantSpring > 0) {
     id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
     if (id == 0) {
       id = ffbReportHandler->GetNextFreeEffect();
