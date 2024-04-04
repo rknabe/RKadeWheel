@@ -1,4 +1,4 @@
-# AFFBWheel (Arduino Force FeedBack Wheel)
+# RKade Wheel
 
 Modified fork of vsulako/AFFBWheel, adapted for Happ/Midway original belt-driven arcade wheel and motor for use with Windows-based multi-cabs (Cruisin Exotica cab in my case).
 So far, this works with Teknoparrot, mame64 latest, older and newer PC games with FFB.
