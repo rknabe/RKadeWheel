@@ -5,8 +5,6 @@ So far, this works with Teknoparrot, mame64 latest, older and newer PC games wit
 
 Original doc from vsulako/AFFBWheel follows below. 
 
-[![Russian Federation](https://raw.githubusercontent.com/stevenrskelton/flag-icon/master/png/16/country-4x3/ru.png "Russian Federation") Описание на русском](readme_rus.md)
-
 This is project of Arduino based wheel controller with force feedback.
 To configure the controller parameters, you need to use the graphical interface **[AFFBWheelGUI](https://github.com/vsulako/AFFBWHeelGUI/blob/master/README_RU.md)**
 
