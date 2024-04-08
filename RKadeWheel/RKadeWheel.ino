@@ -1345,6 +1345,13 @@ void processSerial() {
     }
 #endif
 
+    if (strcmp_P(cmd, PSTR("version")) == 0) {
+      Serial.print(F(FIRMWARE_TYPE));
+      Serial.print(F(":"));
+      Serial.println(F(FIRMWARE_VER));
+    }
+
+
 #ifdef APB
     if (strcmp_P(cmd, PSTR("apbout")) == 0) {
       apb_out = !apb_out;
