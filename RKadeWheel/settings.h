@@ -28,6 +28,7 @@ struct SettingsData {
   int16_t endstopOffset;
   int16_t endstopWidth;
   uint8_t constantSpring;
+  uint8_t afcOnStartup;
 };
 
 //all settings

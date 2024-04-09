@@ -65,6 +65,12 @@ void SettingsEEPROM::print()
   Serial.println(maxVelocityFriction);
   Serial.print(F("FFB maxAcceleration: "));
   Serial.println(maxAcceleration);
+
+  Serial.print(F("constantSpring: "));
+  Serial.println(data.constantSpring);
+  Serial.print(F("afcOnStartup: "));
+  Serial.println(data.afcOnStartup);
+  
   
   Serial.print(F("Checksum: "));
   Serial.println(checksum);

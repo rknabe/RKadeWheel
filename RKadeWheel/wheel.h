@@ -81,6 +81,7 @@ typedef struct
   uint16_t endstopOffset;
   uint16_t endstopWidth;
   uint8_t constantSpring;
+  uint8_t afcOnStartup;
 } GUI_Report_Settings;
 
 

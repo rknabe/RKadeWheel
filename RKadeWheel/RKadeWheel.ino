@@ -329,9 +329,11 @@ void setup() {
 
   center();
 
+  if (settings.afcOnStartup) {
 #ifdef AFC_ON
-  autoFindCenter();
+    autoFindCenter();
 #endif
+  }
 
   //center();
 
@@ -517,6 +519,7 @@ void processUsbCmd() {
         ((GUI_Report_Settings *)data)->endstopOffset = settings.endstopOffset;
         ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
         ((GUI_Report_Settings *)data)->constantSpring = settings.constantSpring;
+        ((GUI_Report_Settings *)data)->afcOnStartup = settings.afcOnStartup;
         break;
 
       // set
@@ -573,6 +576,9 @@ void processUsbCmd() {
             break;
           case 8:
             settings.constantSpring = usbCmd->arg[1];
+            break;
+          case 9:
+            settings.afcOnStartup = usbCmd->arg[1];
             break;
         }
         break;
@@ -1413,7 +1419,8 @@ void load(bool defaults) {
 
     settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
     settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
-    settings.constantSpring = 0;
+    settingsE.data.constantSpring = 0;
+    settingsE.data.afcOnStartup = 0;
   }
 
   settingsE.print();
