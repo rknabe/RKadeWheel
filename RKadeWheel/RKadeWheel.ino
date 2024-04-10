@@ -957,7 +957,7 @@ void readButtons() {
       gear = GEAR_BTN_IDX_6;
     }
   }
-  if (gear > 0) {
+  if (gear >= 0) {
     bitWrite(*((uint32_t *)d), gear, gear + 1);
   }
 
