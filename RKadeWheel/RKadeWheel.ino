@@ -943,22 +943,22 @@ void readButtons() {
   bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
   uint8_t gear = 0;
   if (switch3) {
-    gear = 3;
+    gear = GEAR_BTN_IDX_3;
     if (switch1) {
-      gear = 1;
+      gear = GEAR_BTN_IDX_1;
     } else if (switch2) {
-      gear = 5;
+      gear = GEAR_BTN_IDX_5;
     }
   } else if (switch4) {
-    gear = 4;
+    gear = GEAR_BTN_IDX_4;
     if (switch1) {
-      gear = 2;
+      gear = GEAR_BTN_IDX_2;
     } else if (switch2) {
-      gear = 6;
+      gear = GEAR_BTN_IDX_6;
     }
   }
   if (gear > 0) {
-    bitWrite(*((uint32_t *)d), gear - 1, gear);
+    bitWrite(*((uint32_t *)d), gear, gear + 1);
   }
 
   for (int i = 6; i < sizeof(dpb); i++)

@@ -182,14 +182,14 @@
 
 //buttons directly connected to pins 
 #define DPB            //Enable
-#define DPB_PINS       2,3,4,6,7,8
+#define DPB_PINS       2,3,4,6,7,8,11,12,13,14,15,16
 #define DPB_1ST_BTN    1
 #define GEAR_BTN_IDX_1 0
 #define GEAR_BTN_IDX_2 1
 #define GEAR_BTN_IDX_3 2
 #define GEAR_BTN_IDX_4 3
-#define GEAR_BTN_IDX_5 4
-#define GEAR_BTN_IDX_6 5
+#define GEAR_BTN_IDX_5 16
+#define GEAR_BTN_IDX_6 17
 
 //button matrix
 //#define BM            //enable
