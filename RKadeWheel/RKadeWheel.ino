@@ -941,7 +941,7 @@ void readButtons() {
   bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
   bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
   bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
-  int8_t gear = -1;
+  uint8_t gear = 32767;
   if (switch3) {
     gear = GEAR_BTN_IDX_3;
     if (switch1) {
@@ -957,7 +957,7 @@ void readButtons() {
       gear = GEAR_BTN_IDX_6;
     }
   }
-  if (gear >= 0) {
+  if (gear >= 0 && gear <= 31) {
     bitWrite(*((uint32_t *)d), gear, gear + 1);
   }
 
