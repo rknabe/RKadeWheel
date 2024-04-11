@@ -940,6 +940,7 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
+  int i = 0;
   if (settings.mplexShifter > 0) {
     //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
     bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
@@ -965,9 +966,10 @@ void readButtons() {
     if (gear >= 0 && gear <= 31) {
       bitWrite(*((uint32_t *)d), gear, gear + 1);
     }
+    i = 6;
   }
 
-  for (int i = 6; i < sizeof(dpb); i++)
+  for (; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
 
