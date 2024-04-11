@@ -29,6 +29,7 @@ struct SettingsData {
   int16_t endstopWidth;
   uint8_t constantSpring;
   uint8_t afcOnStartup;
+  uint8_t mplexShifter;
 };
 
 //all settings

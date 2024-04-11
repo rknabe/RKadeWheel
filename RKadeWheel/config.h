@@ -188,8 +188,8 @@
 #define GEAR_BTN_IDX_2 1
 #define GEAR_BTN_IDX_3 2
 #define GEAR_BTN_IDX_4 3
-#define GEAR_BTN_IDX_5 16
-#define GEAR_BTN_IDX_6 17
+#define GEAR_BTN_IDX_5 30
+#define GEAR_BTN_IDX_6 31
 
 //button matrix
 //#define BM            //enable

@@ -70,6 +70,8 @@ void SettingsEEPROM::print()
   Serial.println(data.constantSpring);
   Serial.print(F("afcOnStartup: "));
   Serial.println(data.afcOnStartup);
+  Serial.print(F("mplexShifter: "));
+  Serial.println(data.mplexShifter);
   
   
   Serial.print(F("Checksum: "));

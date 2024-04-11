@@ -64,6 +64,7 @@ typedef struct
   int32_t buttons;
   int8_t centerButton;
   int8_t debounce;
+  uint8_t mplexShifter;
 } GUI_Report_Buttons;
 
 typedef struct
@@ -81,7 +82,7 @@ typedef struct
   uint16_t endstopOffset;
   uint16_t endstopWidth;
   uint8_t constantSpring;
-  uint8_t afcOnStartup;
+  uint8_t afcOnStartup;  
 } GUI_Report_Settings;
 
 

@@ -499,6 +499,7 @@ void processUsbCmd() {
         ((GUI_Report_Buttons *)data)->buttons = wheel.buttons;
         ((GUI_Report_Buttons *)data)->centerButton = settings.centerButton;
         ((GUI_Report_Buttons *)data)->debounce = settings.debounce;
+        ((GUI_Report_Buttons *)data)->mplexShifter = settings.mplexShifter;
         break;
       case 5:  //return gains
         memcpy(data, settings.gain, sizeof(settings.gain));
@@ -579,6 +580,9 @@ void processUsbCmd() {
             break;
           case 9:
             settings.afcOnStartup = usbCmd->arg[1];
+            break;
+          case 10:
+            settings.mplexShifter = usbCmd->arg[1];
             break;
         }
         break;
@@ -936,29 +940,31 @@ void readButtons() {
 
     //direct pin buttons
 #ifdef DPB
-  //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
-  bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
-  bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
-  bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
-  bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
-  uint8_t gear = 32767;
-  if (switch3) {
-    gear = GEAR_BTN_IDX_3;
-    if (switch1) {
-      gear = GEAR_BTN_IDX_1;
-    } else if (switch2) {
-      gear = GEAR_BTN_IDX_5;
+  if (settings.mplexShifter > 0) {
+    //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
+    bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
+    bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
+    bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
+    bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
+    uint8_t gear = 32767;
+    if (switch3) {
+      gear = GEAR_BTN_IDX_3;
+      if (switch1) {
+        gear = GEAR_BTN_IDX_1;
+      } else if (switch2) {
+        gear = GEAR_BTN_IDX_5;
+      }
+    } else if (switch4) {
+      gear = GEAR_BTN_IDX_4;
+      if (switch1) {
+        gear = GEAR_BTN_IDX_2;
+      } else if (switch2) {
+        gear = GEAR_BTN_IDX_6;
+      }
     }
-  } else if (switch4) {
-    gear = GEAR_BTN_IDX_4;
-    if (switch1) {
-      gear = GEAR_BTN_IDX_2;
-    } else if (switch2) {
-      gear = GEAR_BTN_IDX_6;
+    if (gear >= 0 && gear <= 31) {
+      bitWrite(*((uint32_t *)d), gear, gear + 1);
     }
-  }
-  if (gear >= 0 && gear <= 31) {
-    bitWrite(*((uint32_t *)d), gear, gear + 1);
   }
 
   for (int i = 6; i < sizeof(dpb); i++)
@@ -1017,7 +1023,7 @@ void readButtons() {
     Serial.println(y);
   }
 
-  //clear bits
+//clear bits
 #if ASHIFTER_POS == 8
   wheel.buttons &= ~((uint32_t)0xff << (ASHIFTER_1ST_BTN - 1));
 #endif
@@ -1421,6 +1427,7 @@ void load(bool defaults) {
     settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
     settingsE.data.constantSpring = 0;
     settingsE.data.afcOnStartup = 0;
+    settingsE.data.mplexShifter = 0;
   }
 
   settingsE.print();
