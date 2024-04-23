@@ -2,10 +2,10 @@
 
 Wheel_::Wheel_(void)
 {
-  static HIDSubDescriptor node(wheelHIDDescriptor, sizeof(wheelHIDDescriptor));
-  HID().AppendDescriptor(&node);
+  static HID_SubDescriptor node(wheelHIDDescriptor, sizeof(wheelHIDDescriptor));
+  NEW_HID().AppendDescriptor(&node);
   
-  ffbEngine.SetFfb(&HID().ffbReportHandler);
+  ffbEngine.SetFfb(&NEW_HID().ffbReportHandler);
 
   axisWheel=new AxisWheel();
 
@@ -48,12 +48,12 @@ void Wheel_::update(void)
   
   data.buttons=buttons;
 
-  HID().RecvFfbReport();
-  HID().SendReport(0x01, &data, sizeof(data));
+  NEW_HID().RecvFfbReport();
+  NEW_HID().SendReport(0x01, &data, sizeof(data));
 
   if (USB_GUI_Report.command)
   {
-    HID().SendReport(16, &USB_GUI_Report, sizeof(USB_GUI_Report));
+    NEW_HID().SendReport(16, &USB_GUI_Report, sizeof(USB_GUI_Report));
     USB_GUI_Report.command=0;
   }
 }

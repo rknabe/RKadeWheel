@@ -23,16 +23,16 @@
 
 #if defined(USBCON)
 
-HID_& HID()
+HID_FFB& NEW_HID()
 {
-  static HID_ obj;
+  static HID_FFB obj;
   return obj;
 }
 
-int HID_::getInterface(uint8_t* interfaceCount)
+int HID_FFB::getInterface(uint8_t* interfaceCount)
 {
   *interfaceCount += 1; // uses 1
-  HIDDescriptor hidInterface = {
+  HID_Descriptor hidInterface = {
     D_INTERFACE(pluggedInterface, HID_ENPOINT_COUNT, USB_DEVICE_CLASS_HUMAN_INTERFACE, HID_SUBCLASS_NONE, HID_PROTOCOL_NONE),
     D_HIDREPORT(descriptorSize),
     D_ENDPOINT(USB_ENDPOINT_IN(HID_ENDPOINT_IN), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01),
@@ -41,7 +41,7 @@ int HID_::getInterface(uint8_t* interfaceCount)
   return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
 }
 
-int HID_::getDescriptor(USBSetup& setup)
+int HID_FFB::getDescriptor(USBSetup& setup)
 {
   // Check if this is a HID Class Descriptor request
   if (setup.bmRequestType != REQUEST_DEVICETOHOST_STANDARD_INTERFACE) {
@@ -57,7 +57,7 @@ int HID_::getDescriptor(USBSetup& setup)
   }
 
   int total = 0;
-  HIDSubDescriptor* node;
+  HID_SubDescriptor* node;
   for (node = rootNode; node; node = node->next) {
     int res = USB_SendControl(TRANSFER_PGM, node->data, node->length);
     if (res == -1)
@@ -72,7 +72,7 @@ int HID_::getDescriptor(USBSetup& setup)
   return total;
 }
 
-uint8_t HID_::getShortName(char *name)
+uint8_t HID_FFB::getShortName(char *name)
 {
   name[0] = 'H';
   name[1] = 'I';
@@ -82,12 +82,12 @@ uint8_t HID_::getShortName(char *name)
   return 5;
 }
 
-void HID_::AppendDescriptor(HIDSubDescriptor *node)
+void HID_FFB::AppendDescriptor(HID_SubDescriptor *node)
 {
   if (!rootNode) {
     rootNode = node;
   } else {
-    HIDSubDescriptor *current = rootNode;
+    HID_SubDescriptor *current = rootNode;
     while (current->next) {
       current = current->next;
     }
@@ -96,7 +96,7 @@ void HID_::AppendDescriptor(HIDSubDescriptor *node)
   descriptorSize += node->length;
 }
 
-int HID_::SendReport(uint8_t id, const void* data, int len)
+int HID_FFB::SendReport(uint8_t id, const void* data, int len)
 {
   auto ret = USB_Send(HID_ENDPOINT_IN, &id, 1);
   if (ret < 0) return ret;
@@ -106,18 +106,18 @@ int HID_::SendReport(uint8_t id, const void* data, int len)
 }
 
 
-int HID_::RecvReport(void* data, int len)
+int HID_FFB::RecvReport(void* data, int len)
 {
   return USB_Recv(HID_ENDPOINT_OUT, &data, len);
 }
 
-uint8_t HID_::AvailableReport()
+uint8_t HID_FFB::AvailableReport()
 {
   return USB_Available(HID_ENDPOINT_OUT);
 }
 
 
-void HID_::RecvFfbReport() {
+void HID_FFB::RecvFfbReport() {
   if (AvailableReport() > 0) {
     uint8_t out_ffbdata[64];
     uint16_t len = USB_Recv(HID_ENDPOINT_OUT, &out_ffbdata, 64);
@@ -127,7 +127,7 @@ void HID_::RecvFfbReport() {
   }
 }
 
-bool HID_::HID_GetReport(USBSetup& setup) {
+bool HID_FFB::HID_GetReport(USBSetup& setup) {
   uint8_t report_id = setup.wValueL;
   uint8_t report_type = setup.wValueH;
   if (report_type == HID_REPORT_TYPE_INPUT)
@@ -160,7 +160,7 @@ bool HID_::HID_GetReport(USBSetup& setup) {
   return (false);
 }
 
-bool HID_::HID_SetReport(USBSetup& setup) {
+bool HID_FFB::HID_SetReport(USBSetup& setup) {
   uint8_t report_id = setup.wValueL;
   uint8_t report_type = setup.wValueH;
   uint16_t length = setup.wLength;
@@ -192,7 +192,7 @@ bool HID_::HID_SetReport(USBSetup& setup) {
   return (false);
 }
 
-bool HID_::setup(USBSetup& setup)
+bool HID_FFB::setup(USBSetup& setup)
 {
   if (pluggedInterface != setup.wIndex) {
     return false;
@@ -236,7 +236,7 @@ bool HID_::setup(USBSetup& setup)
   return false;
 }
 
-HID_::HID_(void) : PluggableUSBModule(HID_ENPOINT_COUNT, 1, epType),
+HID_FFB::HID_FFB(void) : PluggableUSBModule(HID_ENPOINT_COUNT, 1, epType),
   rootNode(NULL), descriptorSize(0),
   protocol(HID_REPORT_PROTOCOL), idle(1)
 {
@@ -245,7 +245,7 @@ HID_::HID_(void) : PluggableUSBModule(HID_ENPOINT_COUNT, 1, epType),
   PluggableUSB().plug(this);
 }
 
-int HID_::begin(void)
+int HID_FFB::begin(void)
 {
   return 0;
 }

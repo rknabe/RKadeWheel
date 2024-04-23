@@ -311,11 +311,13 @@ void setup() {
 
   //direct pin buttons
 #ifdef DPB
-  for (uint8_t i = 0; i < sizeof(dpb); i++)
+  for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
+  }
+  //Keyboard.begin();
 #endif
 
-    //button matrix
+  //button matrix
 #ifdef BM
   for (uint8_t i = 0; i < sizeof(bm_cols); i++)
     pinMode(bm_cols[i], INPUT_PULLUP);
@@ -968,6 +970,11 @@ void readButtons() {
     }
     i = 6;
   }
+
+  /*bool switch5 = (*portInputRegister(digitalPinToPort(dpb[5])) & digitalPinToBitMask(dpb[5])) == 0;
+  if (switch5) {
+    Keyboard.press(KEY_UP_ARROW);
+  }*/
 
   for (; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
