@@ -143,7 +143,7 @@ void setupTLE() {
   TCCR3A = (0 << COM3A1) | (1 << COM3A0) | (0 << COM3B1) | (0 << COM3B0) | (0 << COM3C1) | (0 << COM3C0) | (0 << WGM31) | (0 << WGM30);
   TCCR3B = (0 << ICNC3) | (0 << ICES3) | (0 << WGM33) | (1 << WGM32) | (0 << CS32) | (0 << CS31) | (1 << CS30);
   OCR3A = 1;
-  pinMode(5, OUTPUT);
+  pinModeFast(5, OUTPUT);
 
   sensor.begin();
   SPI.end();
@@ -221,12 +221,14 @@ int16_t getWheelPos() {
 }
 
 void setupMLX() {
-  pinMode(MLX90316_PIN_CS, OUTPUT);
+  pinModeFast(MLX90316_PIN_CS, OUTPUT);
   digitalWriteFast(MLX90316_PIN_CS, 1);
   delay(16);  //let sensor start
 }
 #endif
 //-------------------------------------------------------------------------------------
+
+#include <ArduinoShrink.h>
 
 void setup() {
 
@@ -242,20 +244,20 @@ void setup() {
 #endif
 
 #if (PEDALS_TYPE == PT_MP_HC164)
-  pinMode(MP_HC164_PIN_SCK, OUTPUT);
+  pinModeFast(MP_HC164_PIN_SCK, OUTPUT);
 #endif
 
 #if (PEDALS_TYPE == PT_MCP3204_4W)
-  pinModeFast(MCP3204_4W_PIN_SCK, OUTPUT);
+  pinModeFastFast(MCP3204_4W_PIN_SCK, OUTPUT);
 
 #if (MCP3204_4W_PIN_MOSI != MCP3204_4W_PIN_MISO)
-  pinModeFast(MCP3204_4W_PIN_MOSI, OUTPUT);
-  pinModeFast(MCP3204_4W_PIN_MISO, INPUT);
+  pinModeFastFast(MCP3204_4W_PIN_MOSI, OUTPUT);
+  pinModeFastFast(MCP3204_4W_PIN_MISO, INPUT);
 #endif
 #endif
 
 #if (PEDALS_TYPE == PT_MCP3204_SPI)
-  pinMode(MCP3204_PIN_CS, OUTPUT);
+  pinModeFast(MCP3204_PIN_CS, OUTPUT);
 #endif
 
 #if (PEDALS_TYPE == PT_ADS1015)
@@ -268,20 +270,20 @@ void setup() {
 
   //setup buttons
 #if (BUTTONS_TYPE == BT_74HC165)
-  pinMode(HC165_PIN_DATA1, INPUT_PULLUP);
-  pinMode(HC165_PIN_DATA2, INPUT_PULLUP);
-  pinMode(HC165_PIN_SCK, OUTPUT);
+  pinModeFast(HC165_PIN_DATA1, INPUT_PULLUP);
+  pinModeFast(HC165_PIN_DATA2, INPUT_PULLUP);
+  pinModeFast(HC165_PIN_SCK, OUTPUT);
 #ifdef HC165_PIN_PL
-  pinMode(HC165_PIN_PL, OUTPUT);
+  pinModeFast(HC165_PIN_PL, OUTPUT);
 #endif
 #endif
 
 #if (BUTTONS_TYPE == BT_CD4021B)
-  pinMode(CD4021_PIN_DATA1, INPUT_PULLUP);
-  pinMode(CD4021_PIN_DATA2, INPUT_PULLUP);
-  pinMode(CD4021_PIN_SCK, OUTPUT);
+  pinModeFast(CD4021_PIN_DATA1, INPUT_PULLUP);
+  pinModeFast(CD4021_PIN_DATA2, INPUT_PULLUP);
+  pinModeFast(CD4021_PIN_SCK, OUTPUT);
 #ifdef CD4021_PIN_PL
-  pinMode(CD4021_PIN_PL, OUTPUT);
+  pinModeFast(CD4021_PIN_PL, OUTPUT);
 #endif
 #endif
 
@@ -312,7 +314,7 @@ void setup() {
   //direct pin buttons
 #ifdef DPB
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
-    pinMode(dpb[i], INPUT_PULLUP);
+    pinModeFast(dpb[i], INPUT_PULLUP);
   }
   //Keyboard.begin();
 #endif
@@ -320,7 +322,7 @@ void setup() {
   //button matrix
 #ifdef BM
   for (uint8_t i = 0; i < sizeof(bm_cols); i++)
-    pinMode(bm_cols[i], INPUT_PULLUP);
+    pinModeFast(bm_cols[i], INPUT_PULLUP);
 #endif
 
   //motor setup
@@ -737,7 +739,7 @@ int16_t MCP3204_SPI_read(uint8_t channel) {
 
 int16_t MCP3204_BB_read(uint8_t channel) {
 #if (MCP3204_4W_PIN_MOSI == MCP3204_4W_PIN_MISO)
-  pinModeFast(MCP3204_4W_PIN_MOSI, OUTPUT);
+  pinModeFastFast(MCP3204_4W_PIN_MOSI, OUTPUT);
 #endif
 
   digitalWriteFast(MCP3204_4W_PIN_MOSI, 1);
@@ -779,7 +781,7 @@ int16_t MCP3204_BB_read(uint8_t channel) {
   digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
 
 #if (MCP3204_4W_PIN_MOSI == MCP3204_4W_PIN_MISO)
-  pinModeFast(MCP3204_4W_PIN_MISO, INPUT);
+  pinModeFastFast(MCP3204_4W_PIN_MISO, INPUT);
 #endif
 
   //read 12bit answer
@@ -984,14 +986,14 @@ void readButtons() {
 #ifdef BM
   uint8_t btn = BM_1ST_BTN - 1;
   for (i = 0; i < sizeof(bm_rows); i++) {
-    //pinMode(bm_rows[i], OUTPUT);
+    //pinModeFast(bm_rows[i], OUTPUT);
     //digitalWrite(bm_rows[i], 0);
     *portModeRegister(digitalPinToPort(bm_rows[i])) |= digitalPinToBitMask(bm_rows[i]);
     for (uint8_t j = 0; j < sizeof(bm_cols); j++) {
       bitWrite(*((uint32_t *)d), btn, (*portInputRegister(digitalPinToPort(bm_cols[j])) & digitalPinToBitMask(bm_cols[j])) == 0);
       btn++;
     }
-    //pinMode(bm_rows[i], INPUT);
+    //pinModeFast(bm_rows[i], INPUT);
     *portModeRegister(digitalPinToPort(bm_rows[i])) &= ~digitalPinToBitMask(bm_rows[i]);
   }
 #endif

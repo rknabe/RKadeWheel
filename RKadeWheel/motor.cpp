@@ -9,11 +9,11 @@ void Motor::begin() {
 
   OCR1A = 0;
   OCR1B = 0;
-  pinMode(MOTOR_OUTPUT_PIN1, OUTPUT);
-  pinMode(MOTOR_OUTPUT_PIN2, OUTPUT);
+  pinModeFast(MOTOR_OUTPUT_PIN1, OUTPUT);
+  pinModeFast(MOTOR_OUTPUT_PIN2, OUTPUT);
 
 #ifdef MOTOR_ENABLE_PIN
-  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+  pinModeFast(MOTOR_ENABLE_PIN, OUTPUT);
   digitalWriteFast(MOTOR_ENABLE_PIN, 0);
 #endif
 }
