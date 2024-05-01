@@ -22,7 +22,6 @@
   SOFTWARE.
 */
 
-#include <SPI.h>
 #include <EEPROM.h>
 #include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
 #include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
@@ -36,41 +35,15 @@
 Wheel_ wheel;
 Motor motor;
 SettingsData settings;
-
 int16_t force;
-
-bool timing = false;
-
 bool fvaOut = false;
+int8_t axisInfo = -1;
+uint32_t tempButtons;
+uint8_t debounceCount = 0;
 
 #ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
 #endif
-
-#ifdef BM
-static const uint8_t bm_cols[] = { BM_COL_PINS };
-static const uint8_t bm_rows[] = { BM_ROW_PINS };
-#endif
-
-#ifdef APB
-bool apb_out = false;
-#endif
-#ifdef ASHIFTER
-bool ashifter_out = false;
-#endif
-
-uint16_t timerInfo;
-
-#ifdef USE_TIMING
-uint16_t loopCount;
-#endif
-
-int8_t axisInfo = -1;
-
-bool centerButtonState = false;
-
-uint32_t tempButtons;
-uint8_t debounceCount = 0;
 
 //constants and definitions for analog axes
 #if ((PEDALS_TYPE == PT_INTERNAL) || (PEDALS_TYPE == PT_HC164))
@@ -78,83 +51,10 @@ uint8_t debounceCount = 0;
 #define DEFAULT_AA_MAX 1023
 #endif
 
-#if PEDALS_TYPE == PT_ADS1015
-#include "bb_i2c.h"
-#define DEFAULT_AA_MIN -32767
-#define DEFAULT_AA_MAX 32767
-
-ADS1015_BBI2C ads1015;
-int8_t ADS1015_axis = 0;
-static const int8_t ADS1015_channels[] = { ADS1015_CH_ACC, ADS1015_CH_BRAKE, ADS1015_CH_CLUTCH };
-#endif
-
-#if ((PEDALS_TYPE == PT_MCP3204_4W) || (PEDALS_TYPE == PT_MCP3204_SPI))
-#define DEFAULT_AA_MIN 0
-#define DEFAULT_AA_MAX 4095
-#endif
-
-#if PEDALS_TYPE == PT_ADS7828
-#include "bb_i2c.h"
-#define DEFAULT_AA_MIN 0
-#define DEFAULT_AA_MAX 4095
-
-ADS7828_BBI2C ads7828;
-#endif
-
-//constants and definions for buttons
-
-#if BUTTONS_TYPE == BT_MCP23017
-#include "bb_i2c.h"
-MCP23017_BBI2C mcp23017_1;
-MCP23017_BBI2C mcp23017_2;
-#endif
-
-#if BUTTONS_TYPE == BT_PCF857x
-#include "bb_i2c.h"
-
-PCF857x_BBI2C pcf857x[4];
-#endif
-
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
 
 //------------------------ steering wheel sensor ----------------------------
-#if STEER_TYPE == ST_TLE5010
-#include <TLE5010.h>  //https://github.com/vsulako/TLE5010
-#include "multiturn.h"
-
-TLE5010_SPI sensor(TLE5010_PIN_CS);
-MultiTurn MT;
-
-#define SETUP_WHEEL_SENSOR setupTLE();
-#define GET_WHEEL_POS (-MT.setValue(getWheelPos()))
-#define CENTER_WHEEL MT.zero();
-#define SET_WHEEL_POSITION(val) MT.setPosition(-val)
-
-inline int16_t getWheelPos() {
-  SPI.begin();
-  int16_t v = sensor.readInteger() >> (16 - STEER_BITDEPTH);
-  SPI.end();
-  return v;
-}
-
-void setupTLE() {
-  //4MHz on pin 5 for TLE5010
-  TCCR3A = (0 << COM3A1) | (1 << COM3A0) | (0 << COM3B1) | (0 << COM3B0) | (0 << COM3C1) | (0 << COM3C0) | (0 << WGM31) | (0 << WGM30);
-  TCCR3B = (0 << ICNC3) | (0 << ICES3) | (0 << WGM33) | (1 << WGM32) | (0 << CS32) | (0 << CS31) | (1 << CS30);
-  OCR3A = 1;
-  pinModeFast(5, OUTPUT);
-
-  sensor.begin();
-  SPI.end();
-
-  sensor.atan2FuncInt = atan2_fix;
-
-  delayMicroseconds(10000);  //let sensor start
-
-  GET_WHEEL_POS;
-}
-#endif
 
 #if STEER_TYPE == ST_ENCODER
 #include <Encoder.h>  //https://github.com/PaulStoffregen/Encoder
@@ -166,66 +66,6 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #define SET_WHEEL_POSITION(val) encoder.write((val * ENCODER_PPR) / (1 << STEER_BITDEPTH))
 #endif
 
-#if STEER_TYPE == ST_AS5600
-#include "bb_i2c.h"
-#include "multiturn.h"
-
-AS5600_BBI2C AS5600;
-MultiTurn MT;
-
-#define SETUP_WHEEL_SENSOR setupAS5600();
-#define GET_WHEEL_POS (MT.setValue((AS5600.readAngle() - 2048) << (STEER_BITDEPTH - 12)))
-#define CENTER_WHEEL MT.zero();
-#define SET_WHEEL_POSITION(val) MT.setPosition(val)
-
-void setupAS5600() {
-  AS5600.begin();
-}
-#endif
-
-
-#if STEER_TYPE == ST_MLX90316
-#include "multiturn.h"
-
-MultiTurn MT;
-
-#define SETUP_WHEEL_SENSOR setupMLX();
-#define GET_WHEEL_POS (MT.setValue(getWheelPos()))
-#define CENTER_WHEEL MT.zero();
-#define SET_WHEEL_POSITION(val) MT.setPosition(val)
-
-int16_t getWheelPos() {
-  SPI.begin();
-  int16_t val;
-
-  SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE1));
-
-  digitalWriteFast(MLX90316_PIN_CS, 0);
-  delayMicroseconds(6);
-
-  SPI.transfer(0xAA);
-  SPI.transfer(0xFF);
-
-  delayMicroseconds(25);
-
-  ((uint8_t *)&val)[1] = SPI.transfer(0xFF);
-  delayMicroseconds(25);
-  ((uint8_t *)&val)[0] = SPI.transfer(0xFF);
-
-  digitalWriteFast(MLX90316_PIN_CS, 1);
-  SPI.endTransaction();
-
-  SPI.end();
-
-  return val >> (16 - STEER_BITDEPTH);
-}
-
-void setupMLX() {
-  pinModeFast(MLX90316_PIN_CS, OUTPUT);
-  digitalWriteFast(MLX90316_PIN_CS, 1);
-  delay(16);  //let sensor start
-}
-#endif
 //-------------------------------------------------------------------------------------
 
 #include <ArduinoShrink.h>
@@ -243,86 +83,12 @@ void setup() {
   analogReference(INTERNAL);  //2.56v reference to get more resolution.
 #endif
 
-#if (PEDALS_TYPE == PT_MP_HC164)
-  pinModeFast(MP_HC164_PIN_SCK, OUTPUT);
-#endif
-
-#if (PEDALS_TYPE == PT_MCP3204_4W)
-  pinModeFastFast(MCP3204_4W_PIN_SCK, OUTPUT);
-
-#if (MCP3204_4W_PIN_MOSI != MCP3204_4W_PIN_MISO)
-  pinModeFastFast(MCP3204_4W_PIN_MOSI, OUTPUT);
-  pinModeFastFast(MCP3204_4W_PIN_MISO, INPUT);
-#endif
-#endif
-
-#if (PEDALS_TYPE == PT_MCP3204_SPI)
-  pinModeFast(MCP3204_PIN_CS, OUTPUT);
-#endif
-
-#if (PEDALS_TYPE == PT_ADS1015)
-  ads1015.begin();
-#endif
-
-#if PEDALS_TYPE == PT_ADS7828
-  ads7828.begin();
-#endif
-
-  //setup buttons
-#if (BUTTONS_TYPE == BT_74HC165)
-  pinModeFast(HC165_PIN_DATA1, INPUT_PULLUP);
-  pinModeFast(HC165_PIN_DATA2, INPUT_PULLUP);
-  pinModeFast(HC165_PIN_SCK, OUTPUT);
-#ifdef HC165_PIN_PL
-  pinModeFast(HC165_PIN_PL, OUTPUT);
-#endif
-#endif
-
-#if (BUTTONS_TYPE == BT_CD4021B)
-  pinModeFast(CD4021_PIN_DATA1, INPUT_PULLUP);
-  pinModeFast(CD4021_PIN_DATA2, INPUT_PULLUP);
-  pinModeFast(CD4021_PIN_SCK, OUTPUT);
-#ifdef CD4021_PIN_PL
-  pinModeFast(CD4021_PIN_PL, OUTPUT);
-#endif
-#endif
-
-#if (BUTTONS_TYPE == BT_MCP23017)
-  mcp23017_1.begin(MCP23017_ADDR1);
-  mcp23017_2.begin(MCP23017_ADDR2);
-#endif
-
-#if BUTTONS_TYPE == BT_PCF857x
-
-#if PCF857x_L1_TYPE == PCF8574
-  pcf857x[0].begin(PCF857x_L1_ADDR1);
-  pcf857x[1].begin(PCF857x_L1_ADDR2);
-#endif
-#if PCF857x_L1_TYPE == PCF8575
-  pcf857x[0].begin(PCF857x_L1_ADDR1);
-#endif
-
-#if PCF857x_L2_TYPE == PCF8574
-  pcf857x[2].begin(PCF857x_L2_ADDR1);
-  pcf857x[3].begin(PCF857x_L2_ADDR2);
-#endif
-#if PCF857x_L2_TYPE == PCF8575
-  pcf857x[2].begin(PCF857x_L2_ADDR1);
-#endif
-#endif
-
-  //direct pin buttons
+//direct pin buttons
 #ifdef DPB
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinModeFast(dpb[i], INPUT_PULLUP);
   }
   //Keyboard.begin();
-#endif
-
-  //button matrix
-#ifdef BM
-  for (uint8_t i = 0; i < sizeof(bm_cols); i++)
-    pinModeFast(bm_cols[i], INPUT_PULLUP);
 #endif
 
   //motor setup
@@ -347,90 +113,24 @@ void setup() {
 
 void mainLoop() {
 
-#ifdef USE_TIMING
-  uint16_t t[5];
-#endif
-
-  //Gathering data and measuring time
-  if (timing) {
-#ifdef USE_TIMING
-    t[0] = micros();
-    wheel.axisWheel->setValue(GET_WHEEL_POS);
-    t[1] = micros();
-    readAnalogAxes();
-    t[2] = micros();
-    readButtons();
-    t[3] = micros();
-    //Send data and receive FFB commands
-    wheel.update();
-    t[4] = micros();
-    processFFB();
-    t[5] = micros();
-#endif
-  } else {
-    wheel.axisWheel->setValue(GET_WHEEL_POS);
-    readAnalogAxes();
-    //#ifndef BT_NONE
-    readButtons();
-    //#endif
-    processUsbCmd();
-    wheel.update();
-    processFFB();
-  }
-
-#ifdef USE_TIMING
-  loopCount++;
-  if ((uint16_t)(millis() - timerInfo) > 1000) {
-    if (timing) {
-
-      Serial.print(F("S: "));
-      Serial.print(t[1] - t[0]);
-      Serial.print(F(" A: "));
-      Serial.print(t[2] - t[1]);
-      Serial.print(F(" B: "));
-      Serial.print(t[3] - t[2]);
-      Serial.print(F(" U: "));
-      Serial.print(t[4] - t[3]);
-      Serial.print(F(" F: "));
-      Serial.print(t[5] - t[4]);
-      Serial.print(F(" loop/sec:"));
-      Serial.print(loopCount);
-      Serial.println();
-
-      loopCount = 0;
-      timerInfo = millis();
-    }
-  }
-#endif
+  wheel.axisWheel->setValue(GET_WHEEL_POS);
+  readAnalogAxes();
+  //#ifndef BT_NONE
+  readButtons();
+  //#endif
+  processUsbCmd();
+  wheel.update();
+  processFFB();
 
   processSerial();
 }
 
 //Processing endstop and force feedback
 void processFFB() {
-  //int32_t excess = 0;
 
   wheel.ffbEngine.constantSpringForce();
 
-  /*if (wheel.axisWheel->rawValue > wheel.axisWheel->axisMax)
-    excess = wheel.axisWheel->rawValue - wheel.axisWheel->axisMax;
-  if (wheel.axisWheel->rawValue < -wheel.axisWheel->axisMax)
-    excess = wheel.axisWheel->rawValue + wheel.axisWheel->axisMax;
-  if (excess) {
-    int32_t absExcess = abs(excess);
-    if (absExcess < settings.endstopWidth) {
-      force = settings.endstopOffset + (absExcess * (16383 - settings.endstopOffset) / settings.endstopWidth);
-    } else
-      force = 16383;
-
-    if (excess < 0)
-      force = -force;
-
-    if (settings.gain[GAIN_ENDSTOP] != 1024)
-      force = applyGain(force, settings.gain[GAIN_ENDSTOP]);
-  } else {*/
   force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
-  //}
 
   force = applyForceLimit(force);
   motor.setForce(force * STEER_TM_RATIO_MUL);
@@ -627,49 +327,7 @@ void readAnalogAxes() {
 #endif
 #endif
 
-#if (PEDALS_TYPE == PT_HC164)
-  digitalWriteFast(MP_HC164_PIN_SCK, 1);
-
-  wheel.analogAxes[AXIS_ACC]->setValue(analogReadFast(MP_HC164_PIN_ADATA));
-
-  digitalWriteFast(MP_HC164_PIN_SCK, 0);
-  digitalWriteFast(MP_HC164_PIN_SCK, 1);
-
-  wheel.analogAxes[AXIS_BRAKE]->setValue(analogReadFast(MP_HC164_PIN_ADATA));
-
-  digitalWriteFast(MP_HC164_PIN_SCK, 0);
-  digitalWriteFast(MP_HC164_PIN_SCK, 1);
-
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(analogReadFast(MP_HC164_PIN_ADATA));
-
-  digitalWriteFast(MP_HC164_PIN_SCK, 0);
-#endif
-
-#if (PEDALS_TYPE == PT_MCP3204_4W)
-  wheel.analogAxes[AXIS_ACC]->setValue(MCP3204_BB_read(MCP3204_CH_ACC));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(MCP3204_BB_read(MCP3204_CH_BRAKE));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(MCP3204_BB_read(MCP3204_CH_CLUTCH));
-#endif
-
-#if (PEDALS_TYPE == PT_MCP3204_SPI)
-  SPI.begin();
-  wheel.analogAxes[AXIS_ACC]->setValue(MCP3204_SPI_read(MCP3204_CH_ACC));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(MCP3204_SPI_read(MCP3204_CH_BRAKE));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(MCP3204_SPI_read(MCP3204_CH_CLUTCH));
-  SPI.end();
-#endif
-
-#if (PEDALS_TYPE == PT_ADS1015)
-  ADS1015_read();
-#endif
-
-#if PEDALS_TYPE == PT_ADS7828
-  wheel.analogAxes[AXIS_ACC]->setValue(ads7828.readADC(0));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(ads7828.readADC(1));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(ads7828.readADC(2));
-#endif
-
-  //additional axes
+//additional axes
 #ifdef AA_PULLUP_LINEARIZE
 
 #ifdef PIN_AUX1
@@ -724,92 +382,6 @@ int16_t pullup_linearize(int16_t val) {
 }
 #endif
 
-int16_t MCP3204_SPI_read(uint8_t channel) {
-  int16_t val;
-
-  digitalWriteFast(MCP3204_PIN_CS, 0);
-  SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
-  SPI.transfer(0b00000110);
-  val = SPI.transfer16(channel << 14) & 0x0FFF;
-  SPI.endTransaction();
-  digitalWriteFast(MCP3204_PIN_CS, 1);
-
-  return val;
-}
-
-int16_t MCP3204_BB_read(uint8_t channel) {
-#if (MCP3204_4W_PIN_MOSI == MCP3204_4W_PIN_MISO)
-  pinModeFastFast(MCP3204_4W_PIN_MOSI, OUTPUT);
-#endif
-
-  digitalWriteFast(MCP3204_4W_PIN_MOSI, 1);
-
-  //start bit
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  //single
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  //d2
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  //d1 and d0
-  if (channel & 0b00000010) {
-    digitalWriteFast(MCP3204_4W_PIN_MOSI, 1);
-  } else {
-    digitalWriteFast(MCP3204_4W_PIN_MOSI, 0);
-  }
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  if (channel & 0b00000001) {
-    digitalWriteFast(MCP3204_4W_PIN_MOSI, 1);
-  } else {
-    digitalWriteFast(MCP3204_4W_PIN_MOSI, 0);
-  }
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  //skip 2 clock
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-  digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-
-#if (MCP3204_4W_PIN_MOSI == MCP3204_4W_PIN_MISO)
-  pinModeFastFast(MCP3204_4W_PIN_MISO, INPUT);
-#endif
-
-  //read 12bit answer
-  int16_t data = 0;
-  int16_t b = 0b0000100000000000;
-  do {
-
-    if (digitalReadFast(MCP3204_4W_PIN_MISO))
-      data |= b;
-
-    digitalWriteFast(MCP3204_4W_PIN_SCK, 1);
-    digitalWriteFast(MCP3204_4W_PIN_SCK, 0);
-  } while (b >>= 1);
-
-  return data;
-}
-
-#if (PEDALS_TYPE == PT_ADS1015)
-void ADS1015_read() {
-  wheel.analogAxes[ADS1015_axis]->setValue(ads1015.read16());
-
-  ADS1015_axis++;
-  if (ADS1015_axis == 3)
-    ADS1015_axis = 0;
-
-  ads1015.requestADC(ADS1015_channels[ADS1015_axis]);
-}
-#endif
 //-----------------------------------end analog axes------------------------------
 
 //-----------------------------------reading buttons------------------------------
@@ -827,122 +399,7 @@ void readButtons() {
     changed = true;
   }
 
-#if BUTTONS_TYPE == BT_74HC165
-
-#ifdef HC165_PIN_PL
-  digitalWriteFast(HC165_PIN_PL, 1);
-#else
-  digitalWriteFast(HC165_PIN_SCK, 1);
-  digitalWriteFast(HC165_PIN_SCK, 0);
-#endif
-
-  uint8_t i = 0x80;
-  do {
-    if (!digitalReadFast(HC165_PIN_DATA1))
-      d[0] |= i;
-    if (!digitalReadFast(HC165_PIN_DATA2))
-      d[2] |= i;
-
-    digitalWriteFast(HC165_PIN_SCK, 1);
-    digitalWriteFast(HC165_PIN_SCK, 0);
-
-  } while (i >>= 1);
-  i = 0x80;
-  do {
-    if (!digitalReadFast(HC165_PIN_DATA1))
-      d[1] |= i;
-    if (!digitalReadFast(HC165_PIN_DATA2))
-      d[3] |= i;
-
-    digitalWriteFast(HC165_PIN_SCK, 1);
-    digitalWriteFast(HC165_PIN_SCK, 0);
-
-  } while (i >>= 1);
-
-#ifdef HC165_PIN_PL
-  digitalWriteFast(HC165_PIN_PL, 0);
-#endif
-#endif
-
-#if BUTTONS_TYPE == BT_CD4021B
-  digitalWriteFast(CD4021_PIN_SCK, 1);
-  digitalWriteFast(CD4021_PIN_SCK, 0);
-
-  //The latch works the other way around
-#ifdef CD4021_PIN_PL
-  digitalWriteFast(CD4021_PIN_PL, 0);
-#endif
-
-  i = 0x80;
-  do {
-    if (!digitalReadFast(CD4021_PIN_DATA1))
-      d[0] |= i;
-    if (!digitalReadFast(CD4021_PIN_DATA2))
-      d[2] |= i;
-    digitalWriteFast(CD4021_PIN_SCK, 1);
-    digitalWriteFast(CD4021_PIN_SCK, 0);
-  } while (i >>= 1);
-
-  i = 0x80;
-  do {
-    if (!digitalReadFast(CD4021_PIN_DATA1))
-      d[1] |= i;
-    if (!digitalReadFast(CD4021_PIN_DATA2))
-      d[3] |= i;
-
-    digitalWriteFast(CD4021_PIN_SCK, 1);
-    digitalWriteFast(CD4021_PIN_SCK, 0);
-  } while (i >>= 1);
-
-#ifdef CD4021_PIN_PL
-  digitalWriteFast(CD4021_PIN_PL, 1);
-#endif
-#endif
-
-#if BUTTONS_TYPE == BT_MCP23017
-  mcp23017_1.read16((uint16_t *)d);
-  mcp23017_2.read16((uint16_t *)(d + 2));
-  *((uint32_t *)d) = ~*((uint32_t *)d);
-#endif
-
-#if BUTTONS_TYPE == BT_PCF857x
-  //read 1-16
-#if PCF857x_L1_TYPE == PCF8574
-  pcf857x[0].read(d);
-  pcf857x[1].read(d + 1);
-#endif
-#if PCF857x_L1_TYPE == PCF8575
-  pcf857x[0].read16((uint16_t *)d);
-#endif
-
-  //read 17-32
-#if PCF857x_L2_TYPE == PCF8574
-  pcf857x[2].read(d + 2);
-  pcf857x[3].read(d + 3);
-#endif
-#if PCF857x_L2_TYPE == PCF8575
-  pcf857x[2].read16((uint16_t *)d + 1);
-#endif
-
-  *((uint32_t *)d) = ~*((uint32_t *)d);
-#endif
-
-  //analog pin to buttons
-#ifdef APB
-  static const uint8_t apb_values[] = { APB_VALUES };
-  static const uint8_t apb_btns[] = { APB_BTNS };
-  uint8_t apb_val = analogReadFast(APB_PIN) >> 2;
-
-  if (apb_out) {
-    Serial.print(F("APB: "));
-    Serial.println(apb_val);
-  }
-
-  for (i = 0; i < APB_BTN_COUNT; i++)
-    bitWrite(*((uint32_t *)d), apb_btns[i] - 1, ((apb_val > apb_values[i] - APB_TOLERANCE) && (apb_val < apb_values[i] + APB_TOLERANCE)));
-#endif
-
-    //direct pin buttons
+//direct pin buttons
 #ifdef DPB
   int i = 0;
   if (settings.mplexShifter > 0) {
@@ -982,22 +439,6 @@ void readButtons() {
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
 
-    //button matrix
-#ifdef BM
-  uint8_t btn = BM_1ST_BTN - 1;
-  for (i = 0; i < sizeof(bm_rows); i++) {
-    //pinModeFast(bm_rows[i], OUTPUT);
-    //digitalWrite(bm_rows[i], 0);
-    *portModeRegister(digitalPinToPort(bm_rows[i])) |= digitalPinToBitMask(bm_rows[i]);
-    for (uint8_t j = 0; j < sizeof(bm_cols); j++) {
-      bitWrite(*((uint32_t *)d), btn, (*portInputRegister(digitalPinToPort(bm_cols[j])) & digitalPinToBitMask(bm_cols[j])) == 0);
-      btn++;
-    }
-    //pinModeFast(bm_rows[i], INPUT);
-    *portModeRegister(digitalPinToPort(bm_rows[i])) &= ~digitalPinToBitMask(bm_rows[i]);
-  }
-#endif
-
   //debounce
   if (settings.debounce) {
     if (tempButtons != buttons) {
@@ -1010,58 +451,6 @@ void readButtons() {
       changed = true;
     }
   }
-
-  //center button processing
-  if (changed)
-    if (settings.centerButton != -1) {
-      bool state = (bitRead(*((uint32_t *)d), settings.centerButton));
-      if ((!centerButtonState) && state)  //avoid multiple triggering
-        center();
-      centerButtonState = state;
-      bitClear(wheel.buttons, settings.centerButton);
-    }
-
-    //analog shifter
-#ifdef ASHIFTER
-  uint8_t x = analogReadFast(ASHIFTER_PINX) >> 2;
-  uint8_t y = analogReadFast(ASHIFTER_PINY) >> 2;
-  uint8_t g;
-
-  if (ashifter_out) {
-    Serial.print(F("Analog shifter X:"));
-    Serial.print(x);
-    Serial.print(" Y:");
-    Serial.println(y);
-  }
-
-//clear bits
-#if ASHIFTER_POS == 8
-  wheel.buttons &= ~((uint32_t)0xff << (ASHIFTER_1ST_BTN - 1));
-#endif
-#if ASHIFTER_POS == 6
-  wheel.buttons &= ~((uint32_t)0x3f << (ASHIFTER_1ST_BTN - 1));
-#endif
-
-  //set bits
-  if (y < ASHIFTER_Y1)
-    g = 0b00000001;
-  else if (y > ASHIFTER_Y2)
-    g = 0b00000010;
-  else
-    return;
-
-  if (x > ASHIFTER_X1)
-    g <<= 2;
-  if (x > ASHIFTER_X2)
-    g <<= 2;
-
-#if ASHIFTER_POS == 8
-  if (x > ASHIFTER_X3)
-    g <<= 2;
-#endif
-
-  wheel.buttons |= ((uint32_t)g << (ASHIFTER_1ST_BTN - 1));
-#endif
 }
 //---------------------------------------- end buttons ----------------------------------------------
 
@@ -1120,7 +509,7 @@ void processSerial() {
   if (Serial.available()) {
     char cmd[16];
     uint8_t cmdLength;
-    int32_t arg1, arg2, arg3, arg4;
+    int32_t arg1, arg2, arg3;
 
     arg1 = -32768;
     arg2 = -32768;
@@ -1144,12 +533,6 @@ void processSerial() {
       else
         Serial.println(F("off"));
     }
-
-#ifdef USE_TIMING
-    if (strcmp_P(cmd, PSTR("timing")) == 0) {
-      timing = !timing;
-    }
-#endif
 
     //center
     if (strcmp_P(cmd, PSTR("center")) == 0)
@@ -1373,19 +756,6 @@ void processSerial() {
       Serial.print(F(":"));
       Serial.println(F(FIRMWARE_VER));
     }
-
-
-#ifdef APB
-    if (strcmp_P(cmd, PSTR("apbout")) == 0) {
-      apb_out = !apb_out;
-    }
-#endif
-
-#ifdef ASHIFTER
-    if (strcmp_P(cmd, PSTR("ahsout")) == 0) {
-      ashifter_out = !ashifter_out;
-    }
-#endif
   }
 }
 

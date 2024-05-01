@@ -20,18 +20,15 @@
 
 #include "WHID.h"
 
-
 #if defined(USBCON)
 
-HID_FFB& NEW_HID()
-{
+HID_FFB& NEW_HID() {
   static HID_FFB obj;
   return obj;
 }
 
-int HID_FFB::getInterface(uint8_t* interfaceCount)
-{
-  *interfaceCount += 1; // uses 1
+int HID_FFB::getInterface(uint8_t* interfaceCount) {
+  *interfaceCount += 1;  // uses 1
   HID_Descriptor hidInterface = {
     D_INTERFACE(pluggedInterface, HID_ENPOINT_COUNT, USB_DEVICE_CLASS_HUMAN_INTERFACE, HID_SUBCLASS_NONE, HID_PROTOCOL_NONE),
     D_HIDREPORT(descriptorSize),
@@ -41,8 +38,7 @@ int HID_FFB::getInterface(uint8_t* interfaceCount)
   return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
 }
 
-int HID_FFB::getDescriptor(USBSetup& setup)
-{
+int HID_FFB::getDescriptor(USBSetup& setup) {
   // Check if this is a HID Class Descriptor request
   if (setup.bmRequestType != REQUEST_DEVICETOHOST_STANDARD_INTERFACE) {
     return 0;
@@ -72,8 +68,7 @@ int HID_FFB::getDescriptor(USBSetup& setup)
   return total;
 }
 
-uint8_t HID_FFB::getShortName(char *name)
-{
+uint8_t HID_FFB::getShortName(char* name) {
   name[0] = 'H';
   name[1] = 'I';
   name[2] = 'D';
@@ -82,12 +77,11 @@ uint8_t HID_FFB::getShortName(char *name)
   return 5;
 }
 
-void HID_FFB::AppendDescriptor(HID_SubDescriptor *node)
-{
+void HID_FFB::AppendDescriptor(HID_SubDescriptor* node) {
   if (!rootNode) {
     rootNode = node;
   } else {
-    HID_SubDescriptor *current = rootNode;
+    HID_SubDescriptor* current = rootNode;
     while (current->next) {
       current = current->next;
     }
@@ -96,8 +90,7 @@ void HID_FFB::AppendDescriptor(HID_SubDescriptor *node)
   descriptorSize += node->length;
 }
 
-int HID_FFB::SendReport(uint8_t id, const void* data, int len)
-{
+int HID_FFB::SendReport(uint8_t id, const void* data, int len) {
   auto ret = USB_Send(HID_ENDPOINT_IN, &id, 1);
   if (ret < 0) return ret;
   auto ret2 = USB_Send(HID_ENDPOINT_IN | TRANSFER_RELEASE, data, len);
@@ -106,16 +99,13 @@ int HID_FFB::SendReport(uint8_t id, const void* data, int len)
 }
 
 
-int HID_FFB::RecvReport(void* data, int len)
-{
+int HID_FFB::RecvReport(void* data, int len) {
   return USB_Recv(HID_ENDPOINT_OUT, &data, len);
 }
 
-uint8_t HID_FFB::AvailableReport()
-{
+uint8_t HID_FFB::AvailableReport() {
   return USB_Available(HID_ENDPOINT_OUT);
 }
-
 
 void HID_FFB::RecvFfbReport() {
   if (AvailableReport() > 0) {
@@ -130,8 +120,7 @@ void HID_FFB::RecvFfbReport() {
 bool HID_FFB::HID_GetReport(USBSetup& setup) {
   uint8_t report_id = setup.wValueL;
   uint8_t report_type = setup.wValueH;
-  if (report_type == HID_REPORT_TYPE_INPUT)
-  {
+  if (report_type == HID_REPORT_TYPE_INPUT) {
     //        /* Create the next HID report to send to the host */
     //        GetNextReport(0xFF, &JoystickReportData);
     //        /* Write the report data to the control endpoint */
@@ -139,15 +128,14 @@ bool HID_FFB::HID_GetReport(USBSetup& setup) {
   }
   if (report_type == HID_REPORT_TYPE_OUTPUT) {}
   if (report_type == HID_REPORT_TYPE_FEATURE) {
-    if ((report_id == 6))// && (gNewEffectBlockLoad.reportId==6))
+    if ((report_id == 6))  // && (gNewEffectBlockLoad.reportId==6))
     {
       _delay_us(500);
       USB_SendControl(TRANSFER_RELEASE, ffbReportHandler.FfbOnPIDBlockLoad(), sizeof(USB_FFBReport_PIDBlockLoad_Feature_Data_t));
       ffbReportHandler.pidBlockLoad.reportId = 0;
       return (true);
     }
-    if (report_id == 7)
-    {
+    if (report_id == 7) {
       USB_FFBReport_PIDPool_Feature_Data_t ans;
       ans.reportId = report_id;
       ans.ramPoolSize = 0xffff;
@@ -166,23 +154,20 @@ bool HID_FFB::HID_SetReport(USBSetup& setup) {
   uint16_t length = setup.wLength;
   uint8_t data[10];
   if (report_type == HID_REPORT_TYPE_FEATURE) {
-    if (length == 0)
-    {
+    if (length == 0) {
       USB_RecvControl(&data, length);
       // Block until data is read (make length negative)
       //disableFeatureReport();
       return true;
     }
-    if (report_id == 5)
-    {
+    if (report_id == 5) {
       USB_FFBReport_CreateNewEffect_Feature_Data_t ans;
       USB_RecvControl(&ans, sizeof(USB_FFBReport_CreateNewEffect_Feature_Data_t));
       ffbReportHandler.FfbOnCreateNewEffect(&ans);
     }
     return (true);
   }
-  if (setup.wValueH == HID_REPORT_TYPE_INPUT)
-  {
+  if (setup.wValueH == HID_REPORT_TYPE_INPUT) {
     /*if(length == sizeof(JoystickReportData))
       {
       USB_RecvControl(&JoystickReportData, length);
@@ -192,16 +177,14 @@ bool HID_FFB::HID_SetReport(USBSetup& setup) {
   return (false);
 }
 
-bool HID_FFB::setup(USBSetup& setup)
-{
+bool HID_FFB::setup(USBSetup& setup) {
   if (pluggedInterface != setup.wIndex) {
     return false;
   }
   uint8_t request = setup.bRequest;
   uint8_t requestType = setup.bmRequestType;
 
-  if (requestType == REQUEST_DEVICETOHOST_CLASS_INTERFACE)
-  {
+  if (requestType == REQUEST_DEVICETOHOST_CLASS_INTERFACE) {
     if (request == HID_GET_REPORT) {
       HID_GetReport(setup);
       return true;
@@ -215,8 +198,7 @@ bool HID_FFB::setup(USBSetup& setup)
     }
   }
 
-  if (requestType == REQUEST_HOSTTODEVICE_CLASS_INTERFACE)
-  {
+  if (requestType == REQUEST_HOSTTODEVICE_CLASS_INTERFACE) {
     if (request == HID_SET_PROTOCOL) {
       // The USB Host tells us if we are in boot or report mode.
       // This only works with a real boot compatible device.
@@ -227,8 +209,7 @@ bool HID_FFB::setup(USBSetup& setup)
       idle = setup.wValueL;
       return true;
     }
-    if (request == HID_SET_REPORT)
-    {
+    if (request == HID_SET_REPORT) {
       HID_SetReport(setup);
       return true;
     }
@@ -236,20 +217,17 @@ bool HID_FFB::setup(USBSetup& setup)
   return false;
 }
 
-HID_FFB::HID_FFB(void) : PluggableUSBModule(HID_ENPOINT_COUNT, 1, epType),
-  rootNode(NULL), descriptorSize(0),
-  protocol(HID_REPORT_PROTOCOL), idle(1)
-{
+HID_FFB::HID_FFB(void)
+  : PluggableUSBModule(HID_ENPOINT_COUNT, 1, epType),
+    rootNode(NULL), descriptorSize(0),
+    protocol(HID_REPORT_PROTOCOL), idle(1) {
   epType[0] = EP_TYPE_INTERRUPT_IN;
   epType[1] = EP_TYPE_INTERRUPT_OUT;
   PluggableUSB().plug(this);
 }
 
-int HID_FFB::begin(void)
-{
+int HID_FFB::begin(void) {
   return 0;
 }
-
-
 
 #endif /* if defined(USBCON) */

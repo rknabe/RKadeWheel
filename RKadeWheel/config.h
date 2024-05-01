@@ -1,28 +1,14 @@
 #pragma once
 //---------------------------Constants, do not change--------------------
 #define ST_ENCODER 0
-#define ST_TLE5010 1
-#define ST_AS5600 2
-#define ST_MLX90316 3
 
 #define PT_INTERNAL 0
-#define PT_HC164 1
-#define PT_MCP3204_4W 2
-#define PT_MCP3204_SPI 3
-#define PT_ADS1015 4
-#define PT_ADS7828 5
 
-#define BT_74HC165 0
-#define BT_MCP23017 1
-#define BT_CD4021B 2
-#define BT_PCF857x 3
-#define BT_NONE 0xFF
 //-----------------------------------------------------------------------
 
 //---------------------------Configuration-------------------------------
 
 #define SERIAL_BAUDRATE 2000000
-//#define USE_TIMING
 
 //---------------------------Steering axis-------------------------------
 //different types of wheel sensor. Choose only one!
@@ -171,15 +157,6 @@
 #define PCF857x_L2_ADDR1 0x22
 #define PCF857x_L2_ADDR2 0x23
 
-
-//analog pin buttons
-//#define APB
-#define APB_PIN A11
-#define APB_BTN_COUNT 2
-#define APB_VALUES 32, 96
-#define APB_TOLERANCE 10
-#define APB_BTNS 25, 26
-
 //buttons directly connected to pins
 #define DPB  //Enable
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
@@ -190,25 +167,6 @@
 #define GEAR_BTN_IDX_4 3
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
-
-//button matrix
-//#define BM            //enable
-#define BM_COL_PINS 2, 3, 4
-#define BM_ROW_PINS 5, 6, 7
-#define BM_1ST_BTN 1
-
-
-//analog H-shifter
-//#define ASHIFTER
-#define ASHIFTER_PINX A4
-#define ASHIFTER_PINY A5
-#define ASHIFTER_POS 8  //6 or 8 positions
-#define ASHIFTER_Y1 50
-#define ASHIFTER_Y2 200
-#define ASHIFTER_X1 64
-#define ASHIFTER_X2 128
-#define ASHIFTER_X3 192
-#define ASHIFTER_1ST_BTN 25
 
 //Hat switch
 //#define HATSWITCH
