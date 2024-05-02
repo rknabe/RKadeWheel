@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include "effNames.h"
 
 #define FIRMWARE_VER "1.1.1"
 #define FIRMWARE_TYPE "RKADE"

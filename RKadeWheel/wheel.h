@@ -15,8 +15,7 @@
 #define AXIS_AUX4 6
 
 //Input Report
-typedef struct
-{
+typedef struct {
   int16_t axes[8] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
   uint32_t buttons;
 #ifdef HATSWITCH
@@ -25,29 +24,26 @@ typedef struct
 } wheelData;
 
 //Reports for GUI
-typedef struct
-{
+typedef struct {
   uint8_t command;
   int16_t arg;
   uint8_t data[28];
 } GUI_Report;
 
-typedef struct
-{
+typedef struct {
   char id[6] = FIRMWARE_TYPE;
   char ver[12];
 } GUI_Report_Version;
 
-typedef struct
-{
+typedef struct {
   int32_t rawValue;
   int16_t value;
   int16_t range;
   int16_t velocity;
   int16_t acceleration;
 } GUI_Report_SteerAxis;
-typedef struct
-{
+
+typedef struct {
   int16_t rawValue;
   int16_t value;
   int16_t axisMin;
@@ -59,16 +55,15 @@ typedef struct
   uint8_t outputDisabled;
   uint8_t bitTrim;
 } GUI_Report_AnalogAxis;
-typedef struct
-{
+
+typedef struct {
   int32_t buttons;
   int8_t centerButton;
   int8_t debounce;
   uint8_t mplexShifter;
 } GUI_Report_Buttons;
 
-typedef struct
-{
+typedef struct {
   uint16_t maxvd;
   uint16_t maxvf;
   uint16_t maxacc;
@@ -82,9 +77,8 @@ typedef struct
   uint16_t endstopOffset;
   uint16_t endstopWidth;
   uint8_t constantSpring;
-  uint8_t afcOnStartup;  
+  uint8_t afcOnStartup;
 } GUI_Report_Settings;
-
 
 class Wheel_ {
 public:

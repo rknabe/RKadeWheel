@@ -387,16 +387,13 @@ int16_t pullup_linearize(int16_t val) {
 //-----------------------------------reading buttons------------------------------
 void readButtons() {
   uint32_t buttons = 0;
-  bool changed;
 
   uint8_t *d;
   if (settings.debounce) {
     d = (uint8_t *)&buttons;
-    changed = false;
   } else {
     wheel.buttons = 0;
     d = (uint8_t *)&wheel.buttons;
-    changed = true;
   }
 
 //direct pin buttons
@@ -448,7 +445,6 @@ void readButtons() {
       debounceCount++;
     else {
       wheel.buttons = buttons;
-      changed = true;
     }
   }
 }
@@ -611,7 +607,7 @@ void processSerial() {
         Serial.print(F("Gain "));
         Serial.print(arg1);
         Serial.print(" ");
-        printEffect(arg1);
+        //printEffect(arg1);
         Serial.print(F(": "));
         Serial.println(settings.gain[arg1]);
       }
@@ -890,15 +886,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       dist = pos - prevPos;
       prevPos = pos;
 
-      //debug output
-      //Serial.print("Pos:");
-      //Serial.print(pos);
-      //Serial.print("\tDist:");
-      //Serial.print(dist);
-      //Serial.print("\tTime:");
-      //Serial.print(currTime - prevTime);
-      //Serial.println();
-
       switch (_state) {
         case 1:
           if (pos - initialPos > 100)  //distance must be negative
@@ -913,8 +900,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMin = pos;
-            //Serial.print("Found Min:");
-            //Serial.println(posMin);
 
             motor.setForce(-force);
             _state = 2;
@@ -926,15 +911,9 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMax = pos;
-            //Serial.print("Found Max:");
-            //Serial.println(posMax);
-            //Serial.print("Min:");
-            //Serial.println(posMin);
 
             //calculate range
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
-            //Serial.print("Range:");
-            //Serial.println(range);
 
             if (range < 2) {
               Serial.println(F("Error: no movement"));
