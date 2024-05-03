@@ -69,7 +69,7 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS wheel.analogAxes[AXIS_AUX1]->value
-#define CENTER_WHEEL wheel.analogAxes[AXIS_AUX1]->setValue(0)
+#define CENTER_WHEEL {wheel.analogAxes[AXIS_AUX1]->setValue(0); wheel.axisWheel->center();}
 #define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_AUX1]->setValue(val)
 #endif
 

@@ -41,8 +41,8 @@
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
 #define STEER_TM_RATIO_DIV 4   //Division factor
 #else
-#define STEER_TM_RATIO_MUL -0.1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 1    //Division factor
+#define STEER_TM_RATIO_MUL -1  //Multiplication factor
+#define STEER_TM_RATIO_DIV 10    //Division factor
 #endif
 
 //---------------------------I2C----------------------------------------
