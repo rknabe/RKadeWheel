@@ -1,6 +1,7 @@
 #pragma once
 //---------------------------Constants, do not change--------------------
 #define ST_ENCODER 0
+#define ST_ANALOG 4
 
 #define PT_INTERNAL 0
 
@@ -13,6 +14,7 @@
 //---------------------------Steering axis-------------------------------
 //different types of wheel sensor. Choose only one!
 #define STEER_TYPE ST_ENCODER
+//#define STEER_TYPE ST_ANALOG
 //#define STEER_TYPE ST_TLE5010
 //#define STEER_TYPE ST_AS5600
 //#define STEER_TYPE ST_MLX90316
@@ -35,8 +37,13 @@
 
 //transmission ratio (see readme)
 #define STEER_TM_RATIO_ENABLED  //Uncomment to enable feature
-#define STEER_TM_RATIO_MUL -1   //Multiplication factor
-#define STEER_TM_RATIO_DIV 4    //Division factor
+#if STEER_TYPE != ST_ANALOG
+#define STEER_TM_RATIO_MUL -1  //Multiplication factor
+#define STEER_TM_RATIO_DIV 4   //Division factor
+#else
+#define STEER_TM_RATIO_MUL 0.1  //Multiplication factor
+#define STEER_TM_RATIO_DIV 1    //Division factor
+#endif
 
 //---------------------------I2C----------------------------------------
 //bitbang I2С pins - for MCP23017 and ADS1015
@@ -47,7 +54,7 @@
 //---------------------------analog axes---------------------------
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
-//#define PIN_AUX1    A3
+#define PIN_AUX1 A3
 //#define PIN_AUX2    A8
 //#define PIN_AUX3    A6
 //#define PIN_AUX4    A7
@@ -55,11 +62,6 @@
 
 //different ways of connecting pedals. Choose only one!
 #define PEDALS_TYPE PT_INTERNAL  //use internal ADC
-//#define PEDALS_TYPE PT_HC164              //use analog multiplexer 74HC4051/74HC4052/74HC4067 + 74HC164
-//#define PEDALS_TYPE PT_MCP3204_4W         //use external ADC MCP3204 (4-wire)
-//#define PEDALS_TYPE PT_MCP3204_SPI        //use external ADC MCP3204 (6-wire SPI)
-//#define PEDALS_TYPE PT_ADS1015            //use external ADC ADS1015
-//#define PEDALS_TYPE PT_ADS7828            //use external ADC ADS7828
 
 //settings for internal ADC
 //analog axes pins
@@ -118,7 +120,7 @@
 #define MA_LEVEL_AXIS_ACC 4
 #define MA_LEVEL_AXIS_BRAKE 4
 #define MA_LEVEL_AXIS_CLUTCH 4
-#define MA_LEVEL_AXIS_AUX1 0
+#define MA_LEVEL_AXIS_AUX1 4
 #define MA_LEVEL_AXIS_AUX2 0
 #define MA_LEVEL_AXIS_AUX3 0
 #define MA_LEVEL_AXIS_AUX4 0
