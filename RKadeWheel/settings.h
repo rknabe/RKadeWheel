@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-#define FIRMWARE_VER "1.1.1"
+#define FIRMWARE_VER "1.1.2"
 #define FIRMWARE_TYPE "RKADE"
 
 struct SettingsAxis {

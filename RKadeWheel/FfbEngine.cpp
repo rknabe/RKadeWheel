@@ -113,7 +113,7 @@ void FfbEngine::constantSpringForce() {
     if (id > 0) {
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       if (effect->state & MEFFECTSTATE_PLAYING) {
-        Serial.println(F("Stopping constant spring force"));
+        //Serial.println(F("Stopping constant spring force"));
         ffbReportHandler->StopEffect(id);
         //ffbReportHandler->FreeEffect(id);
       }
@@ -161,6 +161,8 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
             break;
           case USB_EFFECT_SPRING_CONSTANT:
           case USB_EFFECT_SPRING:
+            //Serial.println("spring axis:");
+            //Serial.println(axis->value);
             tmpForce = springForce(effect, axis->value);
             break;
           case USB_EFFECT_DAMPER:

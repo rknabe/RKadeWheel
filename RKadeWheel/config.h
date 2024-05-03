@@ -13,8 +13,8 @@
 
 //---------------------------Steering axis-------------------------------
 //different types of wheel sensor. Choose only one!
-#define STEER_TYPE ST_ENCODER
-//#define STEER_TYPE ST_ANALOG
+//#define STEER_TYPE ST_ENCODER
+#define STEER_TYPE ST_ANALOG
 //#define STEER_TYPE ST_TLE5010
 //#define STEER_TYPE ST_AS5600
 //#define STEER_TYPE ST_MLX90316
@@ -41,7 +41,7 @@
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
 #define STEER_TM_RATIO_DIV 4   //Division factor
 #else
-#define STEER_TM_RATIO_MUL 0.1  //Multiplication factor
+#define STEER_TM_RATIO_MUL -0.1  //Multiplication factor
 #define STEER_TM_RATIO_DIV 1    //Division factor
 #endif
 
