@@ -6,14 +6,6 @@
 #include "hidDescriptor.h"
 #include "settings.h"
 
-#define AXIS_ACC 0
-#define AXIS_BRAKE 1
-#define AXIS_CLUTCH 2
-#define AXIS_AUX1 3
-#define AXIS_AUX2 4
-#define AXIS_AUX3 5
-#define AXIS_AUX4 6
-
 //Input Report
 typedef struct {
   int16_t axes[8] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
@@ -83,7 +75,7 @@ typedef struct {
 class Wheel_ {
 public:
   AxisWheel* axisWheel;
-  Axis* analogAxes[7];
+  Axis* analogAxes[AXIS_COUNT];
   uint32_t buttons;
   Wheel_();
   void update();

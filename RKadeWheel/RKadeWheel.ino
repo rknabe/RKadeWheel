@@ -486,7 +486,7 @@ void processSerial() {
     Serial.print(wheel.axisWheel->acceleration);
     Serial.print(F("\tFFB:"));
     Serial.println(force);
-  } else if ((axisInfo > 0) && (axisInfo <= 7)) {
+  } else if ((axisInfo > 0) && (axisInfo <= AXIS_COUNT)) {
     Serial.print(F("Axis#"));
     Serial.print(axisInfo);
     Serial.print(F("\tRaw: "));
@@ -623,7 +623,7 @@ void processSerial() {
 
     //axisinfo <axis>
     if (strcmp_P(cmd, PSTR("axisinfo")) == 0) {
-      if ((arg1 >= 0) && (arg1 <= 7))
+      if ((arg1 >= 0) && (arg1 <= AXIS_COUNT))
         axisInfo = arg1;
       else
         axisInfo = -1;
@@ -631,7 +631,7 @@ void processSerial() {
 
     //limits <axis> <min> <max>
     if (strcmp_P(cmd, PSTR("limit")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if ((arg2 > -32768) && (arg3 > -32768))
           wheel.analogAxes[arg1 - 1]->setLimits(arg2, arg3);
 
@@ -645,7 +645,7 @@ void processSerial() {
 
     //axiscenter <axis> <pos>
     if (strcmp_P(cmd, PSTR("axiscenter")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setCenter(arg2);
         Serial.print(F("Axis#"));
@@ -656,7 +656,7 @@ void processSerial() {
 
     //axisdz <axis> <pos>
     if (strcmp_P(cmd, PSTR("axisdz")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setDZ(arg2);
         Serial.print(F("Axis#"));
@@ -667,7 +667,7 @@ void processSerial() {
 
     //axisdisable <axis> <pos>
     if (strcmp_P(cmd, PSTR("axisdisable")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         wheel.analogAxes[arg1 - 1]->outputDisabled = !wheel.analogAxes[arg1 - 1]->outputDisabled;
 
         Serial.print(F("Axis#"));
@@ -680,7 +680,7 @@ void processSerial() {
 
     //axistrim <axis> <level>
     if (strcmp_P(cmd, PSTR("axistrim")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if ((arg2 >= 0) && (arg2 < 8))
           wheel.analogAxes[arg1 - 1]->bitTrim = arg2;
 
@@ -692,7 +692,7 @@ void processSerial() {
 
     //autolimits <axis>
     if (strcmp_P(cmd, PSTR("autolimit")) == 0)
-      if ((arg1 >= 1) && (arg1 <= 7)) {
+      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         wheel.analogAxes[arg1 - 1]->setAutoLimits(!wheel.analogAxes[arg1 - 1]->autoLimit);
         Serial.print(F("Axis #"));
         Serial.print(arg1);
@@ -784,7 +784,7 @@ void load(bool defaults) {
 
     settingsE.data.centerButton = -1;  //no center button
 
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < AXIS_COUNT; i++) {
       if (i < 3) {
         settingsE.axes[i].axisMin = DEFAULT_AA_MIN;
         settingsE.axes[i].axisMax = DEFAULT_AA_MAX;
@@ -819,7 +819,7 @@ void load(bool defaults) {
 
   settings = settingsE.data;
 
-  for (i = 0; i < 7; i++) {
+  for (i = 0; i < AXIS_COUNT; i++) {
     wheel.analogAxes[i]->setLimits(settingsE.axes[i].axisMin, settingsE.axes[i].axisMax);
     wheel.analogAxes[i]->setCenter(settingsE.axes[i].axisCenter);
     if (!wheel.analogAxes[i]->autoCenter)
@@ -844,7 +844,7 @@ void save() {
   settingsE.data = settings;
   settingsE.range = wheel.axisWheel->range;
 
-  for (i = 0; i < 7; i++) {
+  for (i = 0; i < AXIS_COUNT; i++) {
     settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
     settingsE.axes[i].axisMax = wheel.analogAxes[i]->axisMax;
     if (!wheel.analogAxes[i]->autoCenter)

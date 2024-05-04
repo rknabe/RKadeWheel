@@ -1,8 +1,20 @@
 #pragma once
 #include <Arduino.h>
 
+#pragma once
+
 #define FIRMWARE_VER "1.1.2"
 #define FIRMWARE_TYPE "RKADE"
+
+#define AXIS_ACC 0
+#define AXIS_BRAKE 1
+#define AXIS_CLUTCH 2
+#define AXIS_AUX1 3
+#define AXIS_AUX2 4
+#define AXIS_AUX3 5
+#define AXIS_AUX4 6
+#define AXIS_ST_ANALOG 7
+#define AXIS_COUNT 8
 
 struct SettingsAxis {
   int16_t axisMin;
@@ -34,7 +46,7 @@ struct SettingsData {
 //all settings
 class SettingsEEPROM {
 public:
-  SettingsAxis axes[7];
+  SettingsAxis axes[AXIS_COUNT];
   SettingsData data;
 
   uint16_t range;

@@ -58,6 +58,9 @@
 //#define PIN_AUX2    A8
 //#define PIN_AUX3    A6
 //#define PIN_AUX4    A7
+#if STEER_TYPE == ST_ANALOG
+#define PIN_ST_ANALOG 10
+#endif
 
 
 //different ways of connecting pedals. Choose only one!
@@ -124,6 +127,7 @@
 #define MA_LEVEL_AXIS_AUX2 0
 #define MA_LEVEL_AXIS_AUX3 0
 #define MA_LEVEL_AXIS_AUX4 0
+#define MA_LEVEL_AXIS_ST_ANALOG 4
 
 //----------------------------Buttons-------------------------------------
 //different ways of connecting buttons. Choose only one!
