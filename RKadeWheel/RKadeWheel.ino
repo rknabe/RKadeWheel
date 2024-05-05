@@ -36,7 +36,6 @@ Wheel_ wheel;
 Motor motor;
 SettingsData settings;
 int16_t force;
-//bool fvaOut = false;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
@@ -69,11 +68,7 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS wheel.analogAxes[AXIS_ST_ANALOG]->value
-#define CENTER_WHEEL \
-  { \
-    wheel.analogAxes[AXIS_ST_ANALOG]->setValue(0); \
-    wheel.axisWheel->center(); \
-  }
+#define CENTER_WHEEL wheel.analogAxes[AXIS_ST_ANALOG]->setValue(0);
 #define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val)
 #endif
 
@@ -116,8 +111,6 @@ void setup() {
     autoFindCenter();
 #endif
   }
-
-  //center();
 
   while (true)
     mainLoop();
@@ -378,7 +371,7 @@ void readAnalogAxes() {
   //if (fvaOut) {
   //  wheel.analogAxes[AXIS_AUX3]->value = (wheel.axisWheel->velocity << 1) * wheel.ffbEngine.maxVelocityDamperC;
   //  wheel.analogAxes[AXIS_AUX4]->value = (wheel.axisWheel->acceleration << 1) * wheel.ffbEngine.maxAccelerationInertiaC;
-   // wheel.analogAxes[AXIS_AUX2]->value = force << 1;
+  // wheel.analogAxes[AXIS_AUX2]->value = force << 1;
   //}
 }
 
@@ -538,15 +531,6 @@ void processSerial() {
       arg2 = Serial.parseInt(SKIP_WHITESPACE);
     if (Serial.available())
       arg3 = Serial.parseInt(SKIP_WHITESPACE);
-
-    /*if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
-      fvaOut = !fvaOut;
-      Serial.print(F("Force-velocity-acc output "));
-      if (fvaOut)
-        Serial.println(F("on"));
-      else
-        Serial.println(F("off"));
-    }*/
 
     //center
     if (strcmp_P(cmd, PSTR("center")) == 0)
