@@ -20,9 +20,11 @@
 //#define STEER_TYPE ST_MLX90316
 
 //settings for encoder
+#if STEER_TYPE == ST_ENCODER
 #define ENCODER_PIN1 0  //encoder pins must be interrupt pins:[0, 1, 2, 3]
 #define ENCODER_PIN2 1
 #define ENCODER_PPR 600  //PPR = CPR/4
+#endif
 
 //settings for TLE5010
 #define TLE5010_PIN_CS 1
@@ -42,7 +44,7 @@
 #define STEER_TM_RATIO_DIV 4   //Division factor
 #else
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 10    //Division factor
+#define STEER_TM_RATIO_DIV 10  //Division factor
 #endif
 
 //---------------------------I2C----------------------------------------
@@ -52,25 +54,25 @@
 
 #define I2C_DELAY 1
 //---------------------------analog axes---------------------------
+//analog axes pins
+#define PIN_ACC A0
+#define PIN_BRAKE A1
+#define PIN_CLUTCH A2
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
 #define PIN_AUX1 A3
-//#define PIN_AUX2    A8
-//#define PIN_AUX3    A6
-//#define PIN_AUX4    A7
+#define PIN_AUX2 A4
+//#define PIN_AUX3 A5
+//#define PIN_AUX4 A7
 #if STEER_TYPE == ST_ANALOG
-#define PIN_ST_ANALOG 10
+#define PIN_ST_ANALOG A5
 #endif
-
 
 //different ways of connecting pedals. Choose only one!
 #define PEDALS_TYPE PT_INTERNAL  //use internal ADC
 
 //settings for internal ADC
-//analog axes pins
-#define PIN_ACC A0
-#define PIN_BRAKE A1
-#define PIN_CLUTCH A2
+
 
 //#define AA_PULLUP              //internal ADC with pullups for analog axes
 //#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
@@ -124,9 +126,9 @@
 #define MA_LEVEL_AXIS_BRAKE 4
 #define MA_LEVEL_AXIS_CLUTCH 4
 #define MA_LEVEL_AXIS_AUX1 4
-#define MA_LEVEL_AXIS_AUX2 0
-#define MA_LEVEL_AXIS_AUX3 0
-#define MA_LEVEL_AXIS_AUX4 0
+#define MA_LEVEL_AXIS_AUX2 4
+#define MA_LEVEL_AXIS_AUX3 4
+#define MA_LEVEL_AXIS_AUX4 4
 #define MA_LEVEL_AXIS_ST_ANALOG 4
 
 //----------------------------Buttons-------------------------------------
@@ -165,7 +167,11 @@
 
 //buttons directly connected to pins
 #define DPB  //Enable
+#if STEER_TYPE == ST_ANALOG
+#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+#else
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+#endif
 #define DPB_1ST_BTN 1
 #define GEAR_BTN_IDX_1 0
 #define GEAR_BTN_IDX_2 1

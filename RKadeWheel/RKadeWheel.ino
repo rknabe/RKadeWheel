@@ -36,7 +36,7 @@ Wheel_ wheel;
 Motor motor;
 SettingsData settings;
 int16_t force;
-bool fvaOut = false;
+//bool fvaOut = false;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
@@ -68,9 +68,13 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
-#define GET_WHEEL_POS wheel.analogAxes[AXIS_AUX1]->value
-#define CENTER_WHEEL {wheel.analogAxes[AXIS_AUX1]->setValue(0); wheel.axisWheel->center();}
-#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_AUX1]->setValue(val)
+#define GET_WHEEL_POS wheel.analogAxes[AXIS_ST_ANALOG]->value
+#define CENTER_WHEEL \
+  { \
+    wheel.analogAxes[AXIS_ST_ANALOG]->setValue(0); \
+    wheel.axisWheel->center(); \
+  }
+#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val)
 #endif
 
 
@@ -350,6 +354,9 @@ void readAnalogAxes() {
 #ifdef PIN_AUX4
   wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
 #endif
+#ifdef PIN_ST_ANALOG
+  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+#endif
 #else
 #ifdef PIN_AUX1
   wheel.analogAxes[AXIS_AUX1]->setValue(analogReadFast(PIN_AUX1));
@@ -363,13 +370,16 @@ void readAnalogAxes() {
 #ifdef PIN_AUX4
   wheel.analogAxes[AXIS_AUX4]->setValue(analogReadFast(PIN_AUX4));
 #endif
+#ifdef PIN_ST_ANALOG
+  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+#endif
 #endif
 
-  if (fvaOut) {
-    wheel.analogAxes[AXIS_AUX3]->value = (wheel.axisWheel->velocity << 1) * wheel.ffbEngine.maxVelocityDamperC;
-    wheel.analogAxes[AXIS_AUX4]->value = (wheel.axisWheel->acceleration << 1) * wheel.ffbEngine.maxAccelerationInertiaC;
-    wheel.analogAxes[AXIS_AUX2]->value = force << 1;
-  }
+  //if (fvaOut) {
+  //  wheel.analogAxes[AXIS_AUX3]->value = (wheel.axisWheel->velocity << 1) * wheel.ffbEngine.maxVelocityDamperC;
+  //  wheel.analogAxes[AXIS_AUX4]->value = (wheel.axisWheel->acceleration << 1) * wheel.ffbEngine.maxAccelerationInertiaC;
+   // wheel.analogAxes[AXIS_AUX2]->value = force << 1;
+  //}
 }
 
 #ifdef AA_PULLUP_LINEARIZE
@@ -529,14 +539,14 @@ void processSerial() {
     if (Serial.available())
       arg3 = Serial.parseInt(SKIP_WHITESPACE);
 
-    if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
+    /*if (strcmp_P(cmd, PSTR("fvaout")) == 0) {
       fvaOut = !fvaOut;
       Serial.print(F("Force-velocity-acc output "));
       if (fvaOut)
         Serial.println(F("on"));
       else
         Serial.println(F("off"));
-    }
+    }*/
 
     //center
     if (strcmp_P(cmd, PSTR("center")) == 0)
