@@ -11,10 +11,10 @@
 #define AXIS_CLUTCH 2
 #define AXIS_AUX1 3
 #define AXIS_AUX2 4
-#define AXIS_ST_ANALOG 5
+//#define AXIS_ST_ANALOG 5
 #define AXIS_AUX3 6
 //#define AXIS_AUX4 6
-#define AXIS_COUNT 7
+#define AXIS_COUNT 6
 
 struct SettingsAxis {
   int16_t axisMin;

@@ -1,8 +1,6 @@
 /*
   MIT License
-
   Copyright (c) 2022 Sulako
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -16,10 +14,9 @@
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  LIABILITY, 
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  OUT OF OR IN 
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <EEPROM.h>
@@ -67,9 +64,9 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
-#define GET_WHEEL_POS wheel.analogAxes[AXIS_ST_ANALOG]->value
-#define CENTER_WHEEL wheel.analogAxes[AXIS_ST_ANALOG]->setValue(0);
-#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val)
+#define GET_WHEEL_POS wheel.axisWheel->value
+#define CENTER_WHEEL wheel.axisWheel->setValue(0);
+#define SET_WHEEL_POSITION(val) wheel.axisWheel->setValue(val)
 #endif
 
 
@@ -95,7 +92,6 @@ void setup() {
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinModeFast(dpb[i], INPUT_PULLUP);
   }
-  //Keyboard.begin();
 #endif
 
   //motor setup
@@ -348,7 +344,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
 #endif
 #ifdef PIN_ST_ANALOG
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
 #endif
 #else
 #ifdef PIN_AUX1
@@ -364,15 +360,9 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX4]->setValue(analogReadFast(PIN_AUX4));
 #endif
 #ifdef PIN_ST_ANALOG
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
 #endif
 #endif
-
-  //if (fvaOut) {
-  //  wheel.analogAxes[AXIS_AUX3]->value = (wheel.axisWheel->velocity << 1) * wheel.ffbEngine.maxVelocityDamperC;
-  //  wheel.analogAxes[AXIS_AUX4]->value = (wheel.axisWheel->acceleration << 1) * wheel.ffbEngine.maxAccelerationInertiaC;
-  // wheel.analogAxes[AXIS_AUX2]->value = force << 1;
-  //}
 }
 
 #ifdef AA_PULLUP_LINEARIZE
@@ -437,11 +427,6 @@ void readButtons() {
     }
     i = 6;
   }
-
-  /*bool switch5 = (*portInputRegister(digitalPinToPort(dpb[5])) & digitalPinToBitMask(dpb[5])) == 0;
-  if (switch5) {
-    Keyboard.press(KEY_UP_ARROW);
-  }*/
 
   for (; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
