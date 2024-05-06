@@ -65,7 +65,7 @@
 #define PIN_AUX3 A5
 //#define PIN_AUX4 A7
 #if STEER_TYPE == ST_ANALOG
-#define PIN_ST_ANALOG A11
+#define PIN_ST_ANALOG 12
 #endif
 
 //different ways of connecting pedals. Choose only one!
