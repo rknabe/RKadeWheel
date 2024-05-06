@@ -348,7 +348,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
 #endif
 #ifdef PIN_ST_ANALOG
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
 #endif
 #else
 #ifdef PIN_AUX1
