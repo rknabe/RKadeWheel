@@ -14,7 +14,7 @@ Wheel_::Wheel_(void) {
   analogAxes[AXIS_AUX1] = new Axis(MA_LEVEL_AXIS_AUX1);
   analogAxes[AXIS_AUX2] = new Axis(MA_LEVEL_AXIS_AUX2);
   analogAxes[AXIS_AUX3] = new Axis(MA_LEVEL_AXIS_AUX3);
-  //analogAxes[AXIS_AUX4] = new Axis(MA_LEVEL_AXIS_AUX4);
+  analogAxes[AXIS_AUX4] = new Axis(MA_LEVEL_AXIS_AUX4);
   analogAxes[AXIS_ST_ANALOG] = new Axis(MA_LEVEL_AXIS_ST_ANALOG);
 }
 
