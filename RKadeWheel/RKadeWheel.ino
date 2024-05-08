@@ -52,6 +52,7 @@ static const uint8_t dpb[] = { DPB_PINS };
 
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
+void setWheelPosAnalog(int32_t val);
 
 //------------------------ steering wheel sensor ----------------------------
 
@@ -68,8 +69,8 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS wheel.analogAxes[AXIS_ST_ANALOG]->value
-#define CENTER_WHEEL wheel.analogAxes[AXIS_ST_ANALOG]->setValue(0);
-#define SET_WHEEL_POSITION(val) wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val)
+#define CENTER_WHEEL setWheelPosAnalog(0);
+#define SET_WHEEL_POSITION(val) setWheelPosAnalog(val);
 #endif
 
 
@@ -185,8 +186,14 @@ void processUsbCmd() {
         strcpy_P(((GUI_Report_Version *)data)->ver, PSTR(FIRMWARE_VER));
         break;
       case 2:  //return steering axis data
+#if STEER_TYPE == ST_ANALOG
         ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
         ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
+#else
+        ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
+        ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
+#endif
+
         ((GUI_Report_SteerAxis *)data)->range = wheel.axisWheel->range;
         ((GUI_Report_SteerAxis *)data)->velocity = wheel.axisWheel->velocity;
         ((GUI_Report_SteerAxis *)data)->acceleration = wheel.axisWheel->acceleration;
@@ -967,4 +974,10 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   //delay 1 second before zeroing the wheel to let it stop first
   delay(1000);
   center();
+}
+
+void setWheelPosAnalog(int32_t val) {
+  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val);
+  //this will allow the analog axis to adjust for center, etc
+  wheel.axisWheel->setValue(wheel.analogAxes[AXIS_ST_ANALOG]->value);
 }
