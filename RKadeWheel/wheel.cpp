@@ -23,7 +23,7 @@ void Wheel_::update(void) {
   wheelData data;
 
 #if STEER_TYPE == ST_ANALOG
-  data.axes[0] = analogAxes[AXIS_ST_ANALOG]->value;
+  data.axes[0] = axisWheel->value;
 #else
   data.axes[0] = axisWheel->value;
 #endif

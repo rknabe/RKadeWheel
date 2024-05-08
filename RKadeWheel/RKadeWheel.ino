@@ -119,8 +119,8 @@ void setup() {
 
 void mainLoop() {
 
-  wheel.axisWheel->setValue(GET_WHEEL_POS);
   readAnalogAxes();
+  wheel.axisWheel->setValue(GET_WHEEL_POS);
   //#ifndef BT_NONE
   readButtons();
   //#endif
