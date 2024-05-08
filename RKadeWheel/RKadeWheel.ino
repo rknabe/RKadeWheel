@@ -888,6 +888,11 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       dist = pos - prevPos;
       prevPos = pos;
 
+      Serial.print(F("pos:"));
+      Serial.println(pos);
+      Serial.print(F("dist:"));
+      Serial.println(dist);
+
       switch (_state) {
         case 1:
           if (pos - initialPos > 100)  //distance must be negative
@@ -902,6 +907,8 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMin = pos;
+            Serial.print(F("Found Min:"));
+            Serial.println(posMin);
 
             motor.setForce(-force);
             _state = 2;
@@ -914,11 +921,22 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
             posMax = pos;
 
+            Serial.print(F("posMax:"));
+            Serial.println(posMax);
+            Serial.print(F("posMin:"));
+            Serial.println(posMin);
+
             //calculate range
+#if STEER_TYPE == ST_ENCODER
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
+#endif
+#if STEER_TYPE == ST_ANALOG
+            range = (posMax - posMin) * 360;
+#endif
 
             if (range < 2) {
-              Serial.println(F("Error: no movement"));
+              Serial.print(F("Error: no movement, range:"));
+              Serial.println(range);
               return;
             }
 
@@ -927,7 +945,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            SET_WHEEL_POSITION(((posMax - posMin) / 2.2));
+            SET_WHEEL_POSITION(((posMax - posMin) / 2));
 
             //Go to center - should be safe now
             motor.setForce(force);
