@@ -29,7 +29,7 @@ void Wheel_::update(void) {
 #endif
 
   int8_t i;
-  for (i = 0; i < AXIS_COUNT; i++) {
+  for (i = 0; i < AXIS_REPORT_COUNT; i++) {
     if (!analogAxes[i]->outputDisabled)
       data.axes[i + 1] = analogAxes[i]->value;
   }

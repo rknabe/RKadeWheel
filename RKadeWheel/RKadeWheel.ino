@@ -68,7 +68,7 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
-#define GET_WHEEL_POS wheel.analogAxes[AXIS_ST_ANALOG]->value
+#define GET_WHEEL_POS wheel.axisWheel->value
 #define CENTER_WHEEL setWheelPosAnalog(0);
 #define SET_WHEEL_POSITION(val) setWheelPosAnalog(val);
 #endif
@@ -120,7 +120,9 @@ void setup() {
 void mainLoop() {
 
   readAnalogAxes();
-  wheel.axisWheel->setValue(GET_WHEEL_POS);
+#if STEER_TYPE != ST_ANALOG
+  //wheel.axisWheel->setValue(GET_WHEEL_POS);
+#endif
   //#ifndef BT_NONE
   readButtons();
   //#endif
@@ -139,7 +141,7 @@ void processFFB() {
   force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
 
   force = applyForceLimit(force);
-  motor.setForce(force * STEER_TM_RATIO_MUL);
+  motor.setForce(force * FORCE_RATIO_MUL);
 }
 
 //scaling force to minForce & maxForce and cut at cutForce
@@ -355,7 +357,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
 #endif
 #ifdef PIN_ST_ANALOG
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
+  wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
 #endif
 #else
 #ifdef PIN_AUX1
@@ -371,7 +373,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX4]->setValue(analogReadFast(PIN_AUX4));
 #endif
 #ifdef PIN_ST_ANALOG
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(analogReadFast(PIN_ST_ANALOG));
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
 #endif
 #endif
 
@@ -977,7 +979,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 }
 
 void setWheelPosAnalog(int32_t val) {
-  wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val);
+  //wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val);
   //this will allow the analog axis to adjust for center, etc
-  wheel.axisWheel->setValue(wheel.analogAxes[AXIS_ST_ANALOG]->value);
+  wheel.axisWheel->setValue(val);
 }

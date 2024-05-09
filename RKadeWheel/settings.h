@@ -15,6 +15,7 @@
 #define AXIS_AUX4 6
 #define AXIS_ST_ANALOG 7
 #define AXIS_COUNT 8
+#define AXIS_REPORT_COUNT 8
 
 struct SettingsAxis {
   int16_t axisMin;

@@ -39,12 +39,14 @@
 
 //transmission ratio (see readme)
 #define STEER_TM_RATIO_ENABLED  //Uncomment to enable feature
-#if STEER_TYPE != ST_ANALOG
-#define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 4   //Division factor
+#if STEER_TYPE == ST_ANALOG
+#define STEER_TM_RATIO_MUL -48  //Multiplication factor
+#define STEER_TM_RATIO_DIV 1    //Division factor
+#define FORCE_RATIO_MUL -1
 #else
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 10  //Division factor
+#define STEER_TM_RATIO_DIV 4   //Division factor
+#define FORCE_RATIO_MUL -1
 #endif
 
 //---------------------------I2C----------------------------------------
@@ -74,7 +76,7 @@
 //settings for internal ADC
 
 
-//#define AA_PULLUP              //internal ADC with pullups for analog axes
+//#define AA_PULLUP  //internal ADC with pullups for analog axes
 //#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
 
 //settings for analog multiplexer + 74HC164

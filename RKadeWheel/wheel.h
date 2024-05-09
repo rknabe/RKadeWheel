@@ -8,7 +8,7 @@
 
 //Input Report
 typedef struct {
-  int16_t axes[8] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
+  int16_t axes[AXIS_COUNT] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
   uint32_t buttons;
 #ifdef HATSWITCH
   uint8_t hat;
