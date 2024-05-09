@@ -53,6 +53,7 @@ static const uint8_t dpb[] = { DPB_PINS };
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
 void setWheelPosAnalog(int32_t val);
+int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
 
@@ -68,7 +69,7 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 
 #if STEER_TYPE == ST_ANALOG
 #define SETUP_WHEEL_SENSOR
-#define GET_WHEEL_POS wheel.axisWheel->value
+#define GET_WHEEL_POS getWheelPositionAnalog()
 #define CENTER_WHEEL setWheelPosAnalog(0);
 #define SET_WHEEL_POSITION(val) setWheelPosAnalog(val);
 #endif
@@ -878,6 +879,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   int32_t prevPos;
   int32_t pos;
   int32_t dist;
+  int16_t centerPos = 0;
 
   int32_t posMax;
   int32_t posMin = 0;
@@ -886,7 +888,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   int32_t prevTime;
   int32_t currTime;
 
-  motor.setForce(force);
+  motor.setForce(-force);
   initialPos = prevPos = GET_WHEEL_POS;
 
   prevTime = millis();
@@ -896,11 +898,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       pos = GET_WHEEL_POS;
       dist = pos - prevPos;
       prevPos = pos;
-
-      Serial.print(F("pos:"));
-      Serial.println(pos);
-      Serial.print(F("dist:"));
-      Serial.println(dist);
 
       switch (_state) {
         case 1:
@@ -916,10 +913,8 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMin = pos;
-            Serial.print(F("Found Min:"));
-            Serial.println(posMin);
 
-            motor.setForce(-force);
+            motor.setForce(force);
             _state = 2;
           }
           break;
@@ -929,11 +924,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             motor.setForce(0);
 
             posMax = pos;
-
-            Serial.print(F("posMax:"));
-            Serial.println(posMax);
-            Serial.print(F("posMin:"));
-            Serial.println(posMin);
 
             //calculate range
 #if STEER_TYPE == ST_ENCODER
@@ -954,10 +944,14 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            SET_WHEEL_POSITION(((posMax - posMin) / 2));
+            centerPos = (posMax + posMin) / 2;
+            SET_WHEEL_POSITION(centerPos);
+            wheel.axisWheel->setCenter(centerPos);
+            Serial.print("center:");
+            Serial.println(centerPos);
 
             //Go to center - should be safe now
-            motor.setForce(force);
+            motor.setForce(-force);
             _state = 3;
           }
           break;
@@ -975,7 +969,12 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
   //delay 1 second before zeroing the wheel to let it stop first
   delay(1000);
-  center();
+  center();  
+}
+
+int32_t getWheelPositionAnalog() {
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
+  return wheel.axisWheel->value;
 }
 
 void setWheelPosAnalog(int32_t val) {

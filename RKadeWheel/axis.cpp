@@ -136,9 +136,6 @@ void AxisWheel::setRange(uint16_t _deg) {
   rangeFactor = ((int32_t)1 << (16 - STEER_BITDEPTH)) * 360.0 / range;
   axisMax = (((int32_t)1 << (STEER_BITDEPTH - 1))) * range / 360 - 1;
 #endif
-
-  Serial.print("wheelMax:");
-  Serial.println(axisMax);
 }
 
 void AxisWheel::center() {
