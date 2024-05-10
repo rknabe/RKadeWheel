@@ -33,6 +33,12 @@ typedef struct {
   int16_t range;
   int16_t velocity;
   int16_t acceleration;
+  int16_t axisMin;
+  int16_t axisMax;
+  int16_t center;
+  int16_t deadzone;
+  uint8_t autoLimit;
+  uint8_t bitTrim;
 } GUI_Report_SteerAxis;
 
 typedef struct {

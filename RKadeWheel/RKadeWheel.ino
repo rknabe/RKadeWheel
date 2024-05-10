@@ -200,6 +200,13 @@ void processUsbCmd() {
         ((GUI_Report_SteerAxis *)data)->range = wheel.axisWheel->range;
         ((GUI_Report_SteerAxis *)data)->velocity = wheel.axisWheel->velocity;
         ((GUI_Report_SteerAxis *)data)->acceleration = wheel.axisWheel->acceleration;
+
+        ((GUI_Report_SteerAxis *)data)->axisMin = wheel.axisWheel->axisMin;
+        ((GUI_Report_SteerAxis *)data)->axisMax = wheel.axisWheel->axisMax;
+        ((GUI_Report_SteerAxis *)data)->center = wheel.axisWheel->getCenter();
+        ((GUI_Report_SteerAxis *)data)->deadzone = wheel.axisWheel->getDZ();
+        ((GUI_Report_SteerAxis *)data)->autoLimit = wheel.axisWheel->autoLimit;
+        ((GUI_Report_SteerAxis *)data)->bitTrim = wheel.axisWheel->bitTrim;
         break;
       case 3:  //return analog axis data
         ((GUI_Report_AnalogAxis *)data)->rawValue = wheel.analogAxes[usbCmd->arg[0]]->rawValue;
@@ -322,6 +329,21 @@ void processUsbCmd() {
       case 23:  //center wheel
         center();
         break;
+      case 24:  //wheel limits
+        wheel.axisWheel->setLimits(usbCmd->arg[0], usbCmd->arg[1]);
+        break;
+      case 25:  //set center for wheel
+        wheel.axisWheel->setCenter(usbCmd->arg[0]);
+        break;
+      case 26:  //set deadzone for wheel
+        wheel.axisWheel->setDZ(usbCmd->arg[0]);
+        break;
+      case 27:  //set autolimits for wheel
+        wheel.axisWheel->setAutoLimits(usbCmd->arg[0] > 0);
+        break;
+      case 28:  //set trim for wheel
+        wheel.axisWheel->bitTrim = usbCmd->arg[0];
+        break;
     }
   }
   usbCmd->command = 0;
@@ -377,12 +399,6 @@ void readAnalogAxes() {
   wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
 #endif
 #endif
-
-  //if (fvaOut) {
-  //  wheel.analogAxes[AXIS_AUX3]->value = (wheel.axisWheel->velocity << 1) * wheel.ffbEngine.maxVelocityDamperC;
-  //  wheel.analogAxes[AXIS_AUX4]->value = (wheel.axisWheel->acceleration << 1) * wheel.ffbEngine.maxAccelerationInertiaC;
-  // wheel.analogAxes[AXIS_AUX2]->value = force << 1;
-  //}
 }
 
 #ifdef AA_PULLUP_LINEARIZE
@@ -474,7 +490,7 @@ void readButtons() {
 //Centering wheel
 void center() {
   CENTER_WHEEL;
-  wheel.axisWheel->center();
+  wheel.axisWheel->setCenterZero();
   //Serial.println(F("Centered"));
 }
 
@@ -784,7 +800,13 @@ void load(bool defaults) {
     for (i = 0; i < 13; i++)
       settingsE.data.gain[i] = 1024;
 
+    //wheel settings
     settingsE.range = WHEEL_RANGE_DEFAULT;
+    settingsE.axisMin = DEFAULT_AA_MIN;
+    settingsE.axisMax = DEFAULT_AA_MAX;
+    settingsE.axisCenter = 512;
+    settingsE.axisDZ = 0;
+    settingsE.axisBitTrim = 0;
 
     settingsE.data.centerButton = -1;  //no center button
 
@@ -833,7 +855,14 @@ void load(bool defaults) {
     wheel.analogAxes[i]->outputDisabled = settingsE.axes[i].axisOutputDisabled;
   }
 
+  //wheel settings
   wheel.axisWheel->setRange(settingsE.range);
+  wheel.axisWheel->setLimits(settingsE.axisMin, settingsE.axisMax);
+  wheel.axisWheel->setCenter(settingsE.axisCenter);
+  if (!wheel.axisWheel->autoCenter) {
+    wheel.axisWheel->setDZ(settingsE.axisDZ);
+  }
+  wheel.axisWheel->bitTrim = settingsE.axisBitTrim;
 
   wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
   wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
@@ -846,7 +875,18 @@ void save() {
   uint8_t i;
   SettingsEEPROM settingsE;
   settingsE.data = settings;
+
+  //wheel settings
   settingsE.range = wheel.axisWheel->range;
+  settingsE.axisMin = wheel.axisWheel->axisMin;
+  settingsE.axisMax = wheel.axisWheel->axisMax;
+  if (!wheel.axisWheel->autoCenter) {
+    settingsE.axisCenter = wheel.axisWheel->getCenter();
+  } else {
+    settingsE.axisCenter = -32768;
+  }
+  settingsE.axisDZ = wheel.axisWheel->getDZ();
+  settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
 
   for (i = 0; i < AXIS_COUNT; i++) {
     settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
@@ -969,7 +1009,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
   //delay 1 second before zeroing the wheel to let it stop first
   delay(1000);
-  center();  
+  center();
 }
 
 int32_t getWheelPositionAnalog() {

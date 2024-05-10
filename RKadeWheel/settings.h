@@ -50,7 +50,14 @@ public:
   SettingsAxis axes[AXIS_COUNT];
   SettingsData data;
 
+  //wheel settings
   uint16_t range;
+  int16_t axisMin;
+  int16_t axisMax;
+  int16_t axisCenter;
+  int16_t axisDZ;
+  int8_t axisBitTrim;
+
   uint8_t ffbBD;
 
   int16_t maxVelocityDamper;

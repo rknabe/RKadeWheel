@@ -138,7 +138,7 @@ void AxisWheel::setRange(uint16_t _deg) {
 #endif
 }
 
-void AxisWheel::center() {
+void AxisWheel::setCenterZero() {
   value = 0;
   lastPosition = 0;
   velocity = 0;
