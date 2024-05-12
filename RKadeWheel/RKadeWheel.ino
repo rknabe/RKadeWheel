@@ -1022,17 +1022,9 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 int32_t getWheelPositionAnalog() {
 
 #ifdef AA_PULLUP_LINEARIZE
-  if (wheel.axisWheel->invertRotation) {
-    wheel.axisWheel->setValue(wheel.axisWheel->axisMax - pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
-  } else {
-    wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
-  }
+  wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
 #else
-  if (wheel.axisWheel->invertRotation) {
-    wheel.axisWheel->setValue(wheel.axisWheel->axisMax - analogReadFast(PIN_ST_ANALOG));
-  } else {
-    wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
-  }
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
 #endif
 
   return wheel.axisWheel->value;

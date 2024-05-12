@@ -12,7 +12,6 @@ public:
   int16_t value = 0;
   bool autoLimit = false;
   bool autoCenter = true;
-  bool invertRotation = false;
   int16_t axisMin;
   int16_t axisMax;
   int16_t axisCenterN;
@@ -46,6 +45,7 @@ public:
   //int16_t value;     //=output value (16bit)
   //int32_t axisMax;
   int16_t range;
+  bool invertRotation = false;
   int32_t lastPosition;
   int16_t velocity;
   int16_t acceleration;

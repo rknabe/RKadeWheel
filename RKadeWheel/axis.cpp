@@ -100,6 +100,9 @@ AxisWheel::AxisWheel()
 
 void AxisWheel::setValue(int32_t rawValue_) {
   rawValue_ = rawValue_ - 511;
+  if (invertRotation == true) {
+    rawValue_ = -1 * rawValue_;
+  }
 
 #ifdef STEER_TM_RATIO_ENABLED
   rawValue = rawValue_ * ((float)STEER_TM_RATIO_MUL / (float)STEER_TM_RATIO_DIV);
