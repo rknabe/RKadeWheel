@@ -207,6 +207,7 @@ void processUsbCmd() {
         ((GUI_Report_SteerAxis *)data)->deadzone = wheel.axisWheel->getDZ();
         ((GUI_Report_SteerAxis *)data)->autoLimit = wheel.axisWheel->autoLimit;
         ((GUI_Report_SteerAxis *)data)->bitTrim = wheel.axisWheel->bitTrim;
+        ((GUI_Report_SteerAxis *)data)->invertRotation = wheel.axisWheel->invertRotation;
         break;
       case 3:  //return analog axis data
         ((GUI_Report_AnalogAxis *)data)->rawValue = wheel.analogAxes[usbCmd->arg[0]]->rawValue;
@@ -343,6 +344,9 @@ void processUsbCmd() {
         break;
       case 28:  //set trim for wheel
         wheel.axisWheel->bitTrim = usbCmd->arg[0];
+        break;
+      case 29:  //set inversion for wheel
+        wheel.axisWheel->invertRotation = usbCmd->arg[0];
         break;
     }
   }
@@ -807,6 +811,7 @@ void load(bool defaults) {
     settingsE.axisCenter = 512;
     settingsE.axisDZ = 0;
     settingsE.axisBitTrim = 0;
+    settingsE.invertRotation = 0;
 
     settingsE.data.centerButton = -1;  //no center button
 
@@ -863,6 +868,7 @@ void load(bool defaults) {
     wheel.axisWheel->setDZ(settingsE.axisDZ);
   }
   wheel.axisWheel->bitTrim = settingsE.axisBitTrim;
+  wheel.axisWheel->invertRotation = settingsE.invertRotation;
 
   wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
   wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
@@ -887,6 +893,7 @@ void save() {
   }
   settingsE.axisDZ = wheel.axisWheel->getDZ();
   settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
+  settingsE.invertRotation = wheel.axisWheel->invertRotation;
 
   for (i = 0; i < AXIS_COUNT; i++) {
     settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;

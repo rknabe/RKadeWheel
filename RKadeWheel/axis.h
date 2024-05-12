@@ -12,6 +12,7 @@ public:
   int16_t value = 0;
   bool autoLimit = false;
   bool autoCenter = true;
+  bool invertRotation = false;
   int16_t axisMin;
   int16_t axisMax;
   int16_t axisCenterN;

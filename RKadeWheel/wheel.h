@@ -39,6 +39,7 @@ typedef struct {
   int16_t deadzone;
   uint8_t autoLimit;
   uint8_t bitTrim;
+  uint8_t invertRotation;
 } GUI_Report_SteerAxis;
 
 typedef struct {

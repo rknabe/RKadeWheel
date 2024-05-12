@@ -57,6 +57,7 @@ public:
   int16_t axisCenter;
   int16_t axisDZ;
   int8_t axisBitTrim;
+  int8_t invertRotation;
 
   uint8_t ffbBD;
 
