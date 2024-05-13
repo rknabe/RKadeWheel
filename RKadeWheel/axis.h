@@ -40,10 +40,7 @@ private:
  */
 class AxisWheel : public Axis {
 public:
-  //int32_t rawValue;  //raw steer position (2^STEER_BITDEPTH counts per turn)
   int32_t absValue;  //=raw constrained and smoothed
-  //int16_t value;     //=output value (16bit)
-  //int32_t axisMax;
   int16_t range;
   bool invertRotation = false;
   int32_t lastPosition;
@@ -51,7 +48,6 @@ public:
   int16_t acceleration;
   uint16_t lastUs;
 
-  //MovingAverage32* filterPosition;
   MovingAverage16* filterVelocity;
   MovingAverage16* filterAcceleration;
 

@@ -1031,7 +1031,6 @@ int32_t getWheelPositionAnalog() {
 }
 
 void setWheelPosAnalog(int32_t val) {
-  //wheel.analogAxes[AXIS_ST_ANALOG]->setValue(val);
   //this will allow the analog axis to adjust for center, etc
   wheel.axisWheel->setValue(val);
 }

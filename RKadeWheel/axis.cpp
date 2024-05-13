@@ -41,6 +41,8 @@ int16_t Axis::getDZ() {
 }
 
 void Axis::setCenter(int16_t center) {
+  Serial.print(F("SetCenter:"));
+  Serial.println(center);
   autoCenter = false;
   int16_t dz = getDZ();
   axisCenterN = center - dz;
@@ -93,7 +95,6 @@ void Axis::updateRangeFactor() {
 
 AxisWheel::AxisWheel()
   : Axis(MA_LEVEL_AXIS_ST_ANALOG) {
-  //filterPosition = new MovingAverage32(MA_LEVEL_WHEEL_POSITION);
   filterVelocity = new MovingAverage16(MA_LEVEL_WHEEL_VELOCITY);
   filterAcceleration = new MovingAverage16(MA_LEVEL_WHEEL_ACCELERATION);
 }
@@ -103,6 +104,7 @@ void AxisWheel::setValue(int32_t rawValue_) {
   if (invertRotation == true) {
     rawValue_ = -1 * rawValue_;
   }
+  rawValue_ = rawValue_ - getCenter();
 
 #ifdef STEER_TM_RATIO_ENABLED
   rawValue = rawValue_ * ((float)STEER_TM_RATIO_MUL / (float)STEER_TM_RATIO_DIV);
@@ -133,8 +135,6 @@ void AxisWheel::setRange(uint16_t _deg) {
   range = _deg;
 #if STEER_TYPE == ST_ANALOG
   rangeFactor = 360.0 / (float)range;
-  axisMax = 32766;
-  axisMin = -32766;
 #else
   rangeFactor = ((int32_t)1 << (16 - STEER_BITDEPTH)) * 360.0 / range;
   axisMax = (((int32_t)1 << (STEER_BITDEPTH - 1))) * range / 360 - 1;
