@@ -40,7 +40,7 @@
 //transmission ratio (see readme)
 #define STEER_TM_RATIO_ENABLED  //Uncomment to enable feature
 #if STEER_TYPE == ST_ANALOG
-#define STEER_TM_RATIO_MUL -48  //Multiplication factor
+#define STEER_TM_RATIO_MUL -1  //Multiplication factor
 #define STEER_TM_RATIO_DIV 1    //Division factor
 #define FORCE_RATIO_MUL -1
 #else

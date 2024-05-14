@@ -41,8 +41,6 @@ int16_t Axis::getDZ() {
 }
 
 void Axis::setCenter(int16_t center) {
-  Serial.print(F("SetCenter:"));
-  Serial.println(center);
   autoCenter = false;
   int16_t dz = getDZ();
   axisCenterN = center - dz;
@@ -112,12 +110,30 @@ void AxisWheel::setValue(int32_t rawValue_) {
   rawValue = rawValue_;
 #endif
 
-  Axis::setValue(rawValue);
+  if (autoLimit) {
+    if (rawValue < axisMin)
+      setLimits(rawValue, axisMax, true);
+    if (rawValue > axisMax)
+      setLimits(axisMin, rawValue, true);
+  }
+
+  if (bitTrim) {
+    if (value >= 0)
+      value = value >> bitTrim << bitTrim;
+    else
+      value = -(-value >> bitTrim << bitTrim);
+  }
+
+  if (value < axisCenterN)
+    value = (value - axisCenterN) * rangeFactorNeg;
+  else if (value > axisCenterP)
+    value = (value - axisCenterP) * rangeFactorPos;
+  else
+    value = 0;
 
   int32_t val = constrain(rawValue, axisMin, axisMax);
   value = val * rangeFactor;
   absValue = filter->setValue(value);
-
   int16_t tmpUs = micros();
   int16_t td = tmpUs - lastUs;
   lastUs = tmpUs;
@@ -134,7 +150,7 @@ void AxisWheel::setValue(int32_t rawValue_) {
 void AxisWheel::setRange(uint16_t _deg) {
   range = _deg;
 #if STEER_TYPE == ST_ANALOG
-  rangeFactor = 360.0 / (float)range;
+  rangeFactor = (360.0 / (float)range) * 48;
 #else
   rangeFactor = ((int32_t)1 << (16 - STEER_BITDEPTH)) * 360.0 / range;
   axisMax = (((int32_t)1 << (STEER_BITDEPTH - 1))) * range / 360 - 1;

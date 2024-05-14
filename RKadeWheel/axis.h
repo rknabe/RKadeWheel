@@ -31,7 +31,6 @@ public:
 
   int16_t getCenter();
   int16_t getDZ();
-private:
   float rangeFactorNeg, rangeFactorPos;
 };
 

@@ -493,8 +493,8 @@ void readButtons() {
 
 //Centering wheel
 void center() {
-  CENTER_WHEEL;
-  wheel.axisWheel->setCenterZero();
+  //CENTER_WHEEL;
+  //wheel.axisWheel->setCenterZero();
   //Serial.println(F("Centered"));
 }
 
