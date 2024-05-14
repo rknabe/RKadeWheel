@@ -41,7 +41,7 @@
 #define STEER_TM_RATIO_ENABLED  //Uncomment to enable feature
 #if STEER_TYPE == ST_ANALOG
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 1    //Division factor
+#define STEER_TM_RATIO_DIV 1   //Division factor
 #define FORCE_RATIO_MUL -1
 #else
 #define STEER_TM_RATIO_MUL -1  //Multiplication factor
@@ -65,7 +65,8 @@
 #define PIN_AUX1 A3
 #define PIN_AUX2 A4
 #define PIN_AUX3 A5
-//#define PIN_AUX4 A7
+#define PIN_AUX4 A6
+#define PIN_AUX5 A7
 #if STEER_TYPE == ST_ANALOG
 #define PIN_ST_ANALOG A11
 #endif
@@ -131,6 +132,7 @@
 #define MA_LEVEL_AXIS_AUX2 4
 #define MA_LEVEL_AXIS_AUX3 4
 #define MA_LEVEL_AXIS_AUX4 4
+#define MA_LEVEL_AXIS_AUX5 4
 #define MA_LEVEL_AXIS_ST_ANALOG 4
 
 //----------------------------Buttons-------------------------------------

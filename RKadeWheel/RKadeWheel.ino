@@ -106,7 +106,7 @@ void setup() {
   //load settings
   load();
 
-  center();
+  //center();
 
   if (settings.afcOnStartup) {
 #ifdef AFC_ON
@@ -328,7 +328,7 @@ void processUsbCmd() {
         load(true);
         break;
       case 23:  //center wheel
-        center();
+        //center();
         break;
       case 24:  //wheel limits
         wheel.axisWheel->setLimits(usbCmd->arg[0], usbCmd->arg[1]);
@@ -383,6 +383,9 @@ void readAnalogAxes() {
 #ifdef PIN_AUX4
   wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
 #endif
+#ifdef PIN_AUX5
+  wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogReadFast(PIN_AUX5)));
+#endif
 #ifdef PIN_ST_ANALOG
   getWheelPositionAnalog();
 #endif
@@ -398,6 +401,9 @@ void readAnalogAxes() {
 #endif
 #ifdef PIN_AUX4
   wheel.analogAxes[AXIS_AUX4]->setValue(analogReadFast(PIN_AUX4));
+#endif
+#ifdef PIN_AUX5
+  wheel.analogAxes[AXIS_AUX5]->setValue(analogReadFast(PIN_AUX5));
 #endif
 #ifdef PIN_ST_ANALOG
   getWheelPositionAnalog();
@@ -492,11 +498,11 @@ void readButtons() {
 //---------------------------------------- end buttons ----------------------------------------------
 
 //Centering wheel
-void center() {
-  //CENTER_WHEEL;
-  //wheel.axisWheel->setCenterZero();
-  //Serial.println(F("Centered"));
-}
+//void center() {
+//CENTER_WHEEL;
+//wheel.axisWheel->setCenterZero();
+//Serial.println(F("Centered"));
+//}
 
 //Serial port - commands and output.
 void processSerial() {
@@ -563,8 +569,8 @@ void processSerial() {
       arg3 = Serial.parseInt(SKIP_WHITESPACE);
 
     //center
-    if (strcmp_P(cmd, PSTR("center")) == 0)
-      center();
+    //if (strcmp_P(cmd, PSTR("center")) == 0)
+    // center();
 
     if (strcmp_P(cmd, PSTR("load")) == 0)
       load();
@@ -806,9 +812,9 @@ void load(bool defaults) {
 
     //wheel settings
     settingsE.range = WHEEL_RANGE_DEFAULT;
-    settingsE.axisMin = DEFAULT_AA_MIN;
-    settingsE.axisMax = DEFAULT_AA_MAX;
-    settingsE.axisCenter = 512;
+    settingsE.axisMin = -511;
+    settingsE.axisMax = 511;
+    settingsE.axisCenter = 0;
     settingsE.axisDZ = 0;
     settingsE.axisBitTrim = 0;
     settingsE.invertRotation = 0;
@@ -823,10 +829,13 @@ void load(bool defaults) {
         settingsE.axes[i].axisMin = 0;
         settingsE.axes[i].axisMax = 1023;
       }
+      if (i < 2) {
+        settingsE.axes[i].axisOutputDisabled = 0;
+      } else {
+        settingsE.axes[i].axisOutputDisabled = 1;
+      }
       settingsE.axes[i].axisCenter = -32768;  //no center
       settingsE.axes[i].axisDZ = 0;
-
-      settingsE.axes[i].axisOutputDisabled = 0;
       settingsE.axes[i].axisBitTrim = 0;
     }
     settingsE.data.debounce = 0;
@@ -921,17 +930,14 @@ void save() {
 
 void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   uint8_t _state = 1;
-
   int32_t initialPos;
   int32_t prevPos;
   int32_t pos;
   int32_t dist;
   int16_t centerPos = 0;
-
   int32_t posMax;
   int32_t posMin = 0;
   int32_t range;
-
   int32_t prevTime;
   int32_t currTime;
 
@@ -994,8 +1000,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             centerPos = (posMax + posMin) / 2;
             SET_WHEEL_POSITION(centerPos);
             wheel.axisWheel->setCenter(centerPos);
-            Serial.print("center:");
-            Serial.println(centerPos);
 
             //Go to center - should be safe now
             motor.setForce(-force);
@@ -1016,7 +1020,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 
   //delay 1 second before zeroing the wheel to let it stop first
   delay(1000);
-  center();
+  //center();
 }
 
 int32_t getWheelPositionAnalog() {

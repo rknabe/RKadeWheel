@@ -104,18 +104,18 @@ void AxisWheel::setValue(int32_t rawValue_) {
   }
   rawValue_ = rawValue_ - getCenter();
 
+  if (autoLimit) {
+    if (rawValue_ < axisMin)
+      setLimits(rawValue_, axisMax, true);
+    if (rawValue_ > axisMax)
+      setLimits(axisMin, rawValue_, true);
+  }
+
 #ifdef STEER_TM_RATIO_ENABLED
   rawValue = rawValue_ * ((float)STEER_TM_RATIO_MUL / (float)STEER_TM_RATIO_DIV);
 #else
   rawValue = rawValue_;
 #endif
-
-  if (autoLimit) {
-    if (rawValue < axisMin)
-      setLimits(rawValue, axisMax, true);
-    if (rawValue > axisMax)
-      setLimits(axisMin, rawValue, true);
-  }
 
   if (bitTrim) {
     if (value >= 0)
