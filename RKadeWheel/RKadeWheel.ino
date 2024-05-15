@@ -816,9 +816,9 @@ void load(bool defaults) {
     settingsE.data.gain[6] = 1024;
     settingsE.data.gain[7] = 1024;
     settingsE.data.gain[8] = 1024;
-    settingsE.data.gain[9] = 512;
-    settingsE.data.gain[10] = 1024;
-    settingsE.data.gain[11] = 512;
+    settingsE.data.gain[9] = 186;
+    settingsE.data.gain[10] = 256;
+    settingsE.data.gain[11] = 128;
     settingsE.data.gain[12] = 0;
 
     //wheel settings
