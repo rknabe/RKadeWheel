@@ -16,7 +16,7 @@ void SettingsEEPROM::print() {
   Serial.println(range);
   
   Serial.println(F("Gains:"));
-  for(i=0;i<13;i++)
+  for(i=0;i<GAIN_COUNT;i++)
   {
     Serial.print(" ");
     Serial.print(i);

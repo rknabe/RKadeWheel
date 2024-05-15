@@ -17,6 +17,8 @@
 #define AXIS_COUNT 8
 #define AXIS_REPORT_COUNT 8
 
+#define GAIN_COUNT 13
+
 struct SettingsAxis {
   int16_t axisMin;
   int16_t axisMax;
@@ -28,7 +30,7 @@ struct SettingsAxis {
 
 //settings in global variables
 struct SettingsData {
-  int16_t gain[13];
+  int16_t gain[GAIN_COUNT];
 
   int8_t centerButton;
   uint8_t debounce;

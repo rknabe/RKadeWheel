@@ -807,8 +807,19 @@ void load(bool defaults) {
 
     Serial.println(F("Loading defaults"));
 
-    for (i = 0; i < 13; i++)
-      settingsE.data.gain[i] = 1024;
+    settingsE.data.gain[0] = 1024;
+    settingsE.data.gain[1] = 1024;
+    settingsE.data.gain[2] = 512;
+    settingsE.data.gain[3] = 1024;
+    settingsE.data.gain[4] = 1280;
+    settingsE.data.gain[5] = 1024;
+    settingsE.data.gain[6] = 1024;
+    settingsE.data.gain[7] = 1024;
+    settingsE.data.gain[8] = 1024;
+    settingsE.data.gain[9] = 512;
+    settingsE.data.gain[10] = 1024;
+    settingsE.data.gain[11] = 512;
+    settingsE.data.gain[12] = 0;
 
     //wheel settings
     settingsE.range = WHEEL_RANGE_DEFAULT;
@@ -882,8 +893,6 @@ void load(bool defaults) {
   wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
   wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
   wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
-
-  Serial.println(F("Settings loaded"));
 }
 
 void save() {
@@ -924,8 +933,6 @@ void save() {
   settingsE.checksum = settingsE.calcChecksum();
 
   EEPROM.put(0, settingsE);
-
-  Serial.println(F("Settings saved"));
 }
 
 void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
@@ -983,7 +990,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
             range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
 #endif
 #if STEER_TYPE == ST_ANALOG
-            range = (posMax - posMin) * 360;
+            range = ((posMax) - (posMin)) / 240;
 #endif
 
             if (range < 2) {
@@ -997,9 +1004,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             //Set center by setting new current position
-            centerPos = (posMax + posMin) / 2;
-            SET_WHEEL_POSITION(centerPos);
-            wheel.axisWheel->setCenter(centerPos);
+            wheel.axisWheel->setCenter((posMax + posMin) / 64);
 
             //Go to center - should be safe now
             motor.setForce(-force);
@@ -1017,10 +1022,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
       prevTime = currTime;
     }
   }
-
-  //delay 1 second before zeroing the wheel to let it stop first
-  delay(1000);
-  //center();
 }
 
 int32_t getWheelPositionAnalog() {
