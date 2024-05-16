@@ -52,7 +52,6 @@ static const uint8_t dpb[] = { DPB_PINS };
 
 void load(bool defaults = false);
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
-void setWheelPosAnalog(int32_t val);
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
@@ -60,18 +59,13 @@ int32_t getWheelPositionAnalog();
 #if STEER_TYPE == ST_ENCODER
 #include <Encoder.h>  //https://github.com/PaulStoffregen/Encoder
 Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
-
-#define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS (((int32_t)encoder.read() << STEER_BITDEPTH) / ENCODER_PPR)
 #define CENTER_WHEEL encoder.write(0);
 #define SET_WHEEL_POSITION(val) encoder.write((val * ENCODER_PPR) / (1 << STEER_BITDEPTH))
 #endif
 
 #if STEER_TYPE == ST_ANALOG
-#define SETUP_WHEEL_SENSOR
 #define GET_WHEEL_POS getWheelPositionAnalog()
-#define CENTER_WHEEL setWheelPosAnalog(0);
-#define SET_WHEEL_POSITION(val) setWheelPosAnalog(val);
 #endif
 
 
@@ -81,9 +75,6 @@ void setup() {
 
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
-
-  //Steering axis sensor setup
-  SETUP_WHEEL_SENSOR;
 
   //set up analog axes
 #ifdef AA_PULLUP
@@ -385,7 +376,7 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogReadFast(PIN_AUX5)));
 #endif
 #ifdef PIN_ST_ANALOG
-  getWheelPositionAnalog();
+  GET_WHEEL_POS;
 #endif
 #else
 #ifdef PIN_AUX1
@@ -404,28 +395,10 @@ void readAnalogAxes() {
   wheel.analogAxes[AXIS_AUX5]->setValue(analogReadFast(PIN_AUX5));
 #endif
 #ifdef PIN_ST_ANALOG
-  getWheelPositionAnalog();
+  GET_WHEEL_POS;
 #endif
 #endif
 }
-
-#ifdef AA_PULLUP_LINEARIZE
-//Linearizing axis values, when using internal adc + pullup.
-int16_t pullup_linearize(int16_t val) {
-  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
-  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
-  //if Rpullup = R_pot...
-  //val = val * 1024 / (2000 - val)
-  //division is slow
-  //piecewise linear approximation, 16 steps
-  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
-  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
-
-  uint8_t i = (val >> 6);
-
-  return a[i] + (((val % 64) * b[i]) >> 6);
-}
-#endif
 
 //-----------------------------------end analog axes------------------------------
 
@@ -472,11 +445,6 @@ void readButtons() {
     i = 6;
   }
 
-  /*bool switch5 = (*portInputRegister(digitalPinToPort(dpb[5])) & digitalPinToBitMask(dpb[5])) == 0;
-  if (switch5) {
-    Keyboard.press(KEY_UP_ARROW);
-  }*/
-
   for (; i < sizeof(dpb); i++)
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
 #endif
@@ -495,12 +463,17 @@ void readButtons() {
 }
 //---------------------------------------- end buttons ----------------------------------------------
 
-//Centering wheel
-//void center() {
-//CENTER_WHEEL;
-//wheel.axisWheel->setCenterZero();
-//Serial.println(F("Centered"));
-//}
+
+int32_t getWheelPositionAnalog() {
+
+#ifdef AA_PULLUP_LINEARIZE
+  wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
+#else
+  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
+#endif
+
+  return wheel.axisWheel->value;
+}
 
 //Serial port - commands and output.
 void processSerial() {
@@ -807,16 +780,16 @@ void load(bool defaults) {
 
     settingsE.data.gain[0] = 1024;
     settingsE.data.gain[1] = 1024;
-    settingsE.data.gain[2] = 512;
+    settingsE.data.gain[2] = 768;
     settingsE.data.gain[3] = 1024;
     settingsE.data.gain[4] = 1280;
     settingsE.data.gain[5] = 1024;
     settingsE.data.gain[6] = 1024;
     settingsE.data.gain[7] = 1024;
     settingsE.data.gain[8] = 1024;
-    settingsE.data.gain[9] = 186;
-    settingsE.data.gain[10] = 256;
-    settingsE.data.gain[11] = 128;
+    settingsE.data.gain[9] = 410;
+    settingsE.data.gain[10] = 1024;
+    settingsE.data.gain[11] = 256;
     settingsE.data.gain[12] = 0;
 
     //wheel settings
@@ -939,7 +912,6 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   int32_t prevPos;
   int32_t pos;
   int32_t dist;
-  int16_t centerPos = 0;
   int32_t posMax;
   int32_t posMin = 0;
   int32_t range;
@@ -1022,18 +994,20 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   }
 }
 
-int32_t getWheelPositionAnalog() {
-
 #ifdef AA_PULLUP_LINEARIZE
-  wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
-#else
-  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
+//Linearizing axis values, when using internal adc + pullup.
+int16_t pullup_linearize(int16_t val) {
+  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
+  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
+  //if Rpullup = R_pot...
+  //val = val * 1024 / (2000 - val)
+  //division is slow
+  //piecewise linear approximation, 16 steps
+  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
+  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
+
+  uint8_t i = (val >> 6);
+
+  return a[i] + (((val % 64) * b[i]) >> 6);
+}
 #endif
-
-  return wheel.axisWheel->value;
-}
-
-void setWheelPosAnalog(int32_t val) {
-  //this will allow the analog axis to adjust for center, etc
-  wheel.axisWheel->setValue(val);
-}
