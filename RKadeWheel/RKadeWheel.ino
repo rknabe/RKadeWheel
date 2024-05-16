@@ -77,8 +77,6 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 
 //-------------------------------------------------------------------------------------
 
-#include <ArduinoShrink.h>
-
 void setup() {
 
   Serial.begin(SERIAL_BAUDRATE);
