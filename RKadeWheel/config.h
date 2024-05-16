@@ -202,8 +202,8 @@
 #define DEFAULT_FFB_BITDEPTH 9  //15.6 KHz
 
 //Effect parameters
-#define DEFAULT_MAX_VELOCITY 2048
-#define DEFAULT_MAX_ACCELERATION 2048
+#define DEFAULT_MAX_VELOCITY 2500
+#define DEFAULT_MAX_ACCELERATION 2500
 
 #define DEFAULT_ENDSTOP_OFFSET 0    //force level endstop effect will start from (0-16383). Increasing will make endstop harder.
 #define DEFAULT_ENDSTOP_WIDTH 1024  //length of excess position where endstop effect will rise to maximum level. Decreasing makes endstop harder.
