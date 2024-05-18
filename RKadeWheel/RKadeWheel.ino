@@ -84,7 +84,7 @@ void setup() {
 //direct pin buttons
 #ifdef DPB
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
-    pinModeFast(dpb[i], INPUT_PULLUP);
+    pinMode(dpb[i], INPUT_PULLUP);
   }
   //Keyboard.begin();
 #endif
