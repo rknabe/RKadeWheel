@@ -64,11 +64,11 @@
 //If aux axis is not needed, comment out corresponding line.
 #define PIN_AUX1 A3
 #define PIN_AUX2 A4
-#define PIN_AUX3 A5
-#define PIN_AUX4 A6
-#define PIN_AUX5 A7
+//#define PIN_AUX3 A5
+//#define PIN_AUX4 A6
+//#define PIN_AUX5 A7
 #if STEER_TYPE == ST_ANALOG
-#define PIN_ST_ANALOG A11
+#define PIN_ST_ANALOG A5
 #endif
 
 //different ways of connecting pedals. Choose only one!
@@ -120,9 +120,9 @@
  * 2 means averaging 4 values, 3 - 8 values and so on.
  */
 //Smoothing for wheel axis.
-#define MA_LEVEL_WHEEL_POSITION 2
-#define MA_LEVEL_WHEEL_VELOCITY 2
-#define MA_LEVEL_WHEEL_ACCELERATION 3
+#define MA_LEVEL_WHEEL_POSITION 4
+#define MA_LEVEL_WHEEL_VELOCITY 4
+#define MA_LEVEL_WHEEL_ACCELERATION 4
 
 //Level of smoothing for analog axes.
 #define MA_LEVEL_AXIS_ACC 4
@@ -172,7 +172,7 @@
 //buttons directly connected to pins
 #define DPB  //Enable
 #if STEER_TYPE == ST_ANALOG
-#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 13, 14, 15, 16
+#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #else
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #endif

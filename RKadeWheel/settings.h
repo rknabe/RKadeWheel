@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define FIRMWARE_VER "1.1.3"
+#define FIRMWARE_VER "1.1.4"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
