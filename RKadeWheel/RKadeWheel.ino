@@ -442,7 +442,7 @@ void readButtons() {
     if (gear >= 0 && gear <= 31) {
       bitWrite(*((uint32_t *)d), gear, gear + 1);
     }
-    i = 6;
+    i = 4;
   }
 
   for (; i < sizeof(dpb); i++)
