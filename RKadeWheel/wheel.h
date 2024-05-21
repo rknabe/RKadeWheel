@@ -57,7 +57,7 @@ typedef struct {
 
 typedef struct {
   int32_t buttons;
-  int8_t centerButton;
+  int8_t shiftButton;
   int8_t debounce;
   uint8_t mplexShifter;
 } GUI_Report_Buttons;

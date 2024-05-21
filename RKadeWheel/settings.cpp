@@ -42,7 +42,7 @@ void SettingsEEPROM::print() {
   }
 
   Serial.print(F("Center button: "));
-  Serial.println(data.centerButton+1);
+  Serial.println(data.shiftButton+1);
 
   Serial.print(F("Debounce: "));
   Serial.println(data.debounce);

@@ -213,7 +213,7 @@ void processUsbCmd() {
         break;
       case 4:  //return buttons data
         ((GUI_Report_Buttons *)data)->buttons = wheel.buttons;
-        ((GUI_Report_Buttons *)data)->centerButton = settings.centerButton;
+        ((GUI_Report_Buttons *)data)->shiftButton = settings.shiftButton;
         ((GUI_Report_Buttons *)data)->debounce = settings.debounce;
         ((GUI_Report_Buttons *)data)->mplexShifter = settings.mplexShifter;
         break;
@@ -256,7 +256,7 @@ void processUsbCmd() {
         wheel.analogAxes[usbCmd->arg[0]]->setAutoLimits(usbCmd->arg[1] > 0);
         break;
       case 15:  //set center button
-        settings.centerButton = usbCmd->arg[0];
+        settings.shiftButton = usbCmd->arg[0];
         break;
       case 16:  //set debounce value
         settings.debounce = usbCmd->arg[0];
@@ -445,8 +445,15 @@ void readButtons() {
     i = 4;
   }
 
-  for (; i < sizeof(dpb); i++)
+  for (; i < sizeof(dpb); i++) {
     bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
+  }
+
+  if (settings.shiftButton > 0) {
+    if ((*portInputRegister(digitalPinToPort(dpb[settings.shiftButton - 1])) & digitalPinToBitMask(dpb[settings.shiftButton - 1])) == 0) {
+      d += sizeof(dpb);
+    }
+  }
 #endif
 
   //debounce
@@ -552,13 +559,13 @@ void processSerial() {
     if (strcmp_P(cmd, PSTR("save")) == 0)
       save();
 
-    if (strcmp_P(cmd, PSTR("centerbtn")) == 0) {
+    /*if (strcmp_P(cmd, PSTR("shiftbtn")) == 0) {
       if ((arg1 >= 0) && (arg1 <= 32)) {
-        settings.centerButton = arg1 - 1;
+        settings.shiftButton = arg1 - 1;
       }
-      Serial.print(F("Center button: "));
-      Serial.println(settings.centerButton + 1);
-    }
+      Serial.print(F("Shift button: "));
+      Serial.println(settings.shiftButton + 1);
+    }*/
 
     if (strcmp_P(cmd, PSTR("range")) == 0) {
       if (arg1 > 0) {
@@ -801,7 +808,7 @@ void load(bool defaults) {
     settingsE.axisBitTrim = 0;
     settingsE.invertRotation = 0;
 
-    settingsE.data.centerButton = -1;  //no center button
+    settingsE.data.shiftButton = 0;  //no shift button
 
     for (i = 0; i < AXIS_COUNT; i++) {
       if (i < 3) {

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define FIRMWARE_VER "1.1.4"
+#define FIRMWARE_VER "1.1.5"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
@@ -32,7 +32,7 @@ struct SettingsAxis {
 struct SettingsData {
   int16_t gain[GAIN_COUNT];
 
-  int8_t centerButton;
+  int8_t shiftButton;
   uint8_t debounce;
 
   int16_t minForce;
