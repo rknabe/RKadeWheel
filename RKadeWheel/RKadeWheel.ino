@@ -452,15 +452,14 @@ void readButtons() {
     }
   }
 
-  bool pressed = false;
   short bit;
   for (; i < sizeof(dpb); i++) {
-    pressed = (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0;
-    bit = DPB_1ST_BTN - 1 + i;
     if (shiftButtonPressed && (i + 1) != settings.shiftButton) {
       bit = DPB_1ST_BTN - 1 + i + sizeof(dpb);
+    } else {
+      bit = DPB_1ST_BTN - 1 + i;
     }
-    bitWrite(*((uint32_t *)d), bit, pressed);
+    bitWrite(*((uint32_t *)d), bit, (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0);
   }
 #endif
 
