@@ -445,24 +445,30 @@ void readButtons() {
     i = 4;
   }
 
-  bool shiftButtonPressed = false;
+  bool shiftBtnPressed = false;
   if (settings.shiftButton > 0) {
     if ((*portInputRegister(digitalPinToPort(dpb[settings.shiftButton - 1])) & digitalPinToBitMask(dpb[settings.shiftButton - 1])) == 0) {
-      shiftButtonPressed = true;
+      shiftBtnPressed = true;
     }
   }
 
   bool btnPressed;
+  bool otherBtnPressed = false;
   for (; i < sizeof(dpb); i++) {
-    btnPressed = (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0;
-    if (shiftButtonPressed && (i + 1) != settings.shiftButton) {
-      bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i + sizeof(dpb), btnPressed);
+    if (i != settings.shiftButton - 1) {
+      btnPressed = (*portInputRegister(digitalPinToPort(dpb[i])) & digitalPinToBitMask(dpb[i])) == 0;
       if (btnPressed) {
-        bitWrite(*((uint32_t *)d), settings.shiftButton - 1, 0);
+        otherBtnPressed = true;
       }
-    } else {
-      bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, btnPressed);
+      if (shiftBtnPressed) {
+        bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i + sizeof(dpb), btnPressed);
+      } else {
+        bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, btnPressed);
+      }
     }
+  }
+  if (settings.shiftButton > 0) {
+    bitWrite(*((uint32_t *)d), settings.shiftButton - 1, shiftBtnPressed && !otherBtnPressed);
   }
 #endif
 
