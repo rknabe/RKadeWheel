@@ -32,8 +32,11 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
 
-//void FfbEngine::printEffect(volatile TEffectState* effect) {
-/*Serial.print("attackLevel:");
+/*
+void FfbEngine::printEffect(volatile TEffectState* effect) {
+  Serial.print("gain:");
+  Serial.println(effect->gain);
+  Serial.print("attackLevel:");
   Serial.println(effect->attackLevel);
   Serial.print("attackTime:");
   Serial.println(effect->attackTime);
@@ -64,8 +67,8 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   Serial.print("fadeTimeC:");
   Serial.println(effect->fadeTimeC);
   Serial.print("periodC:");
-  Serial.println(effect->periodC);*/
-//}
+  Serial.println(effect->periodC);
+}*/
 
 uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   volatile TEffectState* effect;
@@ -89,8 +92,6 @@ void FfbEngine::constantSpringForce() {
       isNew = true;
     }
     if (id > 0) {
-      //Serial.print(F("constant spring force created:"));
-      //Serial.println(id);
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       if (isNew) {
         effect->effectType = USB_EFFECT_SPRING_CONSTANT;
@@ -101,14 +102,11 @@ void FfbEngine::constantSpringForce() {
         effect->period = 1;
         effect->enableAxis = 4;
         effect->directionX = 63;
-        effect->gain = 64;
-        //Serial.print("spring gain:");
-        //Serial.println(settings.gain[GAIN_SPRING]);
+        effect->gain = 255;
         effect->deadBand = 100;
         effect->duration = USB_DURATION_INFINITE;
       }
       if (!(effect->state & MEFFECTSTATE_PLAYING)) {
-        //Serial.println(F("Starting constant spring force"));
         ffbReportHandler->StartEffect(id);
       }
     }
@@ -118,7 +116,6 @@ void FfbEngine::constantSpringForce() {
     if (id > 0) {
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       if (effect->state & MEFFECTSTATE_PLAYING) {
-        //Serial.println(F("Stopping constant spring force"));
         ffbReportHandler->StopEffect(id);
         //ffbReportHandler->FreeEffect(id);
       }
@@ -133,6 +130,7 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
   volatile TEffectState* effect;
   int16_t _millis = millis();
   int16_t timeDiff = _millis - prevTime;
+  int16_t settingsEffectGain;
   prevTime = _millis;
 
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
@@ -166,8 +164,6 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
             break;
           case USB_EFFECT_SPRING_CONSTANT:
           case USB_EFFECT_SPRING:
-            //Serial.println("spring axis:");
-            //Serial.println(axis->value);
             tmpForce = springForce(effect, axis->value);
             break;
           case USB_EFFECT_DAMPER:
@@ -181,16 +177,21 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
             break;
         }
 
-        //applying effect gains
-        if ((effect->gain == 0) || (settings.gain[effect->effectType] == 0))
-          tmpForce = 0;
-        else {
+        if (effect->effectType == USB_EFFECT_SPRING_CONSTANT) {
+          settingsEffectGain = settings.gain[USB_EFFECT_SPRING];
+        } else {
+          settingsEffectGain = settings.gain[effect->effectType];
+        }
 
+        //applying effect gains
+        if ((effect->gain == 0) || (settingsEffectGain == 0)) {
+          tmpForce = 0;
+        } else {
           if (effect->gain != 255)
             tmpForce = ((int32_t)tmpForce * (effect->gain + 1)) >> 8;
 
-          if (settings.gain[effect->effectType] != 1024)
-            tmpForce = applyGain(tmpForce, settings.gain[effect->effectType]);
+          if (settingsEffectGain != 1024)
+            tmpForce = applyGain(tmpForce, settingsEffectGain);
 
           tmpForce = constrain(tmpForce, -16383, 16383);
         }
@@ -205,9 +206,9 @@ int16_t FfbEngine::calculateForce(AxisWheel* axis) {
     return 0;
 
   //applying global gains
-  if ((ffbReportHandler->deviceGain == 0) || (settings.gain[GAIN_TOTAL] == 0))
+  if ((ffbReportHandler->deviceGain == 0) || (settings.gain[GAIN_TOTAL] == 0)) {
     return 0;
-  else {
+  } else {
     if (ffbReportHandler->deviceGain != 255)
       totalForce = (totalForce * (ffbReportHandler->deviceGain + 1)) >> 8;
 
