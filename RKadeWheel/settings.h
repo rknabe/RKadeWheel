@@ -18,6 +18,7 @@
 #define AXIS_REPORT_COUNT 8
 
 #define GAIN_COUNT 13
+#define GAIN_SPRING 8
 
 struct SettingsAxis {
   int16_t axisMin;

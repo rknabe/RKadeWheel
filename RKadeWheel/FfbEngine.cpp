@@ -102,6 +102,8 @@ void FfbEngine::constantSpringForce() {
         effect->enableAxis = 4;
         effect->directionX = 63;
         effect->gain = 64;
+        //Serial.print("spring gain:");
+        //Serial.println(settings.gain[GAIN_SPRING]);
         effect->deadBand = 100;
         effect->duration = USB_DURATION_INFINITE;
       }
