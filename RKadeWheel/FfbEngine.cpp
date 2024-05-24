@@ -102,7 +102,7 @@ void FfbEngine::constantSpringForce() {
         effect->period = 1;
         effect->enableAxis = 4;
         effect->directionX = 63;
-        effect->gain = 255;
+        effect->gain = 128;
         effect->deadBand = 100;
         effect->duration = USB_DURATION_INFINITE;
       }
