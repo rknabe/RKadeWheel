@@ -89,6 +89,8 @@ void FfbEngine::constantSpringForce() {
       isNew = true;
     }
     if (id > 0) {
+      //Serial.print(F("constant spring force created:"));
+      //Serial.println(id);
       volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
       if (isNew) {
         effect->effectType = USB_EFFECT_SPRING_CONSTANT;
@@ -99,11 +101,12 @@ void FfbEngine::constantSpringForce() {
         effect->period = 1;
         effect->enableAxis = 4;
         effect->directionX = 63;
-        effect->gain = 255;
-        effect->deadBand = 100;
+        effect->gain = 1024;
+        effect->deadBand = 10;
         effect->duration = USB_DURATION_INFINITE;
       }
       if (!(effect->state & MEFFECTSTATE_PLAYING)) {
+        //Serial.println(F("Starting constant spring force"));
         ffbReportHandler->StartEffect(id);
       }
     }
