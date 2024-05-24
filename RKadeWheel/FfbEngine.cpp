@@ -101,8 +101,8 @@ void FfbEngine::constantSpringForce() {
         effect->period = 1;
         effect->enableAxis = 4;
         effect->directionX = 63;
-        effect->gain = 1024;
-        effect->deadBand = 10;
+        effect->gain = 255;
+        effect->deadBand = 100;
         effect->duration = USB_DURATION_INFINITE;
       }
       if (!(effect->state & MEFFECTSTATE_PLAYING)) {
