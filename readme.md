@@ -13,7 +13,7 @@ So far, this works with some older and newer PC Games with FFB, Teknoparrot, mam
 2. Download [Arduino IDE](https://www.arduino.cc/en/software). Version 2.3.2 (current latest) has been tested.
 3. Download additional libraries:
    - https://github.com/ArminJo/digitalWriteFast
-   - (https://github.com/avandalen/avdweb_AnalogReadFast)
+   - https://github.com/avandalen/avdweb_AnalogReadFast
 4. Install the downloaded libraries:
    - 4.1. Download the library as *zip*.
    - 4.2. Open *Arduino IDE*, then click **Sketch > Include Library > Add .ZIP Library....** and select *zip* with downloaded library. 
