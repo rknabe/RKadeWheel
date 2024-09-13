@@ -1,7 +1,7 @@
 # RKade Wheel
 
 Modified fork of vsulako/AFFBWheel, adapted for Happ/Midway original belt-driven arcade wheel and motor for use with Windows-based multi-cabs (Cruisin Exotica and NFS cabs in my case).
-So far, this works with some older and newer PC Games with FFB, Teknoparrot, mame, demul, M2, SuperModel3, Flycast and other emulators supported by FFBArcadePlugin (https://github.com/Boomslangnz/FFBArcadePlugin/releases), and newer PC games with FFB.
+So far, this works with some older and newer PC Games with FFB, Teknoparrot, mame, demul, M2, SuperModel3, Flycast and other emulators supported by FFBArcadePlugin (https://github.com/Boomslangnz/FFBArcadePlugin/releases).
 
 <h2>Wiring Schematic</h2>
 
