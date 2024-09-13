@@ -12,8 +12,8 @@ So far, this works with some older and newer PC Games with FFB, Teknoparrot, mam
 1. Download the project from github as a zip, and unzip the archive to any folder.
 2. Download [Arduino IDE](https://www.arduino.cc/en/software). Version 2.3.2 (current latest) has been tested.
 3. Download additional libraries:
-   - [digitalWriteFast] https://github.com/ArminJo/digitalWriteFast
-   - [avdweb_AnalogReadFast](https://github.com/avandalen/avdweb_AnalogReadFast)
+   - https://github.com/ArminJo/digitalWriteFast
+   - (https://github.com/avandalen/avdweb_AnalogReadFast)
 4. Install the downloaded libraries:
    - 4.1. Download the library as *zip*.
    - 4.2. Open *Arduino IDE*, then click **Sketch > Include Library > Add .ZIP Library....** and select *zip* with downloaded library. 
@@ -23,4 +23,4 @@ So far, this works with some older and newer PC Games with FFB, Teknoparrot, mam
 8. Select your board type *Arduino* **Tools > Board** (Leonardo, ProMicro, Micro, etc.) 
 9. Select the port on which *Arduino* is detected
 10. Click the upload button: 
-11. Wait for the firmware process to finish.
+11. Wait for the firmware process to finish. If you get a timeout, try hitting the arduino reset button right after clicking Upload.
