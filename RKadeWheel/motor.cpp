@@ -23,8 +23,11 @@ void Motor::setForce(int16_t force) {
   force = constrain(force, -16383, 16383);
 
 #ifdef MOTOR_ENABLE_PIN
-  if (force != 0)
-    digitalWriteFast(MOTOR_ENABLE_PIN, 1) else digitalWriteFast(MOTOR_ENABLE_PIN, 0);
+  if (force != 0) {
+    digitalWriteFast(MOTOR_ENABLE_PIN, 1);
+  } else {
+    digitalWriteFast(MOTOR_ENABLE_PIN, 0);
+  }
 #endif
 
   if (force > 0) {
