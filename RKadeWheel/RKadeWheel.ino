@@ -102,12 +102,9 @@ void setup() {
     autoFindCenter();
 #endif
   }
-
-  while (true)
-    mainLoop();
 }
 
-void mainLoop() {
+void loop() {
 
   readAnalogAxes();
 #if STEER_TYPE != ST_ANALOG
