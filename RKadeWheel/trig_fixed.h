@@ -34,7 +34,7 @@ static inline int16_t sin_fix(uint16_t x)
     return cos_fix(0xc000 + x);
 }
 
-int16_t atan2_fix(int16_t y, int16_t x);
+//int16_t atan2_fix(int16_t y, int16_t x);
 
 
 /*
@@ -50,9 +50,3 @@ int16_t atan2_fix(int16_t y, int16_t x);
 
 
 #define FIXED(x, n) ((uint16_t)((float)(x) * ((uint32_t)1 << (n)) + .5))
-
-#if !defined(NO_ASM)
-# if defined(__AVR_HAVE_MUL__) && defined(__AVR_HAVE_MOVW__)
-#  define USE_AVR_ASM
-# endif
-#endif

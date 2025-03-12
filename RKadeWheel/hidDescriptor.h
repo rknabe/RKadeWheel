@@ -25,7 +25,7 @@ static const uint8_t wheelHIDDescriptor[] PROGMEM = {
       0x16, 0x00, 0x80,             // LOGICAL_MINIMUM (-32768)
       0x26, 0xFF, 0x7F,             // LOGICAL_MAXIMUM (32767)
       0x75, 0x10,                   // REPORT_SIZE (16)
-      0x95, 0x08,                   // REPORT_COUNT (8)
+      0x95, AXIS_REPORT_COUNT,      // REPORT_COUNT (8)
       0x81, 0x02,                   // INPUT (Data,Var,Abs)
       0xc0,                     // END_COLLECTION 
   
