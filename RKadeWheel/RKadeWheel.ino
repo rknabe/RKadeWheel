@@ -25,6 +25,8 @@
 #include <EEPROM.h>
 #include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
 #include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
+#include <AnalogIO.h>
+#include <Smooth.h>
 
 #include "config.h"
 #include "wheel.h"
@@ -39,6 +41,8 @@ int16_t force;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
+AnalogOut blower(11);
+Smooth smoothAcc(350);
 
 #ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
@@ -107,6 +111,7 @@ void setup() {
 void loop() {
 
   readAnalogAxes();
+
 #if STEER_TYPE != ST_ANALOG
   //wheel.axisWheel->setValue(GET_WHEEL_POS);
 #endif
@@ -118,6 +123,36 @@ void loop() {
   processFFB();
 
   processSerial();
+
+  processBlower();
+  processLights();
+
+  delay(4);
+}
+
+void processBlower() {
+  int16_t accVal = wheel.analogAxes[AXIS_ACC]->rawValue;
+  accVal = round(smoothAcc.add(accVal));
+  int16_t accMax = wheel.analogAxes[AXIS_ACC]->axisMax;
+  int16_t accMin = wheel.analogAxes[AXIS_ACC]->axisMin;
+  if (accVal < accMin) {
+    accVal = accMin;
+  }
+  if (accVal > accMax) {
+    accVal = accMax;
+  }
+
+  float accPct = (((float)accVal - accMin) / ((float)accMax - accMin));
+  int16_t pwmValBlower = accPct * 255;
+  if (pwmValBlower < 0) {
+    pwmValBlower = 0;
+  } else if (pwmValBlower > 255) {
+    pwmValBlower = 255;
+  }
+  blower.write(pwmValBlower);
+}
+
+void processLights() {
 }
 
 //Processing endstop and force feedback
@@ -346,11 +381,11 @@ void readAnalogAxes() {
 #ifdef AA_PULLUP_LINEARIZE
   wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogReadFast(PIN_ACC)));
   wheel.analogAxes[AXIS_BRAKE]->setValue(pullup_linearize(analogReadFast(PIN_BRAKE)));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogReadFast(PIN_CLUTCH)));
+  //wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogReadFast(PIN_CLUTCH)));
 #else
   wheel.analogAxes[AXIS_ACC]->setValue(analogReadFast(PIN_ACC));
   wheel.analogAxes[AXIS_BRAKE]->setValue(analogReadFast(PIN_BRAKE));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(analogReadFast(PIN_CLUTCH));
+  //wheel.analogAxes[AXIS_CLUTCH]->setValue(analogReadFast(PIN_CLUTCH));
 #endif
 #endif
 

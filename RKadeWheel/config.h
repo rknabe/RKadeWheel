@@ -59,11 +59,11 @@
 //analog axes pins
 #define PIN_ACC A0
 #define PIN_BRAKE A1
-#define PIN_CLUTCH A2
+//#define PIN_CLUTCH A2
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
-#define PIN_AUX1 A3
-#define PIN_AUX2 A4
+//#define PIN_AUX1 A3
+//#define PIN_AUX2 A4
 //#define PIN_AUX3 A5
 //#define PIN_AUX4 A6
 //#define PIN_AUX5 A7
@@ -172,7 +172,7 @@
 //buttons directly connected to pins
 #define DPB  //Enable
 #if STEER_TYPE == ST_ANALOG
-#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8 //, 11, 12, 13, 14, 15, 16
 #else
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #endif
@@ -181,6 +181,7 @@
 #define GEAR_BTN_IDX_2 1
 #define GEAR_BTN_IDX_3 2
 #define GEAR_BTN_IDX_4 3
+#define BRAKE_BTN_IDX 5
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
