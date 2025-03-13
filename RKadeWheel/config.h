@@ -19,19 +19,6 @@
 //#define STEER_TYPE ST_AS5600
 //#define STEER_TYPE ST_MLX90316
 
-//settings for encoder
-#if STEER_TYPE == ST_ENCODER
-#define ENCODER_PIN1 0  //encoder pins must be interrupt pins:[0, 1, 2, 3]
-#define ENCODER_PIN2 1
-#define ENCODER_PPR 600  //PPR = CPR/4
-#endif
-
-//settings for TLE5010
-#define TLE5010_PIN_CS 1
-
-//settings for MLX90316
-#define MLX90316_PIN_CS 1
-
 //wheel sensor bitdepth. Not supposed to be changed.
 #define STEER_BITDEPTH 13
 //default wheel range in degrees.
@@ -80,39 +67,6 @@
 //#define AA_PULLUP  //internal ADC with pullups for analog axes
 //#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
 
-//settings for analog multiplexer + 74HC164
-#define MP_HC164_PIN_ADATA A0  //analog pin
-#define MP_HC164_PIN_SCK 15
-
-//settings for MCP3204
-#define MCP3204_CH_ACC 0  //channels for axes
-#define MCP3204_CH_BRAKE 1
-#define MCP3204_CH_CLUTCH 2
-
-//settings for MCP3204 (SPI)
-#define MCP3204_PIN_CS A0
-
-//settings for MCP3204 (4wire)
-//v1
-#define MCP3204_4W_PIN_SCK A0
-#define MCP3204_4W_PIN_MOSI 16
-#define MCP3204_4W_PIN_MISO 14
-
-//v2
-//#define MCP3204_4W_PIN_SCK  15
-//#define MCP3204_4W_PIN_MOSI A0
-//#define MCP3204_4W_PIN_MISO A0
-
-//v3
-//#define MCP3204_4W_PIN_SCK  A1
-//#define MCP3204_4W_PIN_MOSI A0
-//#define MCP3204_4W_PIN_MISO A0
-
-//settings for ADS1015
-#define ADS1015_CH_ACC 0  //channels for axes
-#define ADS1015_CH_BRAKE 1
-#define ADS1015_CH_CLUTCH 2
-
 //---------------------------Smoothing-----------------------------------
 /*
  * Smoothing is performed with moving average filter.
@@ -127,12 +81,12 @@
 //Level of smoothing for analog axes.
 #define MA_LEVEL_AXIS_ACC 4
 #define MA_LEVEL_AXIS_BRAKE 4
-#define MA_LEVEL_AXIS_CLUTCH 4
+/*#define MA_LEVEL_AXIS_CLUTCH 4
 #define MA_LEVEL_AXIS_AUX1 4
 #define MA_LEVEL_AXIS_AUX2 4
 #define MA_LEVEL_AXIS_AUX3 4
 #define MA_LEVEL_AXIS_AUX4 4
-#define MA_LEVEL_AXIS_AUX5 4
+#define MA_LEVEL_AXIS_AUX5 4*/
 #define MA_LEVEL_AXIS_ST_ANALOG 4
 
 //----------------------------Buttons-------------------------------------
@@ -143,36 +97,10 @@
 //#define BUTTONS_TYPE BT_PCF857x     //Use PCF857x I2C port expanders
 #define BUTTONS_TYPE BT_NONE  //No buttons
 
-
-//settings for 74HC165
-#define HC165_PIN_SCK 15
-#define HC165_PIN_DATA1 2  //pin for DATA#1
-#define HC165_PIN_DATA2 7  //pin for DATA#2
-#define HC165_PIN_PL 3     //pin for PL (comment this line if using RC to omit PL line)
-
-//settings for CD4021
-#define CD4021_PIN_SCK 15
-#define CD4021_PIN_DATA1 2  //pin for DATA#1
-#define CD4021_PIN_DATA2 7  //pin for DATA#2
-#define CD4021_PIN_PL 3     //pin for PL (comment this line if using RC to omit PL line)
-
-//settings for MCP23017
-#define MCP23017_ADDR1 0x20
-#define MCP23017_ADDR2 0x21
-
-//settings for PCF857x
-#define PCF857x_L1_TYPE PCF8575
-#define PCF857x_L1_ADDR1 0x20
-#define PCF857x_L1_ADDR2 0x21
-
-#define PCF857x_L2_TYPE PCF8574
-#define PCF857x_L2_ADDR1 0x22
-#define PCF857x_L2_ADDR2 0x23
-
 //buttons directly connected to pins
 #define DPB  //Enable
 #if STEER_TYPE == ST_ANALOG
-#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8 //, 11, 12, 13, 14, 15, 16
+#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8  //, 11, 12, 13, 14, 15, 16
 #else
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #endif

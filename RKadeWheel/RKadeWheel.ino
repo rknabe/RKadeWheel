@@ -55,7 +55,6 @@ static const uint8_t dpb[] = { DPB_PINS };
 #endif
 
 void load(bool defaults = false);
-void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
@@ -98,14 +97,6 @@ void setup() {
 
   //load settings
   load();
-
-  //center();
-
-  if (settings.afcOnStartup) {
-#ifdef AFC_ON
-    autoFindCenter();
-#endif
-  }
 }
 
 void loop() {
@@ -122,7 +113,10 @@ void loop() {
   wheel.update();
   processFFB();
 
+
+#ifdef SERIAL_CMD
   processSerial();
+#endif
 
   processBlower();
   processLights();
@@ -530,6 +524,167 @@ int32_t getWheelPositionAnalog() {
   return wheel.axisWheel->value;
 }
 
+//load and save settings
+void load(bool defaults) {
+  SettingsEEPROM settingsE;
+  uint8_t i;
+  uint8_t checksum;
+  EEPROM.get(0, settingsE);
+
+  checksum = settingsE.calcChecksum();
+
+  //Loading defaults
+  if (defaults || (settingsE.checksum != checksum)) {
+
+    Serial.println(F("Loading defaults"));
+
+    settingsE.data.gain[0] = 1024;
+    settingsE.data.gain[1] = 1024;
+    settingsE.data.gain[2] = 768;
+    settingsE.data.gain[3] = 1024;
+    settingsE.data.gain[4] = 1280;
+    settingsE.data.gain[5] = 1024;
+    settingsE.data.gain[6] = 1024;
+    settingsE.data.gain[7] = 1024;
+    settingsE.data.gain[8] = 1024;
+    settingsE.data.gain[9] = 410;
+    settingsE.data.gain[10] = 1024;
+    settingsE.data.gain[11] = 256;
+    settingsE.data.gain[12] = 0;
+
+    //wheel settings
+    settingsE.range = WHEEL_RANGE_DEFAULT;
+    settingsE.axisMin = -511;
+    settingsE.axisMax = 511;
+    settingsE.axisCenter = 0;
+    settingsE.axisDZ = 0;
+    settingsE.axisBitTrim = 0;
+    settingsE.invertRotation = 0;
+
+    settingsE.data.shiftButton = 0;  //no shift button
+
+    for (i = 0; i < AXIS_COUNT; i++) {
+      if (i < 3) {
+        settingsE.axes[i].axisMin = DEFAULT_AA_MIN;
+        settingsE.axes[i].axisMax = DEFAULT_AA_MAX;
+      } else {
+        settingsE.axes[i].axisMin = 0;
+        settingsE.axes[i].axisMax = 1023;
+      }
+      if (i < 2) {
+        settingsE.axes[i].axisOutputDisabled = 0;
+      } else {
+        settingsE.axes[i].axisOutputDisabled = 1;
+      }
+      settingsE.axes[i].axisCenter = -32768;  //no center
+      settingsE.axes[i].axisDZ = 0;
+      settingsE.axes[i].axisBitTrim = 0;
+    }
+    settingsE.data.debounce = 0;
+    settingsE.data.minForce = 0;
+    settingsE.data.maxForce = 16383;
+    settingsE.data.cutForce = 16383;
+    settingsE.ffbBD = DEFAULT_FFB_BITDEPTH;
+
+    settingsE.maxVelocityDamper = DEFAULT_MAX_VELOCITY;
+    settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
+    settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
+
+    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
+    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
+    settingsE.data.constantSpring = 0;
+    settingsE.data.afcOnStartup = 0;
+    settingsE.data.mplexShifter = 0;
+  }
+
+  settingsE.print();
+
+  settings = settingsE.data;
+
+  for (i = 0; i < AXIS_COUNT; i++) {
+    wheel.analogAxes[i]->setLimits(settingsE.axes[i].axisMin, settingsE.axes[i].axisMax);
+    wheel.analogAxes[i]->setCenter(settingsE.axes[i].axisCenter);
+    if (!wheel.analogAxes[i]->autoCenter)
+      wheel.analogAxes[i]->setDZ(settingsE.axes[i].axisDZ);
+
+    wheel.analogAxes[i]->bitTrim = settingsE.axes[i].axisBitTrim;
+    wheel.analogAxes[i]->outputDisabled = settingsE.axes[i].axisOutputDisabled;
+  }
+
+  //wheel settings
+  wheel.axisWheel->setRange(settingsE.range);
+  wheel.axisWheel->setLimits(settingsE.axisMin, settingsE.axisMax);
+  wheel.axisWheel->setCenter(settingsE.axisCenter);
+  if (!wheel.axisWheel->autoCenter) {
+    wheel.axisWheel->setDZ(settingsE.axisDZ);
+  }
+  wheel.axisWheel->bitTrim = settingsE.axisBitTrim;
+  wheel.axisWheel->invertRotation = settingsE.invertRotation;
+
+  wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
+  wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
+  wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
+}
+
+void save() {
+  uint8_t i;
+  SettingsEEPROM settingsE;
+  settingsE.data = settings;
+
+  //wheel settings
+  settingsE.range = wheel.axisWheel->range;
+  settingsE.axisMin = wheel.axisWheel->axisMin;
+  settingsE.axisMax = wheel.axisWheel->axisMax;
+  if (!wheel.axisWheel->autoCenter) {
+    settingsE.axisCenter = wheel.axisWheel->getCenter();
+  } else {
+    settingsE.axisCenter = -32768;
+  }
+  settingsE.axisDZ = wheel.axisWheel->getDZ();
+  settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
+  settingsE.invertRotation = wheel.axisWheel->invertRotation;
+
+  for (i = 0; i < AXIS_COUNT; i++) {
+    settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
+    settingsE.axes[i].axisMax = wheel.analogAxes[i]->axisMax;
+    if (!wheel.analogAxes[i]->autoCenter)
+      settingsE.axes[i].axisCenter = wheel.analogAxes[i]->getCenter();
+    else
+      settingsE.axes[i].axisCenter = -32768;
+    settingsE.axes[i].axisDZ = wheel.analogAxes[i]->getDZ();
+
+    settingsE.axes[i].axisBitTrim = wheel.analogAxes[i]->bitTrim;
+    settingsE.axes[i].axisOutputDisabled = wheel.analogAxes[i]->outputDisabled;
+  }
+
+  settingsE.maxVelocityDamper = round(16384.0 / wheel.ffbEngine.maxVelocityDamperC);
+  settingsE.maxVelocityFriction = round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC);
+  settingsE.maxAcceleration = round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC);
+
+  settingsE.checksum = settingsE.calcChecksum();
+
+  EEPROM.put(0, settingsE);
+}
+
+#ifdef AA_PULLUP_LINEARIZE
+//Linearizing axis values, when using internal adc + pullup.
+int16_t pullup_linearize(int16_t val) {
+  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
+  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
+  //if Rpullup = R_pot...
+  //val = val * 1024 / (2000 - val)
+  //division is slow
+  //piecewise linear approximation, 16 steps
+  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
+  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
+
+  uint8_t i = (val >> 6);
+
+  return a[i] + (((val % 64) * b[i]) >> 6);
+}
+#endif
+
+#ifdef SERIAL_CMD
 //Serial port - commands and output.
 void processSerial() {
 
@@ -797,272 +952,11 @@ void processSerial() {
       Serial.println(settings.endstopWidth);
     }
 
-#ifdef AFC_ON
-    //Auto find center
-    if (strcmp_P(cmd, PSTR("autocenter")) == 0) {
-      if ((arg1 < 0))
-        autoFindCenter();
-      else if (arg2 < 0)
-        autoFindCenter(arg1);
-      else if (arg3 < 0)
-        autoFindCenter(arg1, arg2);
-      else
-        autoFindCenter(arg1, arg2, arg3);
-    }
-#endif
-
     if (strcmp_P(cmd, PSTR("version")) == 0) {
       Serial.print(F(FIRMWARE_TYPE));
       Serial.print(F(":"));
       Serial.println(F(FIRMWARE_VER));
     }
   }
-}
-
-//load and save settings
-void load(bool defaults) {
-  SettingsEEPROM settingsE;
-  uint8_t i;
-  uint8_t checksum;
-  EEPROM.get(0, settingsE);
-
-  checksum = settingsE.calcChecksum();
-
-  //Loading defaults
-  if (defaults || (settingsE.checksum != checksum)) {
-
-    Serial.println(F("Loading defaults"));
-
-    settingsE.data.gain[0] = 1024;
-    settingsE.data.gain[1] = 1024;
-    settingsE.data.gain[2] = 768;
-    settingsE.data.gain[3] = 1024;
-    settingsE.data.gain[4] = 1280;
-    settingsE.data.gain[5] = 1024;
-    settingsE.data.gain[6] = 1024;
-    settingsE.data.gain[7] = 1024;
-    settingsE.data.gain[8] = 1024;
-    settingsE.data.gain[9] = 410;
-    settingsE.data.gain[10] = 1024;
-    settingsE.data.gain[11] = 256;
-    settingsE.data.gain[12] = 0;
-
-    //wheel settings
-    settingsE.range = WHEEL_RANGE_DEFAULT;
-    settingsE.axisMin = -511;
-    settingsE.axisMax = 511;
-    settingsE.axisCenter = 0;
-    settingsE.axisDZ = 0;
-    settingsE.axisBitTrim = 0;
-    settingsE.invertRotation = 0;
-
-    settingsE.data.shiftButton = 0;  //no shift button
-
-    for (i = 0; i < AXIS_COUNT; i++) {
-      if (i < 3) {
-        settingsE.axes[i].axisMin = DEFAULT_AA_MIN;
-        settingsE.axes[i].axisMax = DEFAULT_AA_MAX;
-      } else {
-        settingsE.axes[i].axisMin = 0;
-        settingsE.axes[i].axisMax = 1023;
-      }
-      if (i < 2) {
-        settingsE.axes[i].axisOutputDisabled = 0;
-      } else {
-        settingsE.axes[i].axisOutputDisabled = 1;
-      }
-      settingsE.axes[i].axisCenter = -32768;  //no center
-      settingsE.axes[i].axisDZ = 0;
-      settingsE.axes[i].axisBitTrim = 0;
-    }
-    settingsE.data.debounce = 0;
-    settingsE.data.minForce = 0;
-    settingsE.data.maxForce = 16383;
-    settingsE.data.cutForce = 16383;
-    settingsE.ffbBD = DEFAULT_FFB_BITDEPTH;
-
-    settingsE.maxVelocityDamper = DEFAULT_MAX_VELOCITY;
-    settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
-    settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
-
-    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
-    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
-    settingsE.data.constantSpring = 0;
-    settingsE.data.afcOnStartup = 0;
-    settingsE.data.mplexShifter = 0;
-  }
-
-  settingsE.print();
-
-  settings = settingsE.data;
-
-  for (i = 0; i < AXIS_COUNT; i++) {
-    wheel.analogAxes[i]->setLimits(settingsE.axes[i].axisMin, settingsE.axes[i].axisMax);
-    wheel.analogAxes[i]->setCenter(settingsE.axes[i].axisCenter);
-    if (!wheel.analogAxes[i]->autoCenter)
-      wheel.analogAxes[i]->setDZ(settingsE.axes[i].axisDZ);
-
-    wheel.analogAxes[i]->bitTrim = settingsE.axes[i].axisBitTrim;
-    wheel.analogAxes[i]->outputDisabled = settingsE.axes[i].axisOutputDisabled;
-  }
-
-  //wheel settings
-  wheel.axisWheel->setRange(settingsE.range);
-  wheel.axisWheel->setLimits(settingsE.axisMin, settingsE.axisMax);
-  wheel.axisWheel->setCenter(settingsE.axisCenter);
-  if (!wheel.axisWheel->autoCenter) {
-    wheel.axisWheel->setDZ(settingsE.axisDZ);
-  }
-  wheel.axisWheel->bitTrim = settingsE.axisBitTrim;
-  wheel.axisWheel->invertRotation = settingsE.invertRotation;
-
-  wheel.ffbEngine.maxVelocityDamperC = 16384.0 / settingsE.maxVelocityDamper;
-  wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / settingsE.maxVelocityFriction;
-  wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / settingsE.maxAcceleration;
-}
-
-void save() {
-  uint8_t i;
-  SettingsEEPROM settingsE;
-  settingsE.data = settings;
-
-  //wheel settings
-  settingsE.range = wheel.axisWheel->range;
-  settingsE.axisMin = wheel.axisWheel->axisMin;
-  settingsE.axisMax = wheel.axisWheel->axisMax;
-  if (!wheel.axisWheel->autoCenter) {
-    settingsE.axisCenter = wheel.axisWheel->getCenter();
-  } else {
-    settingsE.axisCenter = -32768;
-  }
-  settingsE.axisDZ = wheel.axisWheel->getDZ();
-  settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
-  settingsE.invertRotation = wheel.axisWheel->invertRotation;
-
-  for (i = 0; i < AXIS_COUNT; i++) {
-    settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
-    settingsE.axes[i].axisMax = wheel.analogAxes[i]->axisMax;
-    if (!wheel.analogAxes[i]->autoCenter)
-      settingsE.axes[i].axisCenter = wheel.analogAxes[i]->getCenter();
-    else
-      settingsE.axes[i].axisCenter = -32768;
-    settingsE.axes[i].axisDZ = wheel.analogAxes[i]->getDZ();
-
-    settingsE.axes[i].axisBitTrim = wheel.analogAxes[i]->bitTrim;
-    settingsE.axes[i].axisOutputDisabled = wheel.analogAxes[i]->outputDisabled;
-  }
-
-  settingsE.maxVelocityDamper = round(16384.0 / wheel.ffbEngine.maxVelocityDamperC);
-  settingsE.maxVelocityFriction = round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC);
-  settingsE.maxAcceleration = round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC);
-
-  settingsE.checksum = settingsE.calcChecksum();
-
-  EEPROM.put(0, settingsE);
-}
-
-void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
-  uint8_t _state = 1;
-  int32_t initialPos;
-  int32_t prevPos;
-  int32_t pos;
-  int32_t dist;
-  int32_t posMax;
-  int32_t posMin = 0;
-  int32_t range;
-  int32_t prevTime;
-  int32_t currTime;
-
-  motor.setForce(-force);
-  initialPos = prevPos = GET_WHEEL_POS;
-
-  prevTime = millis();
-  while (_state) {
-    currTime = millis();
-    if ((currTime - prevTime) > period) {
-      pos = GET_WHEEL_POS;
-      dist = pos - prevPos;
-      prevPos = pos;
-
-      switch (_state) {
-        case 1:
-          if (pos - initialPos > 100)  //distance must be negative
-          {
-            motor.setForce(0);
-            Serial.println(F("Error: FFB inverted!"));
-            return;
-          }
-
-          if (-dist < threshold)  //Minimum found
-          {
-            motor.setForce(0);
-
-            posMin = pos;
-
-            motor.setForce(force);
-            _state = 2;
-          }
-          break;
-        case 2:
-          if (dist < threshold)  //Maximum found
-          {
-            motor.setForce(0);
-
-            posMax = pos;
-
-            //calculate range
-#if STEER_TYPE == ST_ENCODER
-            range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
-#endif
-#if STEER_TYPE == ST_ANALOG
-            range = ((posMax) - (posMin)) / 240;
-#endif
-
-            if (range < 2) {
-              Serial.print(F("Error: no movement, range:"));
-              Serial.println(range);
-              return;
-            }
-
-#ifndef AFC_NORANGE
-            wheel.axisWheel->setRange(range);
-#endif
-
-            //Set center by setting new current position
-            wheel.axisWheel->setCenter((posMax + posMin) / 64);
-
-            //Go to center - should be safe now
-            motor.setForce(-force);
-            _state = 3;
-          }
-          break;
-        case 3:
-          if (pos < 0) {
-            motor.setForce(0);
-            _state = 0;
-          }
-          break;
-      }
-
-      prevTime = currTime;
-    }
-  }
-}
-
-#ifdef AA_PULLUP_LINEARIZE
-//Linearizing axis values, when using internal adc + pullup.
-int16_t pullup_linearize(int16_t val) {
-  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
-  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
-  //if Rpullup = R_pot...
-  //val = val * 1024 / (2000 - val)
-  //division is slow
-  //piecewise linear approximation, 16 steps
-  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
-  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
-
-  uint8_t i = (val >> 6);
-
-  return a[i] + (((val % 64) * b[i]) >> 6);
 }
 #endif
