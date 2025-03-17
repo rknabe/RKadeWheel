@@ -1,27 +1,3 @@
-/*
-  MIT License
-
-  Copyright (c) 2022 Sulako
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-*/
-
 #include <EEPROM.h>
 #include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
 #include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
@@ -30,18 +6,21 @@
 
 #include "config.h"
 #include "wheel.h"
-#include "motor.h"
+//#include "motor.h"
 #include "settings.h"
 
 //global variables
 Wheel_ wheel;
-Motor motor;
+//Motor motor;
 SettingsData settings;
 int16_t force;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
+AnalogOut lShaker(9);
+AnalogOut rShaker(10);
 AnalogOut blower(11);
+AnalogOut brakeLed(13);
 Smooth smoothAcc(350);
 
 #ifdef DPB
@@ -93,7 +72,7 @@ void setup() {
 #endif
 
   //motor setup
-  motor.begin();
+  //motor.begin();
 
   //load settings
   load();
@@ -137,16 +116,23 @@ void processBlower() {
   }
 
   float accPct = (((float)accVal - accMin) / ((float)accMax - accMin));
-  int16_t pwmValBlower = accPct * 255;
+  int16_t pwmValBlower = accPct * MAX_BLOWER_PWM;
   if (pwmValBlower < 0) {
     pwmValBlower = 0;
-  } else if (pwmValBlower > 255) {
-    pwmValBlower = 255;
+  } else if (pwmValBlower > MAX_BLOWER_PWM) {
+    pwmValBlower = MAX_BLOWER_PWM;
   }
   blower.write(pwmValBlower);
 }
 
 void processLights() {
+  int16_t accVal = wheel.analogAxes[AXIS_BRAKE]->rawValue;
+  int16_t accMin = wheel.analogAxes[AXIS_BRAKE]->axisMin;
+  if (accVal - accMin > 5) {
+    brakeLed.write(MAX_LIGHT_PWM);
+  } else {
+    brakeLed.write(0);
+  }
 }
 
 //Processing endstop and force feedback
@@ -155,9 +141,27 @@ void processFFB() {
   wheel.ffbEngine.constantSpringForce();
 
   force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
-
   force = applyForceLimit(force);
-  motor.setForce(force * FORCE_RATIO_MUL);
+
+  boolean isNegative = false;
+  if (abs(force) < 2) {
+    lShaker.write(0);
+    rShaker.write(0);
+    return;
+  } else if (force < 0) {
+    isNegative = true;
+  }
+
+  int16_t pwm = abs(force);
+  float forcePct = (((float)pwm) / ((float)16383));
+  pwm = forcePct * 255;
+  if (isNegative) {
+    rShaker.write(0);
+    lShaker.write(pwm);
+  } else {
+    lShaker.write(0);
+    rShaker.write(pwm);
+  }
 }
 
 //scaling force to minForce & maxForce and cut at cutForce
@@ -257,7 +261,7 @@ void processUsbCmd() {
         ((GUI_Report_Settings *)data)->maxForce = settings.maxForce;
         ((GUI_Report_Settings *)data)->cutForce = settings.cutForce;
 
-        ((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
+        //((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
 
         ((GUI_Report_Settings *)data)->endstopOffset = settings.endstopOffset;
         ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
@@ -311,7 +315,7 @@ void processUsbCmd() {
             settings.cutForce = usbCmd->arg[1];
             break;
           case 6:
-            motor.setBitDepth(usbCmd->arg[1]);
+            //motor.setBitDepth(usbCmd->arg[1]);
             break;
           case 7:
             settings.endstopOffset = usbCmd->arg[1];
@@ -915,14 +919,14 @@ void processSerial() {
       }
 
     //FFB PWM bitdepth/frequency
-    if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
+   /* if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
       if (arg1 > 0)
         motor.setBitDepth(arg1);
       Serial.print(F("FFB Bitdepth:"));
       Serial.print(motor.bitDepth);
       Serial.print(F(" Freq:"));
       Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
-    }
+    }*/
 
     //Debounce
     if (strcmp_P(cmd, PSTR("debounce")) == 0) {

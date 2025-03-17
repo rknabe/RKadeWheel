@@ -89,6 +89,9 @@
 #define MA_LEVEL_AXIS_AUX5 4*/
 #define MA_LEVEL_AXIS_ST_ANALOG 4
 
+#define MAX_BLOWER_PWM 126
+#define MAX_LIGHT_PWM 126
+
 //----------------------------Buttons-------------------------------------
 //different ways of connecting buttons. Choose only one!
 //#define BUTTONS_TYPE BT_74HC165       //Use 74HC165 shift registers
@@ -123,7 +126,7 @@
 
 //----------------------------FFB settings-------------------------------
 //rknabe, use motor option 2, enabled next line
-#define MOTOR_ENABLE_PIN 5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
+//#define MOTOR_ENABLE_PIN 5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
 #define MOTOR_OUTPUT_PIN1 9
 #define MOTOR_OUTPUT_PIN2 10
 
