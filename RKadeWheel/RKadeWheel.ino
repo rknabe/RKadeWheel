@@ -3,25 +3,32 @@
 #include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
 #include <AnalogIO.h>
 #include <Smooth.h>
+#include <arduino-timer.h>
 
 #include "config.h"
 #include "wheel.h"
-//#include "motor.h"
 #include "settings.h"
 
 //global variables
 Wheel_ wheel;
-//Motor motor;
 SettingsData settings;
 int16_t force;
+float accelPct = 0;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
 AnalogOut lShaker(9);
 AnalogOut rShaker(10);
 AnalogOut blower(11);
-AnalogOut brakeLed(13);
+AnalogOut brakeLed(12);
+AnalogOut trak1Led(5);
+AnalogOut trak2Led(6);
+AnalogOut trak3Led(13);
+bool trak1LedOn = false;
+bool trak2LedOn = false;
+bool trak3LedOn = false;
 Smooth smoothAcc(350);
+auto timer = timer_create_default();  // create a timer with default settings
 
 #ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
@@ -50,7 +57,6 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 #define GET_WHEEL_POS getWheelPositionAnalog()
 #endif
 
-
 //-------------------------------------------------------------------------------------
 
 void setup() {
@@ -68,42 +74,33 @@ void setup() {
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
-  //Keyboard.begin();
 #endif
-
-  //motor setup
-  //motor.begin();
 
   //load settings
   load();
 }
 
 void loop() {
+  timer.tick();
 
   readAnalogAxes();
-
-#if STEER_TYPE != ST_ANALOG
-  //wheel.axisWheel->setValue(GET_WHEEL_POS);
-#endif
-  //#ifndef BT_NONE
   readButtons();
-  //#endif
   processUsbCmd();
   wheel.update();
   processFFB();
-
 
 #ifdef SERIAL_CMD
   processSerial();
 #endif
 
+  calcAccelPct();
   processBlower();
   processLights();
 
   delay(4);
 }
 
-void processBlower() {
+void calcAccelPct() {
   int16_t accVal = wheel.analogAxes[AXIS_ACC]->rawValue;
   accVal = round(smoothAcc.add(accVal));
   int16_t accMax = wheel.analogAxes[AXIS_ACC]->axisMax;
@@ -115,8 +112,11 @@ void processBlower() {
     accVal = accMax;
   }
 
-  float accPct = (((float)accVal - accMin) / ((float)accMax - accMin));
-  int16_t pwmValBlower = accPct * MAX_BLOWER_PWM;
+  accelPct = (((float)accVal - accMin) / ((float)accMax - accMin));
+}
+
+void processBlower() {
+  int16_t pwmValBlower = accelPct * MAX_BLOWER_PWM;
   if (pwmValBlower < 0) {
     pwmValBlower = 0;
   } else if (pwmValBlower > MAX_BLOWER_PWM) {
@@ -126,14 +126,70 @@ void processBlower() {
 }
 
 void processLights() {
-  int16_t accVal = wheel.analogAxes[AXIS_BRAKE]->rawValue;
-  int16_t accMin = wheel.analogAxes[AXIS_BRAKE]->axisMin;
-  if (accVal - accMin > 5) {
-    brakeLed.write(MAX_LIGHT_PWM);
+  if (accelPct > 0.01) {
+    if (!isTrakLedOn()) {
+      turnOnTrakLed1(NULL);
+    }
   } else {
-    brakeLed.write(0);
+    turnOffTrakLed1(NULL);
+    turnOffTrakLed2(NULL);
+    turnOffTrakLed3(NULL);
   }
 }
+
+bool turnOnTrakLed1(void *) {
+  trak1LedOn = true;
+  turnOffTrakLed2(NULL);
+  turnOffTrakLed3(NULL);
+  trak1Led.write(MAX_LIGHT_PWM);
+  timer.in(getTrakLedDelay(), turnOnTrakLed2);
+}
+
+bool turnOnTrakLed2(void *) {
+  trak2LedOn = true;
+  turnOffTrakLed1(NULL);
+  turnOffTrakLed3(NULL);
+  trak2Led.write(MAX_LIGHT_PWM);
+  timer.in(getTrakLedDelay(), turnOnTrakLed3);
+}
+
+bool turnOnTrakLed3(void *) {
+  trak3LedOn = true;
+  turnOffTrakLed1(NULL);
+  turnOffTrakLed2(NULL);
+  trak3Led.write(MAX_LIGHT_PWM);
+  timer.in(getTrakLedDelay(), turnOffTrakLed3);
+}
+
+bool turnOffTrakLed1(void *) {
+  trak1LedOn = false;
+  trak1Led.write(0);
+}
+
+bool turnOffTrakLed2(void *) {
+  trak2LedOn = false;
+  trak2Led.write(0);
+}
+
+bool turnOffTrakLed3(void *) {
+  trak3LedOn = false;
+  trak3Led.write(0);
+}
+
+unsigned long getTrakLedDelay() {
+  unsigned long delay = (1.0 - accelPct) * TRAK_LIGHT_DELAY;
+  if (delay > TRAK_LIGHT_DELAY) {
+    delay = TRAK_LIGHT_DELAY;
+  } else if (delay < 40) {
+    delay = 30;
+  }
+  return delay;
+}
+
+bool isTrakLedOn() {
+  return trak1LedOn || trak2LedOn || trak3LedOn;
+}
+
 
 //Processing endstop and force feedback
 void processFFB() {
@@ -142,20 +198,15 @@ void processFFB() {
 
   force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   force = applyForceLimit(force);
-
-  boolean isNegative = false;
-  if (abs(force) < 2) {
+  if (abs(force) < 1200) {
     lShaker.write(0);
     rShaker.write(0);
     return;
-  } else if (force < 0) {
-    isNegative = true;
   }
 
-  int16_t pwm = abs(force);
-  float forcePct = (((float)pwm) / ((float)16383));
-  pwm = forcePct * 255;
-  if (isNegative) {
+  float forcePct = (((float)abs(force)) / ((float)16383));
+  int16_t pwm = forcePct * 255;
+  if (force < 0) {
     rShaker.write(0);
     lShaker.write(pwm);
   } else {
@@ -919,7 +970,7 @@ void processSerial() {
       }
 
     //FFB PWM bitdepth/frequency
-   /* if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
+    /* if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
       if (arg1 > 0)
         motor.setBitDepth(arg1);
       Serial.print(F("FFB Bitdepth:"));

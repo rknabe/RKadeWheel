@@ -91,6 +91,7 @@
 
 #define MAX_BLOWER_PWM 126
 #define MAX_LIGHT_PWM 126
+#define TRAK_LIGHT_DELAY 250
 
 //----------------------------Buttons-------------------------------------
 //different ways of connecting buttons. Choose only one!
@@ -102,11 +103,7 @@
 
 //buttons directly connected to pins
 #define DPB  //Enable
-#if STEER_TYPE == ST_ANALOG
-#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8  //, 11, 12, 13, 14, 15, 16
-#else
-#define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
-#endif
+#define DPB_PINS 0, 1, 2, 3, 4, 7, 8  //, 11, 12, 13, 14, 15, 16
 #define DPB_1ST_BTN 1
 #define GEAR_BTN_IDX_1 0
 #define GEAR_BTN_IDX_2 1
