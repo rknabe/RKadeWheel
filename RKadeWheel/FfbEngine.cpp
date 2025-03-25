@@ -81,48 +81,6 @@ uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   return 0;
 }
 
-void FfbEngine::constantSpringForce() {
-  uint8_t id;
-  bool isNew = false;
-
-  if (settings.constantSpring > 0) {
-    id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
-    if (id == 0) {
-      id = ffbReportHandler->GetNextFreeEffect();
-      isNew = true;
-    }
-    if (id > 0) {
-      volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
-      if (isNew) {
-        effect->effectType = USB_EFFECT_SPRING_CONSTANT;
-        effect->negativeCoefficient = 32767;
-        effect->positiveCoefficient = 32767;
-        effect->negativeSaturation = 32767;
-        effect->positiveSaturation = 32767;
-        effect->period = 1;
-        effect->enableAxis = 4;
-        effect->directionX = 63;
-        effect->gain = 128;
-        effect->deadBand = 100;
-        effect->duration = USB_DURATION_INFINITE;
-      }
-      if (!(effect->state & MEFFECTSTATE_PLAYING)) {
-        ffbReportHandler->StartEffect(id);
-      }
-    }
-  } else {
-    //clear existing constant spring
-    id = getEffectType(USB_EFFECT_SPRING_CONSTANT);
-    if (id > 0) {
-      volatile TEffectState* effect = &ffbReportHandler->gEffectStates[id];
-      if (effect->state & MEFFECTSTATE_PLAYING) {
-        ffbReportHandler->StopEffect(id);
-        //ffbReportHandler->FreeEffect(id);
-      }
-    }
-  }
-}
-
 //returns 15-bit force value in range [-16384..16384]
 int16_t FfbEngine::calculateForce(AxisWheel* axis) {
   int32_t totalForce = 0;

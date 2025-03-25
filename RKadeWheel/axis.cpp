@@ -41,7 +41,6 @@ int16_t Axis::getDZ() {
 }
 
 void Axis::setCenter(int16_t center) {
-  autoCenter = false;
   int16_t dz = getDZ();
   axisCenterN = center - dz;
   axisCenterP = center + dz;
@@ -49,7 +48,6 @@ void Axis::setCenter(int16_t center) {
 }
 
 void Axis::setDZ(int16_t dz) {
-  autoCenter = false;
   int16_t center = getCenter();
   axisCenterN = center - dz;
   axisCenterP = center + dz;
@@ -70,20 +68,12 @@ void Axis::setAutoLimits(bool _auto) {
   if (_auto) {
     axisMin = rawValue;
     axisMax = rawValue;
-    autoCenter = true;
     updateRangeFactor();
   }
   autoLimit = _auto;
 }
 
 void Axis::updateRangeFactor() {
-  if ((axisCenterN < axisMin) || (axisCenterP > axisMax))
-    autoCenter = true;
-
-  if (autoCenter) {
-    axisCenterN = axisCenterP = (axisMin + axisMax) >> 1;
-  }
-
   rangeFactorNeg = 32767.0 / (axisCenterN - axisMin);
   rangeFactorPos = 32767.0 / (axisMax - axisCenterP);
 }
@@ -155,14 +145,4 @@ void AxisWheel::setRange(uint16_t _deg) {
   rangeFactor = ((int32_t)1 << (16 - STEER_BITDEPTH)) * 360.0 / range;
   axisMax = (((int32_t)1 << (STEER_BITDEPTH - 1))) * range / 360 - 1;
 #endif
-}
-
-void AxisWheel::setCenterZero() {
-  value = 0;
-  lastPosition = 0;
-  velocity = 0;
-  acceleration = 0;
-  filter.reset(filter.get_window());
-  filterVelocity.reset(filterVelocity.get_window());
-  filterAcceleration.reset(filterAcceleration.get_window());
 }

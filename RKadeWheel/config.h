@@ -2,7 +2,6 @@
 //---------------------------Constants, do not change--------------------
 #define ST_ENCODER 0
 #define ST_ANALOG 4
-
 #define PT_INTERNAL 0
 
 //-----------------------------------------------------------------------
@@ -54,6 +53,9 @@
 
 //different ways of connecting pedals. Choose only one!
 #define PEDALS_TYPE PT_INTERNAL  //use internal ADC
+#define DEFAULT_AA_MIN 0
+#define DEFAULT_AA_MAX 1023
+#define DEFAULT_GAIN 1024
 
 //settings for internal ADC
 
@@ -96,22 +98,19 @@
 #define BUTTONS_TYPE BT_NONE  //No buttons
 
 //buttons directly connected to pins
-#define DPB  //Enable
+#define DPB                           //Enable
 #define DPB_PINS 0, 1, 2, 3, 4, 7, 8  //, 11, 12, 13, 14, 15, 16
 #define DPB_1ST_BTN 1
-#define GEAR_BTN_IDX_1 0
-#define GEAR_BTN_IDX_2 1
-#define GEAR_BTN_IDX_3 2
-#define GEAR_BTN_IDX_4 3
-#define BRAKE_BTN_IDX 5
-#define GEAR_BTN_IDX_5 30
-#define GEAR_BTN_IDX_6 31
+
+#define LEFT_SHAKER_PIN 9
+#define RIGHT_SHAKER_PIN 10
+#define BLOWER_PIN 11
+#define BRAKE_LIGHT_PIN 12
+#define TRAK1_LIGHT_PIN 5
+#define TRAK2_LIGHT_PIN 6
+#define TRAK3_LIGHT_PIN 13
 
 //----------------------------FFB settings-------------------------------
-//rknabe, use motor option 2, enabled next line
-//#define MOTOR_ENABLE_PIN 5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
-#define MOTOR_OUTPUT_PIN1 9
-#define MOTOR_OUTPUT_PIN2 10
 
 //default FFB PWM bitdepth
 #define DEFAULT_FFB_BITDEPTH 9  //15.6 KHz

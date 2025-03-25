@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define FIRMWARE_VER "1.1.5"
+#define FIRMWARE_VER "1.1.6"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
@@ -18,7 +18,6 @@
 #define AXIS_REPORT_COUNT 1
 
 #define GAIN_COUNT 13
-#define GAIN_SPRING 8
 
 struct SettingsAxis {
   int16_t axisMin;
@@ -42,9 +41,6 @@ struct SettingsData {
 
   int16_t endstopOffset;
   int16_t endstopWidth;
-  uint8_t constantSpring;
-  uint8_t afcOnStartup;
-  uint8_t mplexShifter;
 };
 
 //all settings
