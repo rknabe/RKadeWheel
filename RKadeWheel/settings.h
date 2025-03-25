@@ -7,15 +7,15 @@
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
-#define AXIS_BRAKE 1
+//#define AXIS_BRAKE 1
 /*#define AXIS_CLUTCH 2
 #define AXIS_AUX1 3
 #define AXIS_AUX2 4
 #define AXIS_AUX3 5
 #define AXIS_AUX4 6
 #define AXIS_AUX5 7*/
-#define AXIS_COUNT 2
-#define AXIS_REPORT_COUNT 2
+#define AXIS_COUNT 1
+#define AXIS_REPORT_COUNT 1
 
 #define GAIN_COUNT 13
 #define GAIN_SPRING 8

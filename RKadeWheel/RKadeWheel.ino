@@ -1,13 +1,27 @@
 #include <EEPROM.h>
-#include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
-#include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
 #include <AnalogIO.h>
 #include <Smooth.h>
 #include <arduino-timer.h>
+#include <PCF8574.h>
 
+#include "Keyboard.h"
 #include "config.h"
 #include "wheel.h"
 #include "settings.h"
+#include "Keypad.h"
+
+const byte KEYPAD_ROWS = 4;  //four rows
+const byte KEYPAD_COLS = 3;  //three columns
+char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
+  { '1', '2', '3' },
+  { '4', '5', '6' },
+  { '7', '8', '9' },
+  { '*', '0', '#' }
+};
+byte rowPins[KEYPAD_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
+byte colPins[KEYPAD_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
+PCF8574 keypadIO(0x20);
+Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 //global variables
 Wheel_ wheel;
@@ -29,6 +43,7 @@ bool trak2LedOn = false;
 bool trak3LedOn = false;
 Smooth smoothAcc(350);
 auto timer = timer_create_default();  // create a timer with default settings
+
 
 #ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
@@ -64,6 +79,11 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
 
+  Wire.begin();
+  if (keypadIO.begin()) {
+    Keyboard.begin();
+  }
+
   //set up analog axes
 #ifdef AA_PULLUP
   analogReference(INTERNAL);  //2.56v reference to get more resolution.
@@ -88,6 +108,9 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
+  if (keypadIO.isConnected()) {
+    processKeypad();
+  }
 
 #ifdef SERIAL_CMD
   processSerial();
@@ -97,7 +120,7 @@ void loop() {
   processBlower();
   processLights();
 
-  delay(4);
+  delay(5);
 }
 
 void calcAccelPct() {
@@ -190,6 +213,102 @@ bool isTrakLedOn() {
   return trak1LedOn || trak2LedOn || trak3LedOn;
 }
 
+void processKeypad() {
+  // Fills keypad.key[ ] array with up-to 10 active keys.
+  // Returns true if there are ANY active keys.
+  if (keypad.getKeys()) {
+    for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
+      if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
+        char key = keypad.key[i].kchar;
+        char keycode = 0;
+        switch (key) {
+          case '*':
+            keycode = KEY_KP_ASTERISK;
+            break;
+          case '#':
+            keycode = KEY_KP_DOT;
+            break;
+          case '1':
+            keycode = KEY_KP_1;
+            break;
+          case '2':
+            keycode = KEY_KP_2;
+            break;
+          case '3':
+            keycode = KEY_KP_3;
+            break;
+          case '4':
+            keycode = KEY_KP_4;
+            break;
+          case '5':
+            keycode = KEY_KP_5;
+            break;
+          case '6':
+            keycode = KEY_KP_6;
+            break;
+          case '7':
+            keycode = KEY_KP_7;
+            break;
+          case '8':
+            keycode = KEY_KP_8;
+            break;
+          case '9':
+            keycode = KEY_KP_9;
+            break;
+          case '0':
+            keycode = KEY_KP_0;
+            break;
+        }
+
+        switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+          case PRESSED:
+            if (key == '#' && (isHeld('*') || isPressed('*'))) {
+              keycode = 224;
+              Keyboard.press(keycode);
+              delay(100);
+              Keyboard.releaseAll();
+            } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
+              //*6 will toggle numlock mode
+              keycode = 219;
+              Keyboard.press(keycode);
+              delay(100);
+              Keyboard.releaseAll();
+            } else {
+              Keyboard.press(keycode);
+            }
+            break;
+          case HOLD:
+            break;
+          case RELEASED:
+            Keyboard.release(keycode);
+            break;
+          case IDLE:
+            break;
+        }
+      }
+    }
+  }
+}
+
+bool isHeld(char keyChar) {
+  for (byte i = 0; i < LIST_MAX; i++) {
+    if (keypad.key[i].kchar == keyChar) {
+      if ((keypad.key[i].kstate == HOLD))
+        return true;
+    }
+  }
+  return false;  // Not pressed.
+}
+
+bool isPressed(char keyChar) {
+  for (byte i = 0; i < LIST_MAX; i++) {
+    if (keypad.key[i].kchar == keyChar) {
+      if ((keypad.key[i].kstate == PRESSED))
+        return true;
+    }
+  }
+  return false;  // Not pressed.
+}
 
 //Processing endstop and force feedback
 void processFFB() {
@@ -428,13 +547,13 @@ void readAnalogAxes() {
 
 #if (PEDALS_TYPE == PT_INTERNAL)
 #ifdef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogReadFast(PIN_ACC)));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(pullup_linearize(analogReadFast(PIN_BRAKE)));
-  //wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogReadFast(PIN_CLUTCH)));
+  wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogRead(PIN_ACC)));
+  //wheel.analogAxes[AXIS_BRAKE]->setValue(pullup_linearize(analogRead(PIN_BRAKE)));
+  //wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogRead(PIN_CLUTCH)));
 #else
-  wheel.analogAxes[AXIS_ACC]->setValue(analogReadFast(PIN_ACC));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(analogReadFast(PIN_BRAKE));
-  //wheel.analogAxes[AXIS_CLUTCH]->setValue(analogReadFast(PIN_CLUTCH));
+  wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
+  //wheel.analogAxes[AXIS_BRAKE]->setValue(analogRead(PIN_BRAKE));
+  //wheel.analogAxes[AXIS_CLUTCH]->setValue(analogRead(PIN_CLUTCH));
 #endif
 #endif
 
@@ -442,38 +561,38 @@ void readAnalogAxes() {
 #ifdef AA_PULLUP_LINEARIZE
 
 #ifdef PIN_AUX1
-  wheel.analogAxes[AXIS_AUX1]->setValue(pullup_linearize(analogReadFast(PIN_AUX1)));
+  wheel.analogAxes[AXIS_AUX1]->setValue(pullup_linearize(analogRead(PIN_AUX1)));
 #endif
 #ifdef PIN_AUX2
-  wheel.analogAxes[AXIS_AUX2]->setValue(pullup_linearize(analogReadFast(PIN_AUX2)));
+  wheel.analogAxes[AXIS_AUX2]->setValue(pullup_linearize(analogRead(PIN_AUX2)));
 #endif
 #ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(pullup_linearize(analogReadFast(PIN_AUX3)));
+  wheel.analogAxes[AXIS_AUX3]->setValue(pullup_linearize(analogRead(PIN_AUX3)));
 #endif
 #ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogReadFast(PIN_AUX4)));
+  wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogRead(PIN_AUX4)));
 #endif
 #ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogReadFast(PIN_AUX5)));
+  wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogRead(PIN_AUX5)));
 #endif
 #ifdef PIN_ST_ANALOG
   GET_WHEEL_POS;
 #endif
 #else
 #ifdef PIN_AUX1
-  wheel.analogAxes[AXIS_AUX1]->setValue(analogReadFast(PIN_AUX1));
+  wheel.analogAxes[AXIS_AUX1]->setValue(analogRead(PIN_AUX1));
 #endif
 #ifdef PIN_AUX2
-  wheel.analogAxes[AXIS_AUX2]->setValue(analogReadFast(PIN_AUX2));
+  wheel.analogAxes[AXIS_AUX2]->setValue(analogRead(PIN_AUX2));
 #endif
 #ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(analogReadFast(PIN_AUX3));
+  wheel.analogAxes[AXIS_AUX3]->setValue(analogRead(PIN_AUX3));
 #endif
 #ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(analogReadFast(PIN_AUX4));
+  wheel.analogAxes[AXIS_AUX4]->setValue(analogRead(PIN_AUX4));
 #endif
 #ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(analogReadFast(PIN_AUX5));
+  wheel.analogAxes[AXIS_AUX5]->setValue(analogRead(PIN_AUX5));
 #endif
 #ifdef PIN_ST_ANALOG
   GET_WHEEL_POS;
@@ -571,9 +690,9 @@ void readButtons() {
 int32_t getWheelPositionAnalog() {
 
 #ifdef AA_PULLUP_LINEARIZE
-  wheel.axisWheel->setValue(pullup_linearize(analogReadFast(PIN_ST_ANALOG)));
+  wheel.axisWheel->setValue(pullup_linearize(analogRead(PIN_ST_ANALOG)));
 #else
-  wheel.axisWheel->setValue(analogReadFast(PIN_ST_ANALOG));
+  wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
 #endif
 
   return wheel.axisWheel->value;

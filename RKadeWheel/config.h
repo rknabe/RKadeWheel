@@ -80,7 +80,7 @@
 
 //Level of smoothing for analog axes.
 #define MA_LEVEL_AXIS_ACC 4
-#define MA_LEVEL_AXIS_BRAKE 4
+//#define MA_LEVEL_AXIS_BRAKE 4
 /*#define MA_LEVEL_AXIS_CLUTCH 4
 #define MA_LEVEL_AXIS_AUX1 4
 #define MA_LEVEL_AXIS_AUX2 4
