@@ -745,7 +745,7 @@ void load(bool defaults) {
         settingsE.axes[i].axisMin = 0;
         settingsE.axes[i].axisMax = 1023;
       }
-      if (i < 2) {
+      if (i < 1) {
         settingsE.axes[i].axisOutputDisabled = 0;
       } else {
         settingsE.axes[i].axisOutputDisabled = 1;
