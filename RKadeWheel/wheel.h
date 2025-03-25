@@ -10,9 +10,6 @@
 typedef struct {
   int16_t axes[AXIS_COUNT] = { -32768};
   uint32_t buttons;
-#ifdef HATSWITCH
-  uint8_t hat;
-#endif
 } wheelData;
 
 //Reports for GUI
@@ -90,5 +87,4 @@ public:
 
   GUI_Report USB_GUI_Report;
 private:
-  uint8_t getHatSwitch();
 };

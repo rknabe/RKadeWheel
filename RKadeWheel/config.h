@@ -36,16 +36,10 @@
 #define FORCE_RATIO_MUL -1
 #endif
 
-//---------------------------I2C----------------------------------------
-//bitbang I2С pins - for MCP23017 and ADS1015
-#define I2C_PIN_SDA 2  //any free pins
-#define I2C_PIN_SCL 7
-
-#define I2C_DELAY 1
 //---------------------------analog axes---------------------------
 //analog axes pins
 #define PIN_ACC A0
-#define PIN_BRAKE A1
+//#define PIN_BRAKE A1
 //#define PIN_CLUTCH A2
 //aux analog axes pins
 //If aux axis is not needed, comment out corresponding line.
@@ -113,14 +107,6 @@
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
-//Hat switch
-//#define HATSWITCH
-#define HAT_BTN_UP 13
-#define HAT_BTN_DOWN 15
-#define HAT_BTN_LEFT 14
-#define HAT_BTN_RIGHT 16
-#define HAT_CLR_BTNS  //clear buttons state
-
 //----------------------------FFB settings-------------------------------
 //rknabe, use motor option 2, enabled next line
 //#define MOTOR_ENABLE_PIN 5  //if is set, selected pin will output 1 when FFB is active and 0 otherwise.
@@ -136,11 +122,3 @@
 
 #define DEFAULT_ENDSTOP_OFFSET 0    //force level endstop effect will start from (0-16383). Increasing will make endstop harder.
 #define DEFAULT_ENDSTOP_WIDTH 1024  //length of excess position where endstop effect will rise to maximum level. Decreasing makes endstop harder.
-
-//Auto find center
-#define AFC_ON           //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
-#define AFC_FORCE 4200   //Force [0...16383] to exert when finding center.
-#define AFC_PERIOD 80    //default 50         //Position check period in milliseconds
-#define AFC_TRESHOLD 10  //default 10         //Minimum position change to detect movement
-#define AFC_NORANGE      //Uncomment to disable range setting
-#define AFC_RANGE_FIX 5  //range will be decreased by this value (in degrees), to prevent wheel kicking on limiters.
