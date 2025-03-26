@@ -7,13 +7,6 @@
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
-//#define AXIS_BRAKE 1
-/*#define AXIS_CLUTCH 2
-#define AXIS_AUX1 3
-#define AXIS_AUX2 4
-#define AXIS_AUX3 5
-#define AXIS_AUX4 6
-#define AXIS_AUX5 7*/
 #define AXIS_COUNT 1
 #define AXIS_REPORT_COUNT 1
 
@@ -57,16 +50,13 @@ public:
   int16_t axisDZ;
   int8_t axisBitTrim;
   int8_t invertRotation;
-
   uint8_t ffbBD;
-
   int16_t maxVelocityDamper;
   int16_t maxVelocityFriction;
   int16_t maxAcceleration;
-
   uint8_t checksum;
 
-  void print();
+  //void print();
 
   uint8_t calcChecksum();
 };

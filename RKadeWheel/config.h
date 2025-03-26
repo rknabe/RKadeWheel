@@ -1,22 +1,8 @@
 #pragma once
-//---------------------------Constants, do not change--------------------
-#define ST_ENCODER 0
-#define ST_ANALOG 4
-#define PT_INTERNAL 0
-
-//-----------------------------------------------------------------------
-
-//---------------------------Configuration-------------------------------
 
 #define SERIAL_BAUDRATE 2000000
 
 //---------------------------Steering axis-------------------------------
-//different types of wheel sensor. Choose only one!
-//#define STEER_TYPE ST_ENCODER
-#define STEER_TYPE ST_ANALOG
-//#define STEER_TYPE ST_TLE5010
-//#define STEER_TYPE ST_AS5600
-//#define STEER_TYPE ST_MLX90316
 
 //wheel sensor bitdepth. Not supposed to be changed.
 #define STEER_BITDEPTH 13
@@ -25,84 +11,20 @@
 
 //transmission ratio (see readme)
 #define STEER_TM_RATIO_ENABLED  //Uncomment to enable feature
-#if STEER_TYPE == ST_ANALOG
-#define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 1   //Division factor
+#define STEER_TM_RATIO_MUL -1   //Multiplication factor
+#define STEER_TM_RATIO_DIV 1    //Division factor
 #define FORCE_RATIO_MUL -1
-#else
-#define STEER_TM_RATIO_MUL -1  //Multiplication factor
-#define STEER_TM_RATIO_DIV 4   //Division factor
-#define FORCE_RATIO_MUL -1
-#endif
 
-//---------------------------analog axes---------------------------
+//---------------------------pins---------------------------
 //analog axes pins
 #define PIN_ACC A0
-//#define PIN_BRAKE A1
-//#define PIN_CLUTCH A2
-//aux analog axes pins
-//If aux axis is not needed, comment out corresponding line.
-//#define PIN_AUX1 A3
-//#define PIN_AUX2 A4
-//#define PIN_AUX3 A5
-//#define PIN_AUX4 A6
-//#define PIN_AUX5 A7
-#if STEER_TYPE == ST_ANALOG
 #define PIN_ST_ANALOG A5
-#endif
-
-//different ways of connecting pedals. Choose only one!
-#define PEDALS_TYPE PT_INTERNAL  //use internal ADC
-#define DEFAULT_AA_MIN 0
-#define DEFAULT_AA_MAX 1023
-#define DEFAULT_GAIN 1024
-
-//settings for internal ADC
-
-
-//#define AA_PULLUP  //internal ADC with pullups for analog axes
-//#define AA_PULLUP_LINEARIZE    //uncomment if need to linearize
-
-//---------------------------Smoothing-----------------------------------
-/*
- * Smoothing is performed with moving average filter.
- * Level means filter window size as power of 2.
- * 2 means averaging 4 values, 3 - 8 values and so on.
- */
-//Smoothing for wheel axis.
-#define MA_LEVEL_WHEEL_POSITION 4
-#define MA_LEVEL_WHEEL_VELOCITY 4
-#define MA_LEVEL_WHEEL_ACCELERATION 4
-
-//Level of smoothing for analog axes.
-#define MA_LEVEL_AXIS_ACC 4
-//#define MA_LEVEL_AXIS_BRAKE 4
-/*#define MA_LEVEL_AXIS_CLUTCH 4
-#define MA_LEVEL_AXIS_AUX1 4
-#define MA_LEVEL_AXIS_AUX2 4
-#define MA_LEVEL_AXIS_AUX3 4
-#define MA_LEVEL_AXIS_AUX4 4
-#define MA_LEVEL_AXIS_AUX5 4*/
-#define MA_LEVEL_AXIS_ST_ANALOG 4
-
-#define MAX_BLOWER_PWM 126
-#define MAX_LIGHT_PWM 126
-#define TRAK_LIGHT_DELAY 250
 
 //----------------------------Buttons-------------------------------------
-//different ways of connecting buttons. Choose only one!
-//#define BUTTONS_TYPE BT_74HC165       //Use 74HC165 shift registers
-//#define BUTTONS_TYPE BT_MCP23017    //Use MCP23017 I2C port expanders
-//#define BUTTONS_TYPE BT_CD4021B     //Use CD4021B shift registers
-//#define BUTTONS_TYPE BT_PCF857x     //Use PCF857x I2C port expanders
-#define BUTTONS_TYPE BT_NONE  //No buttons
-
-//buttons directly connected to pins
-#define DPB  //Enable
-#define DPB_PINS 0, 1, 2, 4, 7, 8, 12, 14, 15, 16, A1, A2, A3, A4
-#define DPB_1ST_BTN 1
-#define BTN_ESC_INDEX 12 //zero-based index
-#define BTN_SHUTDOWN_INDEX 13 //zero-based index
+#define BUTTON_PINS 0, 1, 2, 4, 7, 8, 12, 14, 15, 16, A1, A2, A3, A4
+#define BTN_1 1
+#define BTN_ESC_INDEX 12       //zero-based index
+#define BTN_SHUTDOWN_INDEX 13  //zero-based index
 
 #define LEFT_SHAKER_PIN 9
 #define RIGHT_SHAKER_PIN 10
@@ -111,6 +33,29 @@
 #define TRAK1_LIGHT_PIN 5
 #define TRAK2_LIGHT_PIN 6
 #define TRAK3_LIGHT_PIN 13
+
+//different ways of connecting pedals. Choose only one!
+#define DEFAULT_AA_MIN 0
+#define DEFAULT_AA_MAX 1023
+#define DEFAULT_GAIN 1024
+
+//---------------------------Smoothing-----------------------------------
+/*
+ * Smoothing is performed with moving average filter.
+ * Level means filter window size as power of 2.
+ * 2 means averaging 4 values, 3 - 8 values and so on.
+ */
+//Smoothing for wheel axis.
+#define MA_LEVEL_WHEEL_VELOCITY 4
+#define MA_LEVEL_WHEEL_ACCELERATION 4
+
+//Level of smoothing for analog axes.
+#define MA_LEVEL_AXIS_ACC 4
+#define MA_LEVEL_AXIS_ST_ANALOG 4
+
+#define MAX_BLOWER_PWM 126
+#define MAX_LIGHT_PWM 126
+#define TRAK_LIGHT_DELAY 250
 
 //----------------------------FFB settings-------------------------------
 

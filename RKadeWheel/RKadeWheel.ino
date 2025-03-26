@@ -9,6 +9,7 @@
 #include "wheel.h"
 #include "settings.h"
 #include "Keypad.h"
+#include <ArduinoShrink.h>  //must be last
 
 const byte KEYPAD_ROWS = 4;  //four rows
 const byte KEYPAD_COLS = 3;  //three columns
@@ -43,27 +44,13 @@ bool trak2LedOn = false;
 bool trak3LedOn = false;
 Smooth smoothAcc(350);
 auto timer = timer_create_default();  // create a timer with default settings
-
-#ifdef DPB
-static const uint8_t dpb[] = { DPB_PINS };
-#endif
+static const uint8_t dpb[] = { BUTTON_PINS };
 
 void load(bool defaults = false);
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
-
-#if STEER_TYPE == ST_ENCODER
-#include <Encoder.h>  //https://github.com/PaulStoffregen/Encoder
-Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
-#define GET_WHEEL_POS (((int32_t)encoder.read() << STEER_BITDEPTH) / ENCODER_PPR)
-#define CENTER_WHEEL encoder.write(0);
-#define SET_WHEEL_POSITION(val) encoder.write((val * ENCODER_PPR) / (1 << STEER_BITDEPTH))
-#endif
-
-#if STEER_TYPE == ST_ANALOG
 #define GET_WHEEL_POS getWheelPositionAnalog()
-#endif
 
 //-------------------------------------------------------------------------------------
 
@@ -77,17 +64,10 @@ void setup() {
   Wire.begin();
   keypadIO.begin();
 
-  //set up analog axes
-#ifdef AA_PULLUP
-  analogReference(INTERNAL);  //2.56v reference to get more resolution.
-#endif
-
 //direct pin buttons
-#ifdef DPB
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
-#endif
 
   //load settings
   load();
@@ -287,7 +267,7 @@ bool isHeld(char keyChar) {
         return true;
     }
   }
-  return false;  // Not pressed.
+  return false;  // Not held.
 }
 
 bool isPressed(char keyChar) {
@@ -365,14 +345,8 @@ void processUsbCmd() {
         strcpy_P(((GUI_Report_Version *)data)->ver, PSTR(FIRMWARE_VER));
         break;
       case 2:  //return steering axis data
-#if STEER_TYPE == ST_ANALOG
         ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
         ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
-#else
-        ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
-        ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
-#endif
-
         ((GUI_Report_SteerAxis *)data)->range = wheel.axisWheel->range;
         ((GUI_Report_SteerAxis *)data)->velocity = wheel.axisWheel->velocity;
         ((GUI_Report_SteerAxis *)data)->acceleration = wheel.axisWheel->acceleration;
@@ -516,40 +490,9 @@ void processUsbCmd() {
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
 
-#if (PEDALS_TYPE == PT_INTERNAL)
-#ifdef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogRead(PIN_ACC)));
-  //wheel.analogAxes[AXIS_BRAKE]->setValue(pullup_linearize(analogRead(PIN_BRAKE)));
-  //wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogRead(PIN_CLUTCH)));
-#else
   wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
-  //wheel.analogAxes[AXIS_BRAKE]->setValue(analogRead(PIN_BRAKE));
-  //wheel.analogAxes[AXIS_CLUTCH]->setValue(analogRead(PIN_CLUTCH));
-#endif
-#endif
 
 //additional axes
-#ifdef AA_PULLUP_LINEARIZE
-
-#ifdef PIN_AUX1
-  wheel.analogAxes[AXIS_AUX1]->setValue(pullup_linearize(analogRead(PIN_AUX1)));
-#endif
-#ifdef PIN_AUX2
-  wheel.analogAxes[AXIS_AUX2]->setValue(pullup_linearize(analogRead(PIN_AUX2)));
-#endif
-#ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(pullup_linearize(analogRead(PIN_AUX3)));
-#endif
-#ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogRead(PIN_AUX4)));
-#endif
-#ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogRead(PIN_AUX5)));
-#endif
-#ifdef PIN_ST_ANALOG
-  GET_WHEEL_POS;
-#endif
-#else
 #ifdef PIN_AUX1
   wheel.analogAxes[AXIS_AUX1]->setValue(analogRead(PIN_AUX1));
 #endif
@@ -568,7 +511,6 @@ void readAnalogAxes() {
 #ifdef PIN_ST_ANALOG
   GET_WHEEL_POS;
 #endif
-#endif
 }
 
 //-----------------------------------end analog axes------------------------------
@@ -585,8 +527,6 @@ void readButtons() {
     d = (uint8_t *)&wheel.buttons;
   }
 
-//direct pin buttons
-#ifdef DPB
   int i = 0;
   bool shiftBtnPressed = false;
   if (settings.shiftButton > 0) {
@@ -604,16 +544,15 @@ void readButtons() {
         otherBtnPressed = true;
       }
       if (shiftBtnPressed) {
-        bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i + sizeof(dpb), btnPressed);
+        bitWrite(*((uint32_t *)d), BTN_1 - 1 + i + sizeof(dpb), btnPressed);
       } else {
-        bitWrite(*((uint32_t *)d), DPB_1ST_BTN - 1 + i, btnPressed);
+        bitWrite(*((uint32_t *)d), BTN_1 - 1 + i, btnPressed);
       }
     }
   }
   if (settings.shiftButton > 0) {
     bitWrite(*((uint32_t *)d), settings.shiftButton - 1, shiftBtnPressed && !otherBtnPressed);
   }
-#endif
 
   //debounce
   if (settings.debounce) {
@@ -638,13 +577,7 @@ void readButtons() {
 
 
 int32_t getWheelPositionAnalog() {
-
-#ifdef AA_PULLUP_LINEARIZE
-  wheel.axisWheel->setValue(pullup_linearize(analogRead(PIN_ST_ANALOG)));
-#else
   wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
-#endif
-
   return wheel.axisWheel->value;
 }
 
@@ -716,8 +649,6 @@ void load(bool defaults) {
     settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
   }
 
-  settingsE.print();
-
   settings = settingsE.data;
 
   for (i = 0; i < AXIS_COUNT; i++) {
@@ -771,21 +702,3 @@ void save() {
 
   EEPROM.put(0, settingsE);
 }
-
-#ifdef AA_PULLUP_LINEARIZE
-//Linearizing axis values, when using internal adc + pullup.
-int16_t pullup_linearize(int16_t val) {
-  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
-  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
-  //if Rpullup = R_pot...
-  //val = val * 1024 / (2000 - val)
-  //division is slow
-  //piecewise linear approximation, 16 steps
-  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
-  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
-
-  uint8_t i = (val >> 6);
-
-  return a[i] + (((val % 64) * b[i]) >> 6);
-}
-#endif

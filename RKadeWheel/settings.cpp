@@ -9,8 +9,8 @@ uint8_t SettingsEEPROM::calcChecksum() {
   return checksum;
 }
 
-void SettingsEEPROM::print() {
-  /* uint8_t i;
+/*void SettingsEEPROM::print() {
+   uint8_t i;
 
   Serial.print(F("Range: "));
   Serial.println(range);
@@ -73,5 +73,5 @@ void SettingsEEPROM::print() {
   
   
   Serial.print(F("Checksum: "));
-  Serial.println(checksum);*/
-}
+  Serial.println(checksum);
+}*/

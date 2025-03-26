@@ -24,7 +24,7 @@ public:
 
   // methods
   Key();
-  Key(char userKeyChar);
+  //Key(char userKeyChar);
   void key_update(char userKeyChar, KeyState userState, boolean userStatus);
 
 private:

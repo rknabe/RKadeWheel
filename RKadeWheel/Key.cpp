@@ -8,12 +8,13 @@ Key::Key() {
 }
 
 // constructor
+/*
 Key::Key(char userKeyChar) {
   kchar = userKeyChar;
   kcode = -1;
   kstate = IDLE;
   stateChanged = false;
-}
+}*/
 
 
 void Key::key_update(char userKeyChar, KeyState userState, boolean userStatus) {
