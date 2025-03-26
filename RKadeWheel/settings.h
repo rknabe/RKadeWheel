@@ -56,7 +56,5 @@ public:
   int16_t maxAcceleration;
   uint8_t checksum;
 
-  //void print();
-
   uint8_t calcChecksum();
 };

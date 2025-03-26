@@ -27,9 +27,7 @@ Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROW
 //global variables
 Wheel_ wheel;
 SettingsData settings;
-int16_t force;
 float accelPct = 0;
-int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
 AnalogOut lShaker(LEFT_SHAKER_PIN);
@@ -47,10 +45,6 @@ auto timer = timer_create_default();  // create a timer with default settings
 static const uint8_t dpb[] = { BUTTON_PINS };
 
 void load(bool defaults = false);
-int32_t getWheelPositionAnalog();
-
-//------------------------ steering wheel sensor ----------------------------
-#define GET_WHEEL_POS getWheelPositionAnalog()
 
 //-------------------------------------------------------------------------------------
 
@@ -64,7 +58,7 @@ void setup() {
   Wire.begin();
   keypadIO.begin();
 
-//direct pin buttons
+  //direct pin buttons
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
@@ -282,7 +276,7 @@ bool isPressed(char keyChar) {
 
 //Processing endstop and force feedback
 void processFFB() {
-  force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
+  int16_t force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   force = applyForceLimit(force);
   if (abs(force) < 1200) {
     lShaker.write(0);
@@ -489,31 +483,9 @@ void processUsbCmd() {
 
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
-
   wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
-
-//additional axes
-#ifdef PIN_AUX1
-  wheel.analogAxes[AXIS_AUX1]->setValue(analogRead(PIN_AUX1));
-#endif
-#ifdef PIN_AUX2
-  wheel.analogAxes[AXIS_AUX2]->setValue(analogRead(PIN_AUX2));
-#endif
-#ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(analogRead(PIN_AUX3));
-#endif
-#ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(analogRead(PIN_AUX4));
-#endif
-#ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(analogRead(PIN_AUX5));
-#endif
-#ifdef PIN_ST_ANALOG
-  GET_WHEEL_POS;
-#endif
+  getWheelPositionAnalog();
 }
-
-//-----------------------------------end analog axes------------------------------
 
 //-----------------------------------reading buttons------------------------------
 void readButtons() {

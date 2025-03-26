@@ -214,9 +214,6 @@ int16_t FfbEngine::stdown(volatile TEffectState* effect, int32_t magnitude) {
 
 int16_t FfbEngine::springForce(volatile TEffectState* effect, int16_t position) {
   int32_t tempForce = 0;
-
-  //printEffect(effect);
-
   position = position >> 1;
 
   if (position < (effect->cpOffset - (int16_t)effect->deadBand)) {

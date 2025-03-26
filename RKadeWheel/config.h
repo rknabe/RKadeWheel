@@ -4,8 +4,6 @@
 
 //---------------------------Steering axis-------------------------------
 
-//wheel sensor bitdepth. Not supposed to be changed.
-#define STEER_BITDEPTH 13
 //default wheel range in degrees.
 #define WHEEL_RANGE_DEFAULT 270
 
