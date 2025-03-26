@@ -98,14 +98,16 @@
 #define BUTTONS_TYPE BT_NONE  //No buttons
 
 //buttons directly connected to pins
-#define DPB                           //Enable
-#define DPB_PINS 0, 1, 2, 3, 4, 7, 8  //, 11, 12, 13, 14, 15, 16
+#define DPB  //Enable
+#define DPB_PINS 0, 1, 2, 4, 7, 8, 12, 14, 15, 16, A1, A2, A3, A4
 #define DPB_1ST_BTN 1
+#define BTN_ESC_INDEX 12 //zero-based index
+#define BTN_SHUTDOWN_INDEX 13 //zero-based index
 
 #define LEFT_SHAKER_PIN 9
 #define RIGHT_SHAKER_PIN 10
 #define BLOWER_PIN 11
-#define BRAKE_LIGHT_PIN 12
+#define BRAKE_LIGHT_PIN 3
 #define TRAK1_LIGHT_PIN 5
 #define TRAK2_LIGHT_PIN 6
 #define TRAK3_LIGHT_PIN 13

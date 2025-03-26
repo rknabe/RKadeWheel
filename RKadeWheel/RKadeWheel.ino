@@ -626,8 +626,12 @@ void readButtons() {
       wheel.buttons = buttons;
     }
   }
-  if ((wheel.buttons & 1) != 0) {
+  if ((wheel.buttons & (uint32_t)pow(2, BTN_SHUTDOWN_INDEX)) != 0) {
     System.write(SYSTEM_POWER_DOWN);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
+    Keyboard.press(KeyboardKeycode(KEY_ESC));
+    delay(5);
+    Keyboard.release(KeyboardKeycode(KEY_ESC));
   }
 }
 //---------------------------------------- end buttons ----------------------------------------------
