@@ -31,7 +31,6 @@
 #include "trig_fixed.h"
 
 #define GAIN_TOTAL 0x00
-#define GAIN_ENDSTOP 0x0c
 
 #define sign(x) ((x > 0) - (x < 0))
 

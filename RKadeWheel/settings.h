@@ -24,16 +24,11 @@ struct SettingsAxis {
 //settings in global variables
 struct SettingsData {
   int16_t gain[GAIN_COUNT];
-
   int8_t shiftButton;
   uint8_t debounce;
-
   int16_t minForce;
   int16_t maxForce;
   int16_t cutForce;
-
-  int16_t endstopOffset;
-  int16_t endstopWidth;
 };
 
 //all settings

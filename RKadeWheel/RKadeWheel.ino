@@ -281,7 +281,6 @@ bool isPressed(char keyChar) {
   return false;  // Not pressed.
 }
 
-//Processing endstop and force feedback
 void processFFB() {
   int16_t force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   force = applyForceLimit(force);
@@ -381,8 +380,6 @@ void processUsbCmd() {
         memcpy(data, settings.gain, sizeof(settings.gain));
         break;
       case 6:  //return remaining settings
-        //GUI_Report_Settings* repSettings=(GUI_Report_Settings*)(wheel.USB_GUI_Report.data);
-
         ((GUI_Report_Settings *)data)->maxvd = round(16384.0 / wheel.ffbEngine.maxVelocityDamperC);
         ((GUI_Report_Settings *)data)->maxvf = round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC);
         ((GUI_Report_Settings *)data)->maxacc = round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC);
@@ -390,11 +387,6 @@ void processUsbCmd() {
         ((GUI_Report_Settings *)data)->minForce = settings.minForce;
         ((GUI_Report_Settings *)data)->maxForce = settings.maxForce;
         ((GUI_Report_Settings *)data)->cutForce = settings.cutForce;
-
-        //((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
-
-        ((GUI_Report_Settings *)data)->endstopOffset = settings.endstopOffset;
-        ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
         break;
 
       // set
@@ -441,13 +433,6 @@ void processUsbCmd() {
             break;
           case 5:
             settings.cutForce = usbCmd->arg[1];
-            break;
-          case 6:
-            //motor.setBitDepth(usbCmd->arg[1]);
-            break;
-          case 7:
-            settings.endstopOffset = usbCmd->arg[1];
-            settings.endstopWidth = usbCmd->arg[2];
             break;
         }
         break;
@@ -623,9 +608,6 @@ void load(bool defaults) {
     settingsE.maxVelocityDamper = DEFAULT_MAX_VELOCITY;
     settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
     settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
-
-    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
-    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
   }
 
   settings = settingsE.data;
