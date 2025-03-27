@@ -4,7 +4,7 @@
 #pragma once
 
 #define FIRMWARE_VER "1.1.6"
-#define FIRMWARE_TYPE "RKADE"
+#define FIRMWARE_TYPE "RKADE(MOTO)"
 
 #define AXIS_ACC 0
 #define AXIS_COUNT 1

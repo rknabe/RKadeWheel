@@ -21,8 +21,9 @@
 //----------------------------Buttons-------------------------------------
 #define BUTTON_PINS 0, 1, 2, 4, 7, 8, 12, 14, 15, 16, A1, A2, A3, A4
 #define BTN_1 1
-#define BTN_ESC_INDEX 12       //zero-based index
-#define BTN_SHUTDOWN_INDEX 13  //zero-based index
+#define BTN_BRAKE_INDEX 11     //zero-based index, A2
+#define BTN_ESC_INDEX 12       //zero-based index, A3
+#define BTN_SHUTDOWN_INDEX 13  //zero-based index, A4
 
 #define LEFT_SHAKER_PIN 9
 #define RIGHT_SHAKER_PIN 10
@@ -35,7 +36,7 @@
 //different ways of connecting pedals. Choose only one!
 #define DEFAULT_AA_MIN 0
 #define DEFAULT_AA_MAX 1023
-#define DEFAULT_GAIN 1024
+#define DEFAULT_GAIN 256
 
 //---------------------------Smoothing-----------------------------------
 /*

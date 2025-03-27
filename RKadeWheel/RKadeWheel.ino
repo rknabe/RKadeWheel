@@ -28,6 +28,7 @@ Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROW
 Wheel_ wheel;
 SettingsData settings;
 float accelPct = 0;
+bool keypadConnected = false;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
 AnalogOut lShaker(LEFT_SHAKER_PIN);
@@ -55,8 +56,6 @@ void setup() {
 
   Keyboard.begin();
   System.begin();
-  Wire.begin();
-  keypadIO.begin();
 
   //direct pin buttons
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
@@ -65,6 +64,9 @@ void setup() {
 
   //load settings
   load();
+
+  Wire.begin();
+  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
 }
 
 void loop() {
@@ -75,7 +77,7 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
-  if (keypadIO.isConnected()) {
+  if (keypadConnected) {
     processKeypad();
   }
 
@@ -83,7 +85,7 @@ void loop() {
   processBlower();
   processLights();
 
-  delay(5);
+  delay(6);
 }
 
 void calcAccelPct() {
@@ -120,6 +122,11 @@ void processLights() {
     turnOffTrakLed1(NULL);
     turnOffTrakLed2(NULL);
     turnOffTrakLed3(NULL);
+  }
+  if ((wheel.buttons & (uint32_t)pow(2, BTN_BRAKE_INDEX)) != 0) {
+    brakeLed.write(MAX_LIGHT_PWM);
+  } else {
+    brakeLed.write(0);
   }
 }
 
@@ -567,16 +574,16 @@ void load(bool defaults) {
 
     settingsE.data.gain[0] = DEFAULT_GAIN;
     settingsE.data.gain[1] = DEFAULT_GAIN;
-    settingsE.data.gain[2] = 768;
+    settingsE.data.gain[2] = DEFAULT_GAIN;
     settingsE.data.gain[3] = DEFAULT_GAIN;
-    settingsE.data.gain[4] = 1280;
+    settingsE.data.gain[4] = DEFAULT_GAIN;
     settingsE.data.gain[5] = DEFAULT_GAIN;
     settingsE.data.gain[6] = DEFAULT_GAIN;
     settingsE.data.gain[7] = DEFAULT_GAIN;
     settingsE.data.gain[8] = DEFAULT_GAIN;
-    settingsE.data.gain[9] = 410;
+    settingsE.data.gain[9] = DEFAULT_GAIN;
     settingsE.data.gain[10] = DEFAULT_GAIN;
-    settingsE.data.gain[11] = 256;
+    settingsE.data.gain[11] = DEFAULT_GAIN;
     settingsE.data.gain[12] = 0;
 
     //wheel settings
