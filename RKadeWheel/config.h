@@ -39,18 +39,13 @@
 #define DEFAULT_GAIN 256
 
 //---------------------------Smoothing-----------------------------------
-/*
- * Smoothing is performed with moving average filter.
- * Level means filter window size as power of 2.
- * 2 means averaging 4 values, 3 - 8 values and so on.
- */
 //Smoothing for wheel axis.
-#define MA_LEVEL_WHEEL_VELOCITY 4
-#define MA_LEVEL_WHEEL_ACCELERATION 4
+#define MA_LEVEL_WHEEL_VELOCITY 10
+#define MA_LEVEL_WHEEL_ACCELERATION 10
 
 //Level of smoothing for analog axes.
-#define MA_LEVEL_AXIS_ACC 4
-#define MA_LEVEL_AXIS_ST_ANALOG 4
+#define MA_LEVEL_AXIS_ACC 10
+#define MA_LEVEL_AXIS_ST_ANALOG 10
 
 #define MAX_BLOWER_PWM 255
 #define MAX_LIGHT_PWM 126

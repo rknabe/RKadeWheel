@@ -9,7 +9,6 @@
 #include "wheel.h"
 #include "settings.h"
 #include "Keypad.h"
-#include <ArduinoShrink.h>  //must be last
 
 const byte KEYPAD_ROWS = 4;  //four rows
 const byte KEYPAD_COLS = 3;  //three columns

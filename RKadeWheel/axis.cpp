@@ -132,7 +132,8 @@ void AxisWheel::setValue(int32_t rawValue_) {
 
   int32_t val = constrain(rawValue, axisMin, axisMax);
   value = val * rangeFactor;
-  absValue = round(filter.add(value));
+  value = round(filter.add(value));
+  absValue = round(value);
   int16_t tmpUs = micros();
   int16_t td = tmpUs - lastUs;
   lastUs = tmpUs;
