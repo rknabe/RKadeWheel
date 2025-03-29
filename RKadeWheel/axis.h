@@ -11,6 +11,7 @@ public:
   int16_t rawValue;
   int16_t value = 0;
   bool autoLimit = false;
+  bool autoCenter = true;
   int16_t axisMin;
   int16_t axisMax;
   int16_t axisCenterN;
@@ -52,6 +53,7 @@ public:
   AxisWheel();
   void setValue(int32_t rawValue_);
   void setRange(uint16_t _deg);
+  void setCenterZero();
 private:
   float rangeFactor;
 };

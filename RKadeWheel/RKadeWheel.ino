@@ -367,6 +367,7 @@ void processUsbCmd() {
         ((GUI_Report_AnalogAxis *)data)->center = wheel.analogAxes[usbCmd->arg[0]]->getCenter();
         ((GUI_Report_AnalogAxis *)data)->deadzone = wheel.analogAxes[usbCmd->arg[0]]->getDZ();
         ((GUI_Report_AnalogAxis *)data)->autoLimit = wheel.analogAxes[usbCmd->arg[0]]->autoLimit;
+        ((GUI_Report_AnalogAxis *)data)->hasCenter = !wheel.analogAxes[usbCmd->arg[0]]->autoCenter;
 
         ((GUI_Report_AnalogAxis *)data)->outputDisabled = wheel.analogAxes[usbCmd->arg[0]]->outputDisabled;
         ((GUI_Report_AnalogAxis *)data)->bitTrim = wheel.analogAxes[usbCmd->arg[0]]->bitTrim;
@@ -590,7 +591,7 @@ void load(bool defaults) {
         settingsE.axes[i].axisMin = 0;
         settingsE.axes[i].axisMax = 1023;
       }
-      if (i < 1) {
+      if (i < 2) {
         settingsE.axes[i].axisOutputDisabled = 0;
       } else {
         settingsE.axes[i].axisOutputDisabled = 1;
@@ -615,6 +616,9 @@ void load(bool defaults) {
   for (i = 0; i < AXIS_COUNT; i++) {
     wheel.analogAxes[i]->setLimits(settingsE.axes[i].axisMin, settingsE.axes[i].axisMax);
     wheel.analogAxes[i]->setCenter(settingsE.axes[i].axisCenter);
+    if (!wheel.analogAxes[i]->autoCenter)
+      wheel.analogAxes[i]->setDZ(settingsE.axes[i].axisDZ);
+
     wheel.analogAxes[i]->bitTrim = settingsE.axes[i].axisBitTrim;
     wheel.analogAxes[i]->outputDisabled = settingsE.axes[i].axisOutputDisabled;
   }
@@ -623,6 +627,10 @@ void load(bool defaults) {
   wheel.axisWheel->setRange(settingsE.range);
   wheel.axisWheel->setLimits(settingsE.axisMin, settingsE.axisMax);
   wheel.axisWheel->setCenter(settingsE.axisCenter);
+  if (!wheel.axisWheel->autoCenter) {
+    wheel.axisWheel->setDZ(settingsE.axisDZ);
+  }
+
   wheel.axisWheel->bitTrim = settingsE.axisBitTrim;
   wheel.axisWheel->invertRotation = settingsE.invertRotation;
 
@@ -640,7 +648,11 @@ void save() {
   settingsE.range = wheel.axisWheel->range;
   settingsE.axisMin = wheel.axisWheel->axisMin;
   settingsE.axisMax = wheel.axisWheel->axisMax;
-  settingsE.axisCenter = -32768;
+  if (!wheel.axisWheel->autoCenter) {
+    settingsE.axisCenter = wheel.axisWheel->getCenter();
+  } else {
+    settingsE.axisCenter = -32768;
+  }
   settingsE.axisDZ = wheel.axisWheel->getDZ();
   settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
   settingsE.invertRotation = wheel.axisWheel->invertRotation;
@@ -648,7 +660,10 @@ void save() {
   for (i = 0; i < AXIS_COUNT; i++) {
     settingsE.axes[i].axisMin = wheel.analogAxes[i]->axisMin;
     settingsE.axes[i].axisMax = wheel.analogAxes[i]->axisMax;
-    settingsE.axes[i].axisCenter = -32768;
+    if (!wheel.analogAxes[i]->autoCenter)
+      settingsE.axes[i].axisCenter = wheel.analogAxes[i]->getCenter();
+    else
+      settingsE.axes[i].axisCenter = -32768;
     settingsE.axes[i].axisDZ = wheel.analogAxes[i]->getDZ();
 
     settingsE.axes[i].axisBitTrim = wheel.analogAxes[i]->bitTrim;

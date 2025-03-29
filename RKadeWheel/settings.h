@@ -7,8 +7,9 @@
 #define FIRMWARE_TYPE "RKADE(MOTO)"
 
 #define AXIS_ACC 0
-#define AXIS_COUNT 1
-#define AXIS_REPORT_COUNT 1
+#define AXIS_BRAKE 1
+#define AXIS_COUNT 2
+#define AXIS_REPORT_COUNT 2
 
 #define GAIN_COUNT 13
 

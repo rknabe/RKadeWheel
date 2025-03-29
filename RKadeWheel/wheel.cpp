@@ -9,6 +9,7 @@ Wheel_::Wheel_(void) {
   axisWheel = new AxisWheel();
 
   analogAxes[AXIS_ACC] = new Axis(MA_LEVEL_AXIS_ACC);
+  analogAxes[AXIS_BRAKE] = new Axis(MA_LEVEL_AXIS_ACC);
 }
 
 void Wheel_::update(void) {

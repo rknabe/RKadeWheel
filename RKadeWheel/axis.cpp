@@ -41,6 +41,7 @@ int16_t Axis::getDZ() {
 }
 
 void Axis::setCenter(int16_t center) {
+  autoCenter = false;
   int16_t dz = getDZ();
   axisCenterN = center - dz;
   axisCenterP = center + dz;
@@ -48,6 +49,7 @@ void Axis::setCenter(int16_t center) {
 }
 
 void Axis::setDZ(int16_t dz) {
+  autoCenter = false;
   int16_t center = getCenter();
   axisCenterN = center - dz;
   axisCenterP = center + dz;
@@ -74,6 +76,13 @@ void Axis::setAutoLimits(bool _auto) {
 }
 
 void Axis::updateRangeFactor() {
+  if ((axisCenterN < axisMin) || (axisCenterP > axisMax))
+    autoCenter = true;
+
+  if (autoCenter) {
+    axisCenterN = axisCenterP = (axisMin + axisMax) >> 1;
+  }
+
   rangeFactorNeg = 32767.0 / (axisCenterN - axisMin);
   rangeFactorPos = 32767.0 / (axisMax - axisCenterP);
 }
@@ -140,4 +149,11 @@ void AxisWheel::setValue(int32_t rawValue_) {
 void AxisWheel::setRange(uint16_t _deg) {
   range = _deg;
   rangeFactor = (360.0 / (float)range) * 48;
+}
+
+void AxisWheel::setCenterZero() {
+  value = 0;
+  lastPosition = 0;
+  velocity = 0;
+  acceleration = 0;
 }
