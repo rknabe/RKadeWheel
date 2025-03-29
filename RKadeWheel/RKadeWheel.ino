@@ -1,7 +1,6 @@
 #include <EEPROM.h>
 #include <AnalogIO.h>
 #include <Smooth.h>
-#include <arduino-timer.h>
 #include <PCF8574.h>
 #include <HID-Project.h>
 
@@ -40,8 +39,10 @@ AnalogOut trak3Led(TRAK3_LIGHT_PIN);
 bool trak1LedOn = false;
 bool trak2LedOn = false;
 bool trak3LedOn = false;
+long trak1TurnOffMs = 0;
+long trak2TurnOffMs = 0;
+long trak3TurnOffMs = 0;
 Smooth smoothAcc(350);
-auto timer = timer_create_default();  // create a timer with default settings
 static const uint8_t dpb[] = { BUTTON_PINS };
 
 void load(bool defaults = false);
@@ -69,8 +70,6 @@ void setup() {
 }
 
 void loop() {
-  timer.tick();
-
   readAnalogAxes();
   readButtons();
   processUsbCmd();
@@ -115,12 +114,22 @@ void processBlower() {
 void processLights() {
   if (accelPct > 0.01) {
     if (!isTrakLedOn()) {
-      turnOnTrakLed1(NULL);
+      turnOnTrakLed1();
     }
   } else {
-    turnOffTrakLed1(NULL);
-    turnOffTrakLed2(NULL);
-    turnOffTrakLed3(NULL);
+    turnOffTrakLed1();
+    turnOffTrakLed2();
+    turnOffTrakLed3();
+  }
+  long time = millis();
+  if (trak1LedOn && time >= trak1TurnOffMs) {
+    turnOffTrakLed1();
+    turnOnTrakLed2();
+  } else if (trak2LedOn && time >= trak2TurnOffMs) {
+    turnOffTrakLed2();
+    turnOnTrakLed3();
+  } else if (trak3LedOn && time >= trak3TurnOffMs) {
+    turnOffTrakLed3();
   }
   if ((wheel.buttons & (uint32_t)pow(2, BTN_BRAKE_INDEX)) != 0) {
     brakeLed.write(MAX_LIGHT_PWM);
@@ -129,49 +138,43 @@ void processLights() {
   }
 }
 
-bool turnOnTrakLed1(void *) {
+void turnOnTrakLed1() {
   trak1LedOn = true;
-  turnOffTrakLed2(NULL);
-  turnOffTrakLed3(NULL);
+  turnOffTrakLed2();
+  turnOffTrakLed3();
   trak1Led.write(MAX_LIGHT_PWM);
-  timer.in(getTrakLedDelay(), turnOnTrakLed2);
-  return false;
+  trak1TurnOffMs = millis() + getTrakLedDelay();
 }
 
-bool turnOnTrakLed2(void *) {
+void turnOnTrakLed2() {
   trak2LedOn = true;
-  turnOffTrakLed1(NULL);
-  turnOffTrakLed3(NULL);
+  turnOffTrakLed1();
+  turnOffTrakLed3();
   trak2Led.write(MAX_LIGHT_PWM);
-  timer.in(getTrakLedDelay(), turnOnTrakLed3);
-  return false;
+  trak2TurnOffMs = millis() + getTrakLedDelay();
 }
 
-bool turnOnTrakLed3(void *) {
+void turnOnTrakLed3() {
   trak3LedOn = true;
-  turnOffTrakLed1(NULL);
-  turnOffTrakLed2(NULL);
+  turnOffTrakLed1();
+  turnOffTrakLed2();
   trak3Led.write(MAX_LIGHT_PWM);
-  timer.in(getTrakLedDelay(), turnOffTrakLed3);
-  return false;
+  trak3TurnOffMs = millis() + getTrakLedDelay();
 }
 
-bool turnOffTrakLed1(void *) {
+void turnOffTrakLed1() {
   trak1LedOn = false;
   trak1Led.write(0);
-  return false;
 }
 
-bool turnOffTrakLed2(void *) {
+void turnOffTrakLed2() {
   trak2LedOn = false;
   trak2Led.write(0);
-  return false;
 }
 
-bool turnOffTrakLed3(void *) {
+void turnOffTrakLed3() {
   trak3LedOn = false;
   trak3Led.write(0);
-  return false;
 }
 
 unsigned long getTrakLedDelay() {
