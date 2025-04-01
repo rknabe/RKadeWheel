@@ -42,6 +42,7 @@ bool trak3LedOn = false;
 long trak1TurnOffMs = 0;
 long trak2TurnOffMs = 0;
 long trak3TurnOffMs = 0;
+long lastKeypadCheck = 0;
 Smooth smoothAcc(350);
 static const uint8_t dpb[] = { BUTTON_PINS };
 
@@ -192,71 +193,72 @@ bool isTrakLedOn() {
 }
 
 void processKeypad() {
-  // Fills keypad.key[ ] array with up-to 10 active keys.
-  // Returns true if there are ANY active keys.
+  if (millis() - lastKeypadCheck > 50) {
+    lastKeypadCheck = millis();
 
-  if (keypad.getKeys()) {
-    for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
-      if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
-        char key = keypad.key[i].kchar;
-        char keycode = 0;
-        switch (key) {
-          case '*':
-            keycode = KEYPAD_MULTIPLY;
-            break;
-          case '#':
-            keycode = KEYPAD_DOT;
-            break;
-          case '1':
-            keycode = KEYPAD_1;
-            break;
-          case '2':
-            keycode = KEYPAD_2;
-            break;
-          case '3':
-            keycode = KEYPAD_3;
-            break;
-          case '4':
-            keycode = KEYPAD_4;
-            break;
-          case '5':
-            keycode = KEYPAD_5;
-            break;
-          case '6':
-            keycode = KEYPAD_6;
-            break;
-          case '7':
-            keycode = KEYPAD_7;
-            break;
-          case '8':
-            keycode = KEYPAD_8;
-            break;
-          case '9':
-            keycode = KEYPAD_9;
-            break;
-          case '0':
-            keycode = KEYPAD_0;
-            break;
-        }
+    if (keypad.getKeys()) {
+      for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
+        if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
+          char key = keypad.key[i].kchar;
+          char keycode = 0;
+          switch (key) {
+            case '*':
+              keycode = KEYPAD_MULTIPLY;
+              break;
+            case '#':
+              keycode = KEYPAD_DOT;
+              break;
+            case '1':
+              keycode = KEYPAD_1;
+              break;
+            case '2':
+              keycode = KEYPAD_2;
+              break;
+            case '3':
+              keycode = KEYPAD_3;
+              break;
+            case '4':
+              keycode = KEYPAD_4;
+              break;
+            case '5':
+              keycode = KEYPAD_5;
+              break;
+            case '6':
+              keycode = KEYPAD_6;
+              break;
+            case '7':
+              keycode = KEYPAD_7;
+              break;
+            case '8':
+              keycode = KEYPAD_8;
+              break;
+            case '9':
+              keycode = KEYPAD_9;
+              break;
+            case '0':
+              keycode = KEYPAD_0;
+              break;
+          }
 
-        switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
-          case PRESSED:
-            if (key == '#' && (isHeld('*') || isPressed('*'))) {
-              Keyboard.write(KEYPAD_ENTER);
-            } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
-              //*6 will toggle numlock mode
-              Keyboard.write(KEY_NUM_LOCK);
-            } else {
-              Keyboard.press(KeyboardKeycode(keycode));
-            }
-            break;
-          case HOLD:
-            break;
-          case RELEASED:
-            Keyboard.release(KeyboardKeycode(keycode));
-            break;
-          case IDLE:
-            break;
+          switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+            case PRESSED:
+              if (key == '#' && (isHeld('*') || isPressed('*'))) {
+                Keyboard.write(KEYPAD_ENTER);
+              } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
+                //*6 will toggle numlock mode
+                Keyboard.write(KEY_NUM_LOCK);
+              } else {
+                Keyboard.press(KeyboardKeycode(keycode));
+              }
+              break;
+            case HOLD:
+              break;
+            case RELEASED:
+              Keyboard.release(KeyboardKeycode(keycode));
+              break;
+            case IDLE:
+              break;
+          }
         }
       }
     }

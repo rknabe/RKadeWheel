@@ -19,16 +19,16 @@
 #define PIN_ST_ANALOG A5
 
 //----------------------------Buttons-------------------------------------
-#define BUTTON_PINS 0, 1, 2, 4, 7, 8, 12, 14, 15, 16, A1, A2, A3, A4
+#define BUTTON_PINS 0, 1, A1, 4, 7, 8, 12, 14, 15, A2, A3, A4
 #define BTN_1 1
-#define BTN_BRAKE_INDEX 11     //zero-based index, A2
-#define BTN_ESC_INDEX 12       //zero-based index, A3
-#define BTN_SHUTDOWN_INDEX 13  //zero-based index, A4
+#define BTN_BRAKE_INDEX 9      //zero-based index, A2
+#define BTN_ESC_INDEX 10       //zero-based index, A3
+#define BTN_SHUTDOWN_INDEX 11  //zero-based index, A4
 
 #define LEFT_SHAKER_PIN 9
 #define RIGHT_SHAKER_PIN 10
 #define BLOWER_PIN 11
-#define BRAKE_LIGHT_PIN 3
+#define BRAKE_LIGHT_PIN 16
 #define TRAK1_LIGHT_PIN 5
 #define TRAK2_LIGHT_PIN 6
 #define TRAK3_LIGHT_PIN 13
@@ -48,7 +48,7 @@
 #define MA_LEVEL_AXIS_ST_ANALOG 10
 
 #define MAX_BLOWER_PWM 255
-#define MAX_LIGHT_PWM 126
+#define MAX_LIGHT_PWM 255
 #define TRAK_LIGHT_DELAY 250
 
 //----------------------------FFB settings-------------------------------
