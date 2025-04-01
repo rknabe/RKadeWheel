@@ -37,6 +37,8 @@
 #define DEFAULT_AA_MIN 0
 #define DEFAULT_AA_MAX 1023
 #define DEFAULT_GAIN 256
+#define DEFAULT_MAIN_GAIN 1694
+#define DEFAULT_SPRING_GAIN 90
 
 //---------------------------Smoothing-----------------------------------
 //Smoothing for wheel axis.

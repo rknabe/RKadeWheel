@@ -562,7 +562,7 @@ void load(bool defaults) {
   //Loading defaults
   if (defaults || (settingsE.checksum != checksum)) {
 
-    settingsE.data.gain[0] = DEFAULT_GAIN;
+    settingsE.data.gain[0] = DEFAULT_MAIN_GAIN;
     settingsE.data.gain[1] = DEFAULT_GAIN;
     settingsE.data.gain[2] = DEFAULT_GAIN;
     settingsE.data.gain[3] = DEFAULT_GAIN;
@@ -570,7 +570,7 @@ void load(bool defaults) {
     settingsE.data.gain[5] = DEFAULT_GAIN;
     settingsE.data.gain[6] = DEFAULT_GAIN;
     settingsE.data.gain[7] = DEFAULT_GAIN;
-    settingsE.data.gain[8] = DEFAULT_GAIN;
+    settingsE.data.gain[8] = DEFAULT_SPRING_GAIN;
     settingsE.data.gain[9] = DEFAULT_GAIN;
     settingsE.data.gain[10] = DEFAULT_GAIN;
     settingsE.data.gain[11] = DEFAULT_GAIN;
