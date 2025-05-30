@@ -118,6 +118,8 @@ void loop() {
   processFFB();
 
   processSerial();
+
+  delay(6);
 }
 
 //Processing endstop and force feedback
