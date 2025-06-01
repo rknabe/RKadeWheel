@@ -184,6 +184,9 @@
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
+#define BTN_ESC_INDEX 12       //zero-based index, 15
+#define BTN_SHUTDOWN_INDEX 13  //zero-based index, 16
+
 //Hat switch
 //#define HATSWITCH
 #define HAT_BTN_UP 13
@@ -209,7 +212,7 @@
 #define DEFAULT_ENDSTOP_WIDTH 1024  //length of excess position where endstop effect will rise to maximum level. Decreasing makes endstop harder.
 
 //Auto find center
-#define AFC_ON           //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
+//#define AFC_ON           //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
 #define AFC_FORCE 4200   //Force [0...16383] to exert when finding center.
 #define AFC_PERIOD 80    //default 50         //Position check period in milliseconds
 #define AFC_TRESHOLD 10  //default 10         //Minimum position change to detect movement

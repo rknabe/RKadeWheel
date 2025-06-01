@@ -31,6 +31,26 @@
 #include "motor.h"
 #include "settings.h"
 
+#include <PCF8574.h>
+#include "Keypad.h"
+#include "Keyboard.h"
+//#include <HID-Project.h>
+#include <ArduinoShrink.h>
+
+const byte KEYPAD_ROWS = 4;  //four rows
+const byte KEYPAD_COLS = 3;  //three columns
+char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
+  { '1', '2', '3' },
+  { '4', '5', '6' },
+  { '7', '8', '9' },
+  { '*', '0', '#' }
+};
+byte rowPins[KEYPAD_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
+byte colPins[KEYPAD_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
+long lastKeypadCheck = 0;
+PCF8574 keypadIO(0x20);
+Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
+
 //global variables
 Wheel_ wheel;
 Motor motor;
@@ -76,6 +96,8 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
 
+  Keyboard.begin();
+
   //set up analog axes
 #ifdef AA_PULLUP
   analogReference(INTERNAL);  //2.56v reference to get more resolution.
@@ -120,6 +142,100 @@ void loop() {
   processSerial();
 
   delay(6);
+}
+
+
+void processKeypad() {
+  if (millis() - lastKeypadCheck > 50) {
+    lastKeypadCheck = millis();
+
+    if (keypad.getKeys()) {
+      for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
+        if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
+          char key = keypad.key[i].kchar;
+          char keycode = 0;
+          switch (key) {
+            case '*':
+              keycode = KEY_KP_ASTERISK;
+              break;
+            case '#':
+              keycode = KEY_KP_DOT;
+              break;
+            case '1':
+              keycode = KEY_KP_1;
+              break;
+            case '2':
+              keycode = KEY_KP_2;
+              break;
+            case '3':
+              keycode = KEY_KP_3;
+              break;
+            case '4':
+              keycode = KEY_KP_4;
+              break;
+            case '5':
+              keycode = KEY_KP_5;
+              break;
+            case '6':
+              keycode = KEY_KP_6;
+              break;
+            case '7':
+              keycode = KEY_KP_7;
+              break;
+            case '8':
+              keycode = KEY_KP_8;
+              break;
+            case '9':
+              keycode = KEY_KP_9;
+              break;
+            case '0':
+              keycode = KEY_KP_0;
+              break;
+          }
+
+          switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+            case PRESSED:
+              if (key == '#' && (isHeld('*') || isPressed('*'))) {
+                Keyboard.write(KEY_KP_ENTER);
+              } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
+                //*6 will toggle numlock mode
+                Keyboard.write(KEY_NUM_LOCK);
+              } else {
+                Keyboard.press(keycode);
+              }
+              break;
+            case HOLD:
+              break;
+            case RELEASED:
+              Keyboard.release(keycode);
+              break;
+            case IDLE:
+              break;
+          }
+        }
+      }
+    }
+  }
+}
+
+bool isHeld(char keyChar) {
+  for (byte i = 0; i < LIST_MAX; i++) {
+    if (keypad.key[i].kchar == keyChar) {
+      if ((keypad.key[i].kstate == HOLD))
+        return true;
+    }
+  }
+  return false;  // Not held.
+}
+
+bool isPressed(char keyChar) {
+  for (byte i = 0; i < LIST_MAX; i++) {
+    if (keypad.key[i].kchar == keyChar) {
+      if ((keypad.key[i].kstate == PRESSED))
+        return true;
+    }
+  }
+  return false;  // Not pressed.
 }
 
 //Processing endstop and force feedback
@@ -481,6 +597,16 @@ void readButtons() {
     else {
       wheel.buttons = buttons;
     }
+  }
+
+  if ((wheel.buttons & (uint32_t)pow(2, BTN_SHUTDOWN_INDEX)) != 0) {
+    Keyboard.press(238);
+    delay(5);
+    Keyboard.release(238);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
+    Keyboard.press(KEY_ESC);
+    delay(5);
+    Keyboard.release(KEY_ESC);
   }
 }
 //---------------------------------------- end buttons ----------------------------------------------
@@ -928,6 +1054,7 @@ void save() {
   EEPROM.put(0, settingsE);
 }
 
+#ifdef AFC_ON
 void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
   uint8_t _state = 1;
   int32_t initialPos;
@@ -1015,6 +1142,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
     }
   }
 }
+#endif
 
 #ifdef AA_PULLUP_LINEARIZE
 //Linearizing axis values, when using internal adc + pullup.
