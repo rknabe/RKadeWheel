@@ -49,6 +49,7 @@ void Wheel_::update(void) {
   }
 }
 
+#ifdef HATSWITCH
 //Hatswitch
 #define HAT_UP 0b00000000          //(0)
 #define HAT_UP_RIGHT 0b00000001    //(1)
@@ -106,3 +107,4 @@ uint8_t Wheel_::getHatSwitch() {
 
   return hat;
 }
+#endif

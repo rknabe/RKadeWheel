@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define FIRMWARE_VER "1.1.6"
+#define FIRMWARE_VER "1.1.8"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
@@ -70,7 +70,7 @@ public:
 
   uint8_t checksum;
 
-  void print();
+  //void print();
 
   uint8_t calcChecksum();
 };

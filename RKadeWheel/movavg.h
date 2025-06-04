@@ -4,13 +4,6 @@
 /*
  * Moving average calculation
  */
-class Median3 {
-public:
-  int32_t values[3];
-  uint8_t index;
-  int32_t setValue(int32_t _value);
-};
-
 class MovingAverage32 {
 public:
   int32_t *values;

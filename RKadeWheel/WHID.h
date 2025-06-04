@@ -132,7 +132,7 @@ private:
 // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
 HID_FFB& NEW_HID();
 
-#define D_HIDREPORT(length) \
+#define HD_HIDREPORT(length) \
   { 9, 0x21, 0x11, 0x01, 0, 1, 0x22, lowByte(length), highByte(length) }
 
 #endif  // USBCON

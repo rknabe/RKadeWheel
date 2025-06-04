@@ -90,5 +90,7 @@ public:
 
   GUI_Report USB_GUI_Report;
 private:
+#ifdef HATSWITCH
   uint8_t getHatSwitch();
+#endif  
 };

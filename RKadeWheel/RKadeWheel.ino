@@ -1,28 +1,5 @@
-/*
-  MIT License
-
-  Copyright (c) 2022 Sulako
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-*/
-
 #include <EEPROM.h>
+#include <PCF8574.h>
 #include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
 #include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
 
@@ -31,11 +8,10 @@
 #include "motor.h"
 #include "settings.h"
 
-#include <PCF8574.h>
-#include "Keypad.h"
 #include "Keyboard.h"
 //#include <HID-Project.h>
-#include <ArduinoShrink.h>
+#include "Keypad.h"
+//#include <ArduinoShrink.h>
 
 const byte KEYPAD_ROWS = 4;  //four rows
 const byte KEYPAD_COLS = 3;  //three columns
@@ -59,6 +35,7 @@ int16_t force;
 int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
+bool keypadConnected = false;
 
 #ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
@@ -71,7 +48,9 @@ static const uint8_t dpb[] = { DPB_PINS };
 #endif
 
 void load(bool defaults = false);
+#ifdef AFC_ON
 void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
+#endif
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
@@ -92,7 +71,6 @@ Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
 //-------------------------------------------------------------------------------------
 
 void setup() {
-
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
 
@@ -108,7 +86,6 @@ void setup() {
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
-  //Keyboard.begin();
 #endif
 
   //motor setup
@@ -117,13 +94,9 @@ void setup() {
   //load settings
   load();
 
-  //center();
-
-  if (settings.afcOnStartup) {
-#ifdef AFC_ON
-    autoFindCenter();
-#endif
-  }
+  //delay(6);
+  //Wire.begin();
+  //keypadConnected = keypadIO.begin() && keypadIO.isConnected();
 }
 
 void loop() {
@@ -138,8 +111,12 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
-
   processSerial();
+  if (keypadConnected) {
+    processKeypad();
+  } else {
+    //Serial.println("No Keypad");
+  }
 
   delay(6);
 }
@@ -348,10 +325,7 @@ void processUsbCmd() {
 
         ((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
 
-        ((GUI_Report_Settings *)data)->endstopOffset = settings.endstopOffset;
-        ((GUI_Report_Settings *)data)->endstopWidth = settings.endstopWidth;
         ((GUI_Report_Settings *)data)->constantSpring = settings.constantSpring;
-        ((GUI_Report_Settings *)data)->afcOnStartup = settings.afcOnStartup;
         break;
 
       // set
@@ -402,15 +376,8 @@ void processUsbCmd() {
           case 6:
             motor.setBitDepth(usbCmd->arg[1]);
             break;
-          case 7:
-            settings.endstopOffset = usbCmd->arg[1];
-            settings.endstopWidth = usbCmd->arg[2];
-            break;
           case 8:
             settings.constantSpring = usbCmd->arg[1];
-            break;
-          case 9:
-            settings.afcOnStartup = usbCmd->arg[1];
             break;
           case 10:
             settings.mplexShifter = usbCmd->arg[1];
@@ -599,11 +566,7 @@ void readButtons() {
     }
   }
 
-  if ((wheel.buttons & (uint32_t)pow(2, BTN_SHUTDOWN_INDEX)) != 0) {
-    Keyboard.press(238);
-    delay(5);
-    Keyboard.release(238);
-  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
+  if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
     Keyboard.press(KEY_ESC);
     delay(5);
     Keyboard.release(KEY_ESC);
@@ -625,48 +588,6 @@ int32_t getWheelPositionAnalog() {
 
 //Serial port - commands and output.
 void processSerial() {
-
-  //output axis data
-  if (axisInfo == 0) {
-    Serial.print(F("Axis#0 Raw:"));
-    Serial.print(wheel.axisWheel->rawValue);
-    Serial.print(F("\tAbs: "));
-    Serial.print(wheel.axisWheel->absValue);
-    Serial.print(F("\tMax: "));
-    Serial.print(wheel.axisWheel->axisMax);
-    Serial.print(F("\tValue: "));
-    Serial.print(wheel.axisWheel->value);
-    Serial.print(F(" ("));
-    Serial.print((int8_t)(wheel.axisWheel->value * (100.0 / 65534)) + 50);
-    Serial.print(F("%)\tV:"));
-    Serial.print(wheel.axisWheel->velocity);
-    Serial.print(F("\tA:"));
-    Serial.print(wheel.axisWheel->acceleration);
-    Serial.print(F("\tFFB:"));
-    Serial.println(force);
-  } else if ((axisInfo > 0) && (axisInfo <= AXIS_COUNT)) {
-    Serial.print(F("Axis#"));
-    Serial.print(axisInfo);
-    Serial.print(F("\tRaw: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->rawValue);
-    Serial.print(F("\tAutoLimit: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->autoLimit);
-    Serial.print(F("\tAutoCenter: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->autoCenter);
-    Serial.print(F("\tDeadZone: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->getDZ());
-    Serial.print(F("\tMin: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->axisMin);
-    Serial.print(F("\tCenter: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->getCenter());
-    Serial.print(F("\tMax: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->axisMax);
-    Serial.print(F("\tValue: "));
-    Serial.print(wheel.analogAxes[axisInfo - 1]->value);
-    Serial.print(F(" ("));
-    Serial.print((int8_t)(wheel.analogAxes[axisInfo - 1]->value * (100.0 / 65534)) + 50);
-    Serial.println(F("%)"));
-  }
 
   if (Serial.available()) {
     char cmd[16];
@@ -708,36 +629,37 @@ void processSerial() {
       Serial.println(settings.shiftButton + 1);
     }*/
 
+    /*
     if (strcmp_P(cmd, PSTR("range")) == 0) {
       if (arg1 > 0) {
         wheel.axisWheel->setRange(arg1);
       }
-      Serial.print(F("Wheel range: "));
-      Serial.println(wheel.axisWheel->range);
+      //Serial.print(F("Wheel range: "));
+      //Serial.println(wheel.axisWheel->range);
     }
 
     if (strcmp_P(cmd, PSTR("maxvd")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxVelocityDamperC = 16384.0 / arg1;
       }
-      Serial.print(F("max velocity damper: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityDamperC));
+      //Serial.print(F("max velocity damper: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityDamperC));
     }
 
     if (strcmp_P(cmd, PSTR("maxvf")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / arg1;
       }
-      Serial.print(F("max velocity friction: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC));
+      //Serial.print(F("max velocity friction: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC));
     }
 
     if (strcmp_P(cmd, PSTR("maxacc")) == 0) {
       if (arg1 > 0) {
         wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / arg1;
       }
-      Serial.print(F("max acceleration: "));
-      Serial.println(round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC));
+      //Serial.print(F("max acceleration: "));
+      //Serial.println(round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC));
     }
 
     if (strcmp_P(cmd, PSTR("forcelimit")) == 0) {
@@ -748,12 +670,12 @@ void processSerial() {
       if ((arg3 >= 0) && (arg3 <= 16383))
         settings.cutForce = arg3;
 
-      Serial.print(F("MinForce: "));
-      Serial.print(settings.minForce);
-      Serial.print(F(" MaxForce: "));
-      Serial.print(settings.maxForce);
-      Serial.print(F(" CutForce: "));
-      Serial.println(settings.cutForce);
+      //Serial.print(F("MinForce: "));
+      //Serial.print(settings.minForce);
+      //Serial.print(F(" MaxForce: "));
+      //Serial.print(settings.maxForce);
+      //Serial.print(F(" CutForce: "));
+      //Serial.println(settings.cutForce);
     }
 
     if (strcmp_P(cmd, PSTR("gain")) == 0) {
@@ -761,12 +683,12 @@ void processSerial() {
         if ((arg2 >= 0) && (arg2 <= 32767)) {
           settings.gain[arg1] = arg2;
         }
-        Serial.print(F("Gain "));
-        Serial.print(arg1);
-        Serial.print(" ");
+        //Serial.print(F("Gain "));
+        //Serial.print(arg1);
+        //Serial.print(" ");
         //printEffect(arg1);
-        Serial.print(F(": "));
-        Serial.println(settings.gain[arg1]);
+        //Serial.print(F(": "));
+        //Serial.println(settings.gain[arg1]);
       }
     }
 
@@ -784,12 +706,12 @@ void processSerial() {
         if ((arg2 > -32768) && (arg3 > -32768))
           wheel.analogAxes[arg1 - 1]->setLimits(arg2, arg3);
 
-        Serial.print(F("Limits axis#"));
-        Serial.print(arg1);
-        Serial.print(F(": "));
-        Serial.print(wheel.analogAxes[arg1 - 1]->axisMin);
-        Serial.print(" ");
-        Serial.println(wheel.analogAxes[arg1 - 1]->axisMax);
+        //Serial.print(F("Limits axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(": "));
+        //Serial.print(wheel.analogAxes[arg1 - 1]->axisMin);
+        //Serial.print(" ");
+        //Serial.println(wheel.analogAxes[arg1 - 1]->axisMax);
       }
 
     //axiscenter <axis> <pos>
@@ -797,10 +719,10 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setCenter(arg2);
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" center:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->getCenter());
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" center:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->getCenter());
       }
 
     //axisdz <axis> <pos>
@@ -808,10 +730,10 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         if (arg2 > -32768)
           wheel.analogAxes[arg1 - 1]->setDZ(arg2);
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" Deadzone:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->getDZ());
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" Deadzone:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->getDZ());
       }
 
     //axisdisable <axis> <pos>
@@ -819,12 +741,12 @@ void processSerial() {
       if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         wheel.analogAxes[arg1 - 1]->outputDisabled = !wheel.analogAxes[arg1 - 1]->outputDisabled;
 
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        if (wheel.analogAxes[arg1 - 1]->outputDisabled)
-          Serial.println(F(" disabled"));
-        else
-          Serial.println(F(" enabled"));
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //if (wheel.analogAxes[arg1 - 1]->outputDisabled)
+        //  Serial.println(F(" disabled"));
+        // else
+        //  Serial.println(F(" enabled"));
       }
 
     //axistrim <axis> <level>
@@ -833,17 +755,17 @@ void processSerial() {
         if ((arg2 >= 0) && (arg2 < 8))
           wheel.analogAxes[arg1 - 1]->bitTrim = arg2;
 
-        Serial.print(F("Axis#"));
-        Serial.print(arg1);
-        Serial.print(F(" trim:"));
-        Serial.println(wheel.analogAxes[arg1 - 1]->bitTrim);
+        //Serial.print(F("Axis#"));
+        //Serial.print(arg1);
+        //Serial.print(F(" trim:"));
+        //Serial.println(wheel.analogAxes[arg1 - 1]->bitTrim);
       }
 
     //autolimits <axis>
     if (strcmp_P(cmd, PSTR("autolimit")) == 0)
       if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         wheel.analogAxes[arg1 - 1]->setAutoLimits(!wheel.analogAxes[arg1 - 1]->autoLimit);
-        Serial.print(F("Axis #"));
+        /*Serial.print(F("Axis #"));
         Serial.print(arg1);
         Serial.print(F(" autolimit"));
         if (wheel.analogAxes[arg1 - 1]->autoLimit)
@@ -856,59 +778,33 @@ void processSerial() {
     if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
       if (arg1 > 0)
         motor.setBitDepth(arg1);
-      Serial.print(F("FFB Bitdepth:"));
-      Serial.print(motor.bitDepth);
-      Serial.print(F(" Freq:"));
-      Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
+      //Serial.print(F("FFB Bitdepth:"));
+      // Serial.print(motor.bitDepth);
+      // Serial.print(F(" Freq:"));
+      // Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
     }
 
     //Debounce
     if (strcmp_P(cmd, PSTR("debounce")) == 0) {
       if (arg1 >= 0)
         settings.debounce = arg1;
-      Serial.print(F("Debounce:"));
-      Serial.println(settings.debounce);
-    }
-
+      //Serial.print(F("Debounce:"));
+      //Serial.println(settings.debounce);
+    } 
+*/
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
       if (arg1 >= 0) {
         settings.constantSpring = arg1;
       }
-      Serial.print(F("spring:"));
-      Serial.println(settings.constantSpring);
+      //Serial.print(F("spring:"));
+      //Serial.println(settings.constantSpring);
     }
 
-    //Endstop
-    if (strcmp_P(cmd, PSTR("endstop")) == 0) {
-      if (arg1 >= 0)
-        settings.endstopOffset = arg1;
-      if (arg2 >= 0)
-        settings.endstopWidth = arg2;
-      Serial.print(F("Endstop: offset:"));
-      Serial.print(settings.endstopOffset);
-      Serial.print(F(" width:"));
-      Serial.println(settings.endstopWidth);
-    }
-
-#ifdef AFC_ON
-    //Auto find center
-    if (strcmp_P(cmd, PSTR("autocenter")) == 0) {
-      if ((arg1 < 0))
-        autoFindCenter();
-      else if (arg2 < 0)
-        autoFindCenter(arg1);
-      else if (arg3 < 0)
-        autoFindCenter(arg1, arg2);
-      else
-        autoFindCenter(arg1, arg2, arg3);
-    }
-#endif
-
-    if (strcmp_P(cmd, PSTR("version")) == 0) {
+    /*if (strcmp_P(cmd, PSTR("version")) == 0) {
       Serial.print(F(FIRMWARE_TYPE));
       Serial.print(F(":"));
       Serial.println(F(FIRMWARE_VER));
-    }
+    }*/
   }
 }
 
@@ -924,7 +820,7 @@ void load(bool defaults) {
   //Loading defaults
   if (defaults || (settingsE.checksum != checksum)) {
 
-    Serial.println(F("Loading defaults"));
+    //Serial.println(F("Loading defaults"));
 
     settingsE.data.gain[0] = 1024;
     settingsE.data.gain[1] = 1024;
@@ -978,14 +874,11 @@ void load(bool defaults) {
     settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
     settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
 
-    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
-    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
     settingsE.data.constantSpring = 0;
-    settingsE.data.afcOnStartup = 0;
     settingsE.data.mplexShifter = 0;
   }
 
-  settingsE.print();
+  //settingsE.print();
 
   settings = settingsE.data;
 
@@ -1083,7 +976,7 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
           if (pos - initialPos > 100)  //distance must be negative
           {
             motor.setForce(0);
-            Serial.println(F("Error: FFB inverted!"));
+            //Serial.println(F("Error: FFB inverted!"));
             return;
           }
 
@@ -1113,8 +1006,8 @@ void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
 #endif
 
             if (range < 2) {
-              Serial.print(F("Error: no movement, range:"));
-              Serial.println(range);
+              //Serial.print(F("Error: no movement, range:"));
+              //Serial.println(range);
               return;
             }
 

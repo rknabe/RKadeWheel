@@ -32,44 +32,6 @@ void FfbEngine::SetFfb(FfbReportHandler* reporthandler) {
   ffbReportHandler = reporthandler;
 }
 
-/*
-void FfbEngine::printEffect(volatile TEffectState* effect) {
-  Serial.print("gain:");
-  Serial.println(effect->gain);
-  Serial.print("attackLevel:");
-  Serial.println(effect->attackLevel);
-  Serial.print("attackTime:");
-  Serial.println(effect->attackTime);
-  Serial.print("attackTimeC:");
-  Serial.println(effect->attackTimeC);
-  Serial.print("fadeTime:");
-  Serial.println(effect->fadeTime);
-  Serial.print("fadeTimeC:");
-  Serial.println(effect->fadeTimeC);
-  Serial.print("periodTime:");
-  Serial.println(effect->periodTime);
-  Serial.print("magnitude:");
-  Serial.println(effect->magnitude);
-  Serial.print("directionX:");
-  Serial.println(effect->directionX);
-  Serial.print("directionY:");
-  Serial.println(effect->directionY);
-  Serial.print("fadeLevel:");
-  Serial.println(effect->fadeLevel);
-  Serial.print("enableAxis:");
-  Serial.println(effect->enableAxis);
-  Serial.print("halfPeriod:");
-  Serial.println(effect->halfPeriod);
-  Serial.print("periodTime:");
-  Serial.println(effect->periodTime);
-  Serial.print("attackTimeC:");
-  Serial.println(effect->attackTimeC);
-  Serial.print("fadeTimeC:");
-  Serial.println(effect->fadeTimeC);
-  Serial.print("periodC:");
-  Serial.println(effect->periodC);
-}*/
-
 uint8_t FfbEngine::getEffectType(uint8_t effectType) {
   volatile TEffectState* effect;
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
