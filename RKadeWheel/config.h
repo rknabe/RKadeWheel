@@ -172,7 +172,8 @@
 //buttons directly connected to pins
 #define DPB  //Enable
 #if STEER_TYPE == ST_ANALOG
-#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+//0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+#define DPB_PINS 0, 1, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #else
 #define DPB_PINS 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #endif
@@ -184,7 +185,7 @@
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
-#define BTN_ESC_INDEX 13       //zero-based index, 16
+#define BTN_ESC_INDEX 13  //zero-based index, 16
 
 //Hat switch
 //#define HATSWITCH

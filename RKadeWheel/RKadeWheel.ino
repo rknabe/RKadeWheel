@@ -95,8 +95,8 @@ void setup() {
   load();
 
   //delay(6);
-  //Wire.begin();
-  //keypadConnected = keypadIO.begin() && keypadIO.isConnected();
+  Wire.begin();
+  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
 }
 
 void loop() {
@@ -105,9 +105,7 @@ void loop() {
 #if STEER_TYPE != ST_ANALOG
   //wheel.axisWheel->setValue(GET_WHEEL_POS);
 #endif
-  //#ifndef BT_NONE
   readButtons();
-  //#endif
   processUsbCmd();
   wheel.update();
   processFFB();
@@ -115,7 +113,7 @@ void loop() {
   if (keypadConnected) {
     processKeypad();
   } else {
-    //Serial.println("No Keypad");
+    Serial.println("No Keypad");
   }
 
   delay(6);
