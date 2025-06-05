@@ -9,12 +9,12 @@ void Motor::begin() {
 
   OCR1A = 0;
   OCR1B = 0;
-  pinModeFast(MOTOR_OUTPUT_PIN1, OUTPUT);
-  pinModeFast(MOTOR_OUTPUT_PIN2, OUTPUT);
+  pinMode(MOTOR_OUTPUT_PIN1, OUTPUT);
+  pinMode(MOTOR_OUTPUT_PIN2, OUTPUT);
 
 #ifdef MOTOR_ENABLE_PIN
-  pinModeFast(MOTOR_ENABLE_PIN, OUTPUT);
-  digitalWriteFast(MOTOR_ENABLE_PIN, 0);
+  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+  digitalWrite(MOTOR_ENABLE_PIN, 0);
 #endif
 }
 
@@ -24,9 +24,9 @@ void Motor::setForce(int16_t force) {
 
 #ifdef MOTOR_ENABLE_PIN
   if (force != 0) {
-    digitalWriteFast(MOTOR_ENABLE_PIN, 1);
+    digitalWrite(MOTOR_ENABLE_PIN, 1);
   } else {
-    digitalWriteFast(MOTOR_ENABLE_PIN, 0);
+    digitalWrite(MOTOR_ENABLE_PIN, 0);
   }
 #endif
 
