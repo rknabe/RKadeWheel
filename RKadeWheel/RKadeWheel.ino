@@ -128,58 +128,58 @@ void processKeypad() {
           char keycode = 0;
           switch (key) {
             case '*':
-              keycode = KEYPAD_MULTIPLY;
+              keycode = KEY_KP_ASTERISK;
               break;
             case '#':
-              keycode = KEYPAD_DOT;
+              keycode = KEY_KP_DOT;
               break;
             case '1':
-              keycode = KEYPAD_1;
+              keycode = KEY_KP_1;
               break;
             case '2':
-              keycode = KEYPAD_2;
+              keycode = KEY_KP_2;
               break;
             case '3':
-              keycode = KEYPAD_3;
+              keycode = KEY_KP_3;
               break;
             case '4':
-              keycode = KEYPAD_4;
+              keycode = KEY_KP_4;
               break;
             case '5':
-              keycode = KEYPAD_5;
+              keycode = KEY_KP_5;
               break;
             case '6':
-              keycode = KEYPAD_6;
+              keycode = KEY_KP_6;
               break;
             case '7':
-              keycode = KEYPAD_7;
+              keycode = KEY_KP_7;
               break;
             case '8':
-              keycode = KEYPAD_8;
+              keycode = KEY_KP_8;
               break;
             case '9':
-              keycode = KEYPAD_9;
+              keycode = KEY_KP_9;
               break;
             case '0':
-              keycode = KEYPAD_0;
+              keycode = KEY_KP_0;
               break;
           }
 
           switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
             case PRESSED:
               if (key == '#' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
-                Keyboard.write(KEYPAD_ENTER);
+                Keyboard.write(KEY_KP_ENTER);
               } else if (key == '6' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
                 //*6 will toggle numlock mode
                 Keyboard.write(KEY_NUM_LOCK);
               } else {
-                Keyboard.press(KeyboardKeycode(keycode));
+                Keyboard.press(keycode);
               }
               break;
             case HOLD:
               break;
             case RELEASED:
-              Keyboard.release(KeyboardKeycode(keycode));
+              Keyboard.release(keycode);
               break;
             case IDLE:
               break;
