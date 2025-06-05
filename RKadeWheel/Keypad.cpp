@@ -24,6 +24,7 @@ void Keypad::begin(char *userKeymap) {
 }
 
 // Returns a single key only. Retained for backwards compatibility.
+/*
 char Keypad::getKey() {
   single_key = true;
 
@@ -33,7 +34,7 @@ char Keypad::getKey() {
   single_key = false;
 
   return NO_KEY;
-}
+}*/
 
 // Populate the key list.
 bool Keypad::getKeys() {
@@ -157,6 +158,16 @@ bool Keypad::isPressed(char keyChar) {
     }
   }
   return false;  // Not pressed.
+}
+
+bool Keypad::isHeld(char keyChar) {
+  for (byte i = 0; i < LIST_MAX; i++) {
+    if (key[i].kchar == keyChar) {
+      if ((key[i].kstate == HOLD))
+        return true;
+    }
+  }
+  return false;  // Not held.
 }
 
 // Search by character for a key in the list of active keys.

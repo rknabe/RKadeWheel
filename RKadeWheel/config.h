@@ -185,7 +185,7 @@
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
-#define BTN_ESC_INDEX 13  //zero-based index, 16
+#define BTN_ESC_INDEX 11  //zero-based index, 16
 
 //Hat switch
 //#define HATSWITCH

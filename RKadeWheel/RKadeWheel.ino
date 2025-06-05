@@ -1,14 +1,10 @@
 #include <EEPROM.h>
 #include <PCF8574.h>
-//#include <digitalWriteFast.h>       //https://github.com/NicksonYap/digitalWriteFast
-//#include <avdweb_AnalogReadFast.h>  //https://github.com/avandalen/avdweb_AnalogReadFast
-
 #include "config.h"
 #include "wheel.h"
 #include "motor.h"
 #include "settings.h"
-
-//#include "Keyboard.h"
+#include "Keyboard.h"
 //#include <HID-Project.h>
 #include "Keypad.h"
 #include <ArduinoShrink.h>
@@ -74,7 +70,7 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
 
-  //Keyboard.begin();
+  Keyboard.begin();
   //System.begin();
 
   //set up analog axes
@@ -96,8 +92,8 @@ void setup() {
   load();
 
   //delay(6);
-  //Wire.begin();
-  //keypadConnected = keypadIO.begin() && keypadIO.isConnected();
+  Wire.begin();
+  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
 }
 
 void loop() {
@@ -124,7 +120,7 @@ void loop() {
 void processKeypad() {
   if (millis() - lastKeypadCheck > 50) {
     lastKeypadCheck = millis();
-    /*
+
     if (keypad.getKeys()) {
       for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
         if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
@@ -171,9 +167,9 @@ void processKeypad() {
 
           switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
             case PRESSED:
-              if (key == '#' && (isHeld('*') || isPressed('*'))) {
+              if (key == '#' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
                 Keyboard.write(KEYPAD_ENTER);
-              } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
+              } else if (key == '6' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
                 //*6 will toggle numlock mode
                 Keyboard.write(KEY_NUM_LOCK);
               } else {
@@ -190,28 +186,8 @@ void processKeypad() {
           }
         }
       }
-    }*/
-  }
-}
-
-bool isHeld(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == HOLD))
-        return true;
     }
   }
-  return false;  // Not held.
-}
-
-bool isPressed(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == PRESSED))
-        return true;
-    }
-  }
-  return false;  // Not pressed.
 }
 
 //Processing endstop and force feedback
@@ -564,12 +540,12 @@ void readButtons() {
       wheel.buttons = buttons;
     }
   }
-  /*
+
   if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
     Keyboard.press(KEY_ESC);
     delay(5);
     Keyboard.release(KEY_ESC);
-  }*/
+  }
 }
 //---------------------------------------- end buttons ----------------------------------------------
 
