@@ -1,6 +1,5 @@
 #pragma once
 //---------------------------Constants, do not change--------------------
-#define ST_ENCODER 0
 #define ST_ANALOG 4
 
 #define PT_INTERNAL 0
@@ -12,25 +11,8 @@
 #define SERIAL_BAUDRATE 2000000
 
 //---------------------------Steering axis-------------------------------
-//different types of wheel sensor. Choose only one!
-//#define STEER_TYPE ST_ENCODER
 #define STEER_TYPE ST_ANALOG
-//#define STEER_TYPE ST_TLE5010
-//#define STEER_TYPE ST_AS5600
-//#define STEER_TYPE ST_MLX90316
 
-//settings for encoder
-#if STEER_TYPE == ST_ENCODER
-#define ENCODER_PIN1 0  //encoder pins must be interrupt pins:[0, 1, 2, 3]
-#define ENCODER_PIN2 1
-#define ENCODER_PPR 600  //PPR = CPR/4
-#endif
-
-//settings for TLE5010
-#define TLE5010_PIN_CS 1
-
-//settings for MLX90316
-#define MLX90316_PIN_CS 1
 
 //wheel sensor bitdepth. Not supposed to be changed.
 #define STEER_BITDEPTH 13
@@ -48,11 +30,6 @@
 #define STEER_TM_RATIO_DIV 4   //Division factor
 #define FORCE_RATIO_MUL -1
 #endif
-
-//---------------------------I2C----------------------------------------
-//bitbang I2С pins - for MCP23017 and ADS1015
-#define I2C_PIN_SDA 2  //any free pins
-#define I2C_PIN_SCL 7
 
 #define I2C_DELAY 1
 //---------------------------analog axes---------------------------
@@ -135,40 +112,6 @@
 #define MA_LEVEL_AXIS_AUX5 4
 #define MA_LEVEL_AXIS_ST_ANALOG 4
 
-//----------------------------Buttons-------------------------------------
-//different ways of connecting buttons. Choose only one!
-//#define BUTTONS_TYPE BT_74HC165       //Use 74HC165 shift registers
-//#define BUTTONS_TYPE BT_MCP23017    //Use MCP23017 I2C port expanders
-//#define BUTTONS_TYPE BT_CD4021B     //Use CD4021B shift registers
-//#define BUTTONS_TYPE BT_PCF857x     //Use PCF857x I2C port expanders
-#define BUTTONS_TYPE BT_NONE  //No buttons
-
-
-//settings for 74HC165
-#define HC165_PIN_SCK 15
-#define HC165_PIN_DATA1 2  //pin for DATA#1
-#define HC165_PIN_DATA2 7  //pin for DATA#2
-#define HC165_PIN_PL 3     //pin for PL (comment this line if using RC to omit PL line)
-
-//settings for CD4021
-#define CD4021_PIN_SCK 15
-#define CD4021_PIN_DATA1 2  //pin for DATA#1
-#define CD4021_PIN_DATA2 7  //pin for DATA#2
-#define CD4021_PIN_PL 3     //pin for PL (comment this line if using RC to omit PL line)
-
-//settings for MCP23017
-#define MCP23017_ADDR1 0x20
-#define MCP23017_ADDR2 0x21
-
-//settings for PCF857x
-#define PCF857x_L1_TYPE PCF8575
-#define PCF857x_L1_ADDR1 0x20
-#define PCF857x_L1_ADDR2 0x21
-
-#define PCF857x_L2_TYPE PCF8574
-#define PCF857x_L2_ADDR1 0x22
-#define PCF857x_L2_ADDR2 0x23
-
 //buttons directly connected to pins
 #define DPB  //Enable
 #if STEER_TYPE == ST_ANALOG
@@ -210,11 +153,3 @@
 
 #define DEFAULT_ENDSTOP_OFFSET 0    //force level endstop effect will start from (0-16383). Increasing will make endstop harder.
 #define DEFAULT_ENDSTOP_WIDTH 1024  //length of excess position where endstop effect will rise to maximum level. Decreasing makes endstop harder.
-
-//Auto find center
-//#define AFC_ON           //Uncomment to enable autofind center at start. Requires presence of mechanical limiters (see description)
-#define AFC_FORCE 4200   //Force [0...16383] to exert when finding center.
-#define AFC_PERIOD 80    //default 50         //Position check period in milliseconds
-#define AFC_TRESHOLD 10  //default 10         //Minimum position change to detect movement
-#define AFC_NORANGE      //Uncomment to disable range setting
-#define AFC_RANGE_FIX 5  //range will be decreased by this value (in degrees), to prevent wheel kicking on limiters.

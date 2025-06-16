@@ -44,21 +44,9 @@ static const uint8_t dpb[] = { DPB_PINS };
 #endif
 
 void load(bool defaults = false);
-#ifdef AFC_ON
-void autoFindCenter(int force = AFC_FORCE, int period = AFC_PERIOD, int16_t treshold = AFC_TRESHOLD);
-#endif
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
-
-#if STEER_TYPE == ST_ENCODER
-#include <Encoder.h>  //https://github.com/PaulStoffregen/Encoder
-Encoder encoder(ENCODER_PIN1, ENCODER_PIN2);
-#define GET_WHEEL_POS (((int32_t)encoder.read() << STEER_BITDEPTH) / ENCODER_PPR)
-#define CENTER_WHEEL encoder.write(0);
-#define SET_WHEEL_POSITION(val) encoder.write((val * ENCODER_PPR) / (1 << STEER_BITDEPTH))
-#endif
-
 #if STEER_TYPE == ST_ANALOG
 #define GET_WHEEL_POS getWheelPositionAnalog()
 #endif
@@ -108,7 +96,7 @@ void loop() {
   processFFB();
   processSerial();
   if (keypadConnected) {
-    processKeypad();
+    //processKeypad();
   }  //else {
      // Serial.println("No Keypad");
   //}
@@ -921,111 +909,3 @@ void save() {
 
   EEPROM.put(0, settingsE);
 }
-
-#ifdef AFC_ON
-void autoFindCenter(int16_t force, int16_t period, int16_t threshold) {
-  uint8_t _state = 1;
-  int32_t initialPos;
-  int32_t prevPos;
-  int32_t pos;
-  int32_t dist;
-  int32_t posMax;
-  int32_t posMin = 0;
-  int32_t range;
-  int32_t prevTime;
-  int32_t currTime;
-
-  motor.setForce(-force);
-  initialPos = prevPos = GET_WHEEL_POS;
-
-  prevTime = millis();
-  while (_state) {
-    currTime = millis();
-    if ((currTime - prevTime) > period) {
-      pos = GET_WHEEL_POS;
-      dist = pos - prevPos;
-      prevPos = pos;
-
-      switch (_state) {
-        case 1:
-          if (pos - initialPos > 100)  //distance must be negative
-          {
-            motor.setForce(0);
-            //Serial.println(F("Error: FFB inverted!"));
-            return;
-          }
-
-          if (-dist < threshold)  //Minimum found
-          {
-            motor.setForce(0);
-
-            posMin = pos;
-
-            motor.setForce(force);
-            _state = 2;
-          }
-          break;
-        case 2:
-          if (dist < threshold)  //Maximum found
-          {
-            motor.setForce(0);
-
-            posMax = pos;
-
-            //calculate range
-#if STEER_TYPE == ST_ENCODER
-            range = (((posMax - posMin) * 360 / (1 << (STEER_BITDEPTH)) / STEER_TM_RATIO_DIV)) - AFC_RANGE_FIX;
-#endif
-#if STEER_TYPE == ST_ANALOG
-            range = ((posMax) - (posMin)) / 240;
-#endif
-
-            if (range < 2) {
-              //Serial.print(F("Error: no movement, range:"));
-              //Serial.println(range);
-              return;
-            }
-
-#ifndef AFC_NORANGE
-            wheel.axisWheel->setRange(range);
-#endif
-
-            //Set center by setting new current position
-            wheel.axisWheel->setCenter((posMax + posMin) / 64);
-
-            //Go to center - should be safe now
-            motor.setForce(-force);
-            _state = 3;
-          }
-          break;
-        case 3:
-          if (pos < 0) {
-            motor.setForce(0);
-            _state = 0;
-          }
-          break;
-      }
-
-      prevTime = currTime;
-    }
-  }
-}
-#endif
-
-#ifdef AA_PULLUP_LINEARIZE
-//Linearizing axis values, when using internal adc + pullup.
-int16_t pullup_linearize(int16_t val) {
-  //Assuming VCC=5v, ADCreference=2.56v, 0 < val < 1024
-  //val = val * 1024 * (R_pullup / R_pot) / (1024 * 5 / 2.56 - val)
-  //if Rpullup = R_pot...
-  //val = val * 1024 / (2000 - val)
-  //division is slow
-  //piecewise linear approximation, 16 steps
-  static const int16_t a[] = { 0, 33, 70, 108, 150, 195, 243, 295, 352, 414, 481, 556, 638, 729, 831, 945 };
-  static const uint8_t b[] = { 33, 37, 38, 42, 45, 48, 52, 57, 62, 67, 75, 82, 91, 102, 114, 129 };
-
-  uint8_t i = (val >> 6);
-
-  return a[i] + (((val % 64) * b[i]) >> 6);
-}
-#endif
