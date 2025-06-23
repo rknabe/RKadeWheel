@@ -149,12 +149,7 @@ void AxisWheel::setValue(int32_t rawValue_) {
 
 void AxisWheel::setRange(uint16_t _deg) {
   range = _deg;
-#if STEER_TYPE == ST_ANALOG
   rangeFactor = (360.0 / (float)range) * 48;
-#else
-  rangeFactor = ((int32_t)1 << (16 - STEER_BITDEPTH)) * 360.0 / range;
-  axisMax = (((int32_t)1 << (STEER_BITDEPTH - 1))) * range / 360 - 1;
-#endif
 }
 
 void AxisWheel::setCenterZero() {

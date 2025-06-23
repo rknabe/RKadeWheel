@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "Keypad.h"
 
 // <<constructor>> Allows custom keymap, pin configuration, and keypad sizes.
@@ -61,13 +62,18 @@ void Keypad::scanKeys() {
   for (byte c = 0; c < sizeKpd.columns; c++) {
     //pin_mode(columnPins[c], OUTPUT);
     //pin_write(columnPins[c], LOW);  // Begin column pulse output.
-    keypadIO->write(columnPins[c], LOW);
+    pinMode(*keypadIO, columnPins[c], OUTPUT);
+    digitalWrite(*keypadIO, columnPins[c], LOW);
+    //keypadIO->write(columnPins[c], LOW);
     for (byte r = 0; r < sizeKpd.rows; r++) {
       //bitWrite(bitMap[r], c, !pin_read(rowPins[r]));  // keypress is active low so invert to high.
-      bitWrite(bitMap[r], c, !keypadIO->read(rowPins[r]));  // keypress is active low so invert to high.
+      bitWrite(bitMap[r], c, !digitalRead(*keypadIO, rowPins[r]));
+      //bitWrite(bitMap[r], c, !keypadIO->read(rowPins[r]));  // keypress is active low so invert to high.
     }
     // Set pin to high impedance input. Effectively ends column pulse.
-    keypadIO->write(columnPins[c], HIGH);
+    //keypadIO->write(columnPins[c], HIGH);
+    digitalWrite(*keypadIO, columnPins[c], HIGH);
+    pinMode(*keypadIO, columnPins[c], INPUT);
     //pin_write(columnPins[c], HIGH);
     //pin_mode(columnPins[c], INPUT);
   }

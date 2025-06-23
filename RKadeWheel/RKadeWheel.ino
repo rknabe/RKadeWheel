@@ -1,5 +1,5 @@
 #include <EEPROM.h>
-#include <PCF8574.h>
+#include <pcf8574.h>
 #include "config.h"
 #include "wheel.h"
 #include "motor.h"
@@ -7,10 +7,10 @@
 #include "Keyboard.h"
 //#include <HID-Project.h>
 #include "Keypad.h"
-#include <ArduinoShrink.h>
+//#include <ArduinoShrink.h>
 
-const byte KEYPAD_ROWS = 4;  //four rows
-const byte KEYPAD_COLS = 3;  //three columns
+#define KEYPAD_ROWS 4  //four rows
+#define KEYPAD_COLS 3  //three columns
 char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
   { '1', '2', '3' },
   { '4', '5', '6' },
@@ -21,90 +21,71 @@ byte rowPins[KEYPAD_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the
 byte colPins[KEYPAD_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
 long lastKeypadCheck = 0;
 PCF8574 keypadIO(0x20);
-Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
+//Keypad keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 //global variables
 Wheel_ wheel;
 Motor motor;
 SettingsData settings;
-int16_t force;
-int8_t axisInfo = -1;
+//int16_t force;
+//int8_t axisInfo = -1;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
-bool keypadConnected = false;
-
-#ifdef DPB
 static const uint8_t dpb[] = { DPB_PINS };
-#endif
-
-//constants and definitions for analog axes
-#if ((PEDALS_TYPE == PT_INTERNAL) || (PEDALS_TYPE == PT_HC164))
-#define DEFAULT_AA_MIN 0
-#define DEFAULT_AA_MAX 1023
-#endif
+bool keypadConnected = false;
 
 void load(bool defaults = false);
 int32_t getWheelPositionAnalog();
 
 //------------------------ steering wheel sensor ----------------------------
-#if STEER_TYPE == ST_ANALOG
 #define GET_WHEEL_POS getWheelPositionAnalog()
-#endif
-
 
 //-------------------------------------------------------------------------------------
-
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
 
-  Keyboard.begin();
-  //System.begin();
-
-  //set up analog axes
-#ifdef AA_PULLUP
-  analogReference(INTERNAL);  //2.56v reference to get more resolution.
-#endif
-
-//direct pin buttons
-#ifdef DPB
-  for (uint8_t i = 0; i < sizeof(dpb); i++) {
-    pinMode(dpb[i], INPUT_PULLUP);
-  }
-#endif
-
-  //motor setup
-  motor.begin();
-
   //load settings
   load();
 
-  //delay(6);
-  Wire.begin();
-  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
+  //Keyboard.begin();
+  //System.begin();
+
+  for (uint8_t i = 0; i < sizeof(dpb); i++) {
+    pinMode(dpb[i], INPUT_PULLUP);
+  }
+
+  //motor setup
+  motor.begin();
+   
+  while (!Serial) {  // Wait for serial port to connect
+    ; // do nothing (loop until Serial is ready)
+  }
+  //Serial.println("S");
+  for (int i = 0; i < 8; i++) {
+    int address = PCF8574::combinationToAddress(i, false);
+    if (PCF8574(address).read() != -1) {
+      Serial.print("0x");
+      Serial.println(address, HEX);
+    }
+  }
 }
 
 void loop() {
 
   readAnalogAxes();
-#if STEER_TYPE != ST_ANALOG
-  //wheel.axisWheel->setValue(GET_WHEEL_POS);
-#endif
   readButtons();
   processUsbCmd();
   wheel.update();
   processFFB();
-  processSerial();
-  if (keypadConnected) {
-    //processKeypad();
-  }  //else {
-     // Serial.println("No Keypad");
+  //processSerial();
+  //if (keypad != NULL) {
+  //processKeypad();
   //}
 
   delay(6);
 }
-
-
+/*
 void processKeypad() {
   if (millis() - lastKeypadCheck > 50) {
     lastKeypadCheck = millis();
@@ -158,7 +139,7 @@ void processKeypad() {
               if (key == '#' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
                 Keyboard.write(KEY_KP_ENTER);
               } else if (key == '6' && (keypad.isHeld('*') || keypad.isPressed('*'))) {
-                //*6 will toggle numlock mode
+                //   '*6' will toggle numlock mode
                 Keyboard.write(KEY_NUM_LOCK);
               } else {
                 Keyboard.press(keycode);
@@ -176,14 +157,15 @@ void processKeypad() {
       }
     }
   }
-}
+}*/
+
 
 //Processing endstop and force feedback
 void processFFB() {
 
   wheel.ffbEngine.constantSpringForce();
 
-  force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
+  int16_t force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
 
   force = applyForceLimit(force);
   motor.setForce(force * FORCE_RATIO_MUL);
@@ -233,14 +215,8 @@ void processUsbCmd() {
         strcpy_P(((GUI_Report_Version *)data)->ver, PSTR(FIRMWARE_VER));
         break;
       case 2:  //return steering axis data
-#if STEER_TYPE == ST_ANALOG
         ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
         ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
-#else
-        ((GUI_Report_SteerAxis *)data)->rawValue = wheel.axisWheel->rawValue;
-        ((GUI_Report_SteerAxis *)data)->value = wheel.axisWheel->value;
-#endif
-
         ((GUI_Report_SteerAxis *)data)->range = wheel.axisWheel->range;
         ((GUI_Report_SteerAxis *)data)->velocity = wheel.axisWheel->velocity;
         ((GUI_Report_SteerAxis *)data)->acceleration = wheel.axisWheel->acceleration;
@@ -390,40 +366,10 @@ void processUsbCmd() {
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
 
-#if (PEDALS_TYPE == PT_INTERNAL)
-#ifdef AA_PULLUP_LINEARIZE
-  wheel.analogAxes[AXIS_ACC]->setValue(pullup_linearize(analogRead(PIN_ACC)));
-  wheel.analogAxes[AXIS_BRAKE]->setValue(pullup_linearize(analogRead(PIN_BRAKE)));
-  wheel.analogAxes[AXIS_CLUTCH]->setValue(pullup_linearize(analogRead(PIN_CLUTCH)));
-#else
   wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
   wheel.analogAxes[AXIS_BRAKE]->setValue(analogRead(PIN_BRAKE));
   wheel.analogAxes[AXIS_CLUTCH]->setValue(analogRead(PIN_CLUTCH));
-#endif
-#endif
 
-//additional axes
-#ifdef AA_PULLUP_LINEARIZE
-
-#ifdef PIN_AUX1
-  wheel.analogAxes[AXIS_AUX1]->setValue(pullup_linearize(analogRead(PIN_AUX1)));
-#endif
-#ifdef PIN_AUX2
-  wheel.analogAxes[AXIS_AUX2]->setValue(pullup_linearize(analogRead(PIN_AUX2)));
-#endif
-#ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(pullup_linearize(analogRead(PIN_AUX3)));
-#endif
-#ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(pullup_linearize(analogRead(PIN_AUX4)));
-#endif
-#ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(pullup_linearize(analogRead(PIN_AUX5)));
-#endif
-#ifdef PIN_ST_ANALOG
-  GET_WHEEL_POS;
-#endif
-#else
 #ifdef PIN_AUX1
   wheel.analogAxes[AXIS_AUX1]->setValue(analogRead(PIN_AUX1));
 #endif
@@ -442,7 +388,6 @@ void readAnalogAxes() {
 #ifdef PIN_ST_ANALOG
   GET_WHEEL_POS;
 #endif
-#endif
 }
 
 //-----------------------------------end analog axes------------------------------
@@ -459,8 +404,6 @@ void readButtons() {
     d = (uint8_t *)&wheel.buttons;
   }
 
-//direct pin buttons
-#ifdef DPB
   int i = 0;
   if (settings.mplexShifter > 0) {
     //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
@@ -515,7 +458,6 @@ void readButtons() {
   if (settings.shiftButton > 0) {
     bitWrite(*((uint32_t *)d), settings.shiftButton - 1, shiftBtnPressed && !otherBtnPressed);
   }
-#endif
 
   //debounce
   if (settings.debounce) {
@@ -539,13 +481,7 @@ void readButtons() {
 
 
 int32_t getWheelPositionAnalog() {
-
-#ifdef AA_PULLUP_LINEARIZE
-  wheel.axisWheel->setValue(pullup_linearize(analogRead(PIN_ST_ANALOG)));
-#else
   wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
-#endif
-
   return wheel.axisWheel->value;
 }
 

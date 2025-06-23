@@ -21,22 +21,13 @@ Wheel_::Wheel_(void) {
 void Wheel_::update(void) {
 
   wheelData data;
-
-#if STEER_TYPE == ST_ANALOG
   data.axes[0] = axisWheel->value;
-#else
-  data.axes[0] = axisWheel->value;
-#endif
 
   int8_t i;
   for (i = 0; i < AXIS_REPORT_COUNT; i++) {
     if (!analogAxes[i]->outputDisabled)
       data.axes[i + 1] = analogAxes[i]->value;
   }
-
-#ifdef HATSWITCH
-  data.hat = getHatSwitch();
-#endif
 
   data.buttons = buttons;
 
@@ -48,63 +39,3 @@ void Wheel_::update(void) {
     USB_GUI_Report.command = 0;
   }
 }
-
-#ifdef HATSWITCH
-//Hatswitch
-#define HAT_UP 0b00000000          //(0)
-#define HAT_UP_RIGHT 0b00000001    //(1)
-#define HAT_RIGHT 0b00000010       //(2)
-#define HAT_DOWN_RIGHT 0b00000011  //(3)
-#define HAT_DOWN 0b00000100        //(4)
-#define HAT_DOWN_LEFT 0b00000101   //(5)
-#define HAT_LEFT 0b00000110        //(6)
-#define HAT_UP_LEFT 0b00000111     //(7)
-#define HAT_CENTER 0b00001000      //(8)
-
-uint8_t Wheel_::getHatSwitch() {
-  uint8_t hat = 0;
-
-  bitWrite(hat, 0, bitRead(buttons, HAT_BTN_UP - 1));
-  bitWrite(hat, 1, bitRead(buttons, HAT_BTN_DOWN - 1));
-  bitWrite(hat, 2, bitRead(buttons, HAT_BTN_LEFT - 1));
-  bitWrite(hat, 3, bitRead(buttons, HAT_BTN_RIGHT - 1));
-
-#ifdef HAT_CLR_BTNS
-  bitClear(buttons, HAT_BTN_UP - 1);
-  bitClear(buttons, HAT_BTN_DOWN - 1);
-  bitClear(buttons, HAT_BTN_LEFT - 1);
-  bitClear(buttons, HAT_BTN_RIGHT - 1);
-#endif
-
-  switch (hat) {
-    case 0b00000001:
-      hat = HAT_UP;
-      break;
-    case 0b00000010:
-      hat = HAT_DOWN;
-      break;
-    case 0b00000100:
-      hat = HAT_LEFT;
-      break;
-    case 0b00001000:
-      hat = HAT_RIGHT;
-      break;
-    case 0b00000101:
-      hat = HAT_UP_LEFT;
-      break;
-    case 0b00001001:
-      hat = HAT_UP_RIGHT;
-      break;
-    case 0b00000110:
-      hat = HAT_DOWN_LEFT;
-      break;
-    case 0b00001010:
-      hat = HAT_DOWN_RIGHT;
-      break;
-    default:
-      hat = HAT_CENTER;
-  };
-
-  return hat;
-}
-#endif
