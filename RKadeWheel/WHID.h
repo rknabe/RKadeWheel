@@ -20,7 +20,6 @@
 
 #include <stdint.h>
 #include <Arduino.h>
-/*#include <Keyboard.h>*/
 #include "PluggableUSB.h"
 #include "FfbReportHandler.h"
 

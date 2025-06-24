@@ -40,20 +40,20 @@
  * 2 means averaging 4 values, 3 - 8 values and so on.
  */
 //Smoothing for wheel axis.
-#define MA_LEVEL_WHEEL_POSITION 4
-#define MA_LEVEL_WHEEL_VELOCITY 4
-#define MA_LEVEL_WHEEL_ACCELERATION 4
+#define MA_LEVEL_WHEEL_POSITION 10
+#define MA_LEVEL_WHEEL_VELOCITY 10
+#define MA_LEVEL_WHEEL_ACCELERATION 10
 
 //Level of smoothing for analog axes.
-#define MA_LEVEL_AXIS_ACC 4
-#define MA_LEVEL_AXIS_BRAKE 4
-#define MA_LEVEL_AXIS_CLUTCH 4
-#define MA_LEVEL_AXIS_AUX1 4
-#define MA_LEVEL_AXIS_AUX2 4
-#define MA_LEVEL_AXIS_AUX3 4
-#define MA_LEVEL_AXIS_AUX4 4
-#define MA_LEVEL_AXIS_AUX5 4
-#define MA_LEVEL_AXIS_ST_ANALOG 4
+#define MA_LEVEL_AXIS_ACC 10
+#define MA_LEVEL_AXIS_BRAKE 10
+#define MA_LEVEL_AXIS_CLUTCH 10
+#define MA_LEVEL_AXIS_AUX1 10
+#define MA_LEVEL_AXIS_AUX2 10
+#define MA_LEVEL_AXIS_AUX3 10
+#define MA_LEVEL_AXIS_AUX4 10
+#define MA_LEVEL_AXIS_AUX5 10
+#define MA_LEVEL_AXIS_ST_ANALOG 10
 
 //#define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #define DPB_PINS 0, 1, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16

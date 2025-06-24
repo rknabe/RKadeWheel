@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "Keypad.h"
 
 // <<constructor>> Allows custom keymap, pin configuration, and keypad sizes.
@@ -25,7 +24,6 @@ void Keypad::begin(char *userKeymap) {
 }
 
 // Returns a single key only. Retained for backwards compatibility.
-/*
 char Keypad::getKey() {
   single_key = true;
 
@@ -35,7 +33,7 @@ char Keypad::getKey() {
   single_key = false;
 
   return NO_KEY;
-}*/
+}
 
 // Populate the key list.
 bool Keypad::getKeys() {
@@ -62,18 +60,13 @@ void Keypad::scanKeys() {
   for (byte c = 0; c < sizeKpd.columns; c++) {
     //pin_mode(columnPins[c], OUTPUT);
     //pin_write(columnPins[c], LOW);  // Begin column pulse output.
-    pinMode(*keypadIO, columnPins[c], OUTPUT);
-    digitalWrite(*keypadIO, columnPins[c], LOW);
-    //keypadIO->write(columnPins[c], LOW);
+    keypadIO->write(columnPins[c], LOW);
     for (byte r = 0; r < sizeKpd.rows; r++) {
       //bitWrite(bitMap[r], c, !pin_read(rowPins[r]));  // keypress is active low so invert to high.
-      bitWrite(bitMap[r], c, !digitalRead(*keypadIO, rowPins[r]));
-      //bitWrite(bitMap[r], c, !keypadIO->read(rowPins[r]));  // keypress is active low so invert to high.
+      bitWrite(bitMap[r], c, !keypadIO->read(rowPins[r]));  // keypress is active low so invert to high.
     }
     // Set pin to high impedance input. Effectively ends column pulse.
-    //keypadIO->write(columnPins[c], HIGH);
-    digitalWrite(*keypadIO, columnPins[c], HIGH);
-    pinMode(*keypadIO, columnPins[c], INPUT);
+    keypadIO->write(columnPins[c], HIGH);
     //pin_write(columnPins[c], HIGH);
     //pin_mode(columnPins[c], INPUT);
   }
@@ -166,16 +159,6 @@ bool Keypad::isPressed(char keyChar) {
   return false;  // Not pressed.
 }
 
-bool Keypad::isHeld(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (key[i].kchar == keyChar) {
-      if ((key[i].kstate == HOLD))
-        return true;
-    }
-  }
-  return false;  // Not held.
-}
-
 // Search by character for a key in the list of active keys.
 // Returns -1 if not found or the index into the list of active keys.
 int Keypad::findInList(char keyChar) {
@@ -199,12 +182,12 @@ int Keypad::findInList(int keyCode) {
 }
 
 // New in 2.0
-/*char Keypad::waitForKey() {
+char Keypad::waitForKey() {
   char waitKey = NO_KEY;
   while ((waitKey = getKey()) == NO_KEY)
     ;  // Block everything while waiting for a keypress.
   return waitKey;
-}*/
+}
 
 // Backwards compatibility function.
 KeyState Keypad::getState() {

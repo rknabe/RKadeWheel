@@ -54,18 +54,17 @@ public:
   Key key[LIST_MAX];
   unsigned long holdTimer;
 
-  //char getKey();
+  char getKey();
   bool getKeys();
   KeyState getState();
   void begin(char *userKeymap);
   bool isPressed(char keyChar);
-  bool isHeld(char keyChar);
   void setDebounceTime(uint);
   void setHoldTime(uint);
   //void addEventListener(void (*listener)(char));
   int findInList(char keyChar);
   int findInList(int keyCode);
-  //char waitForKey();
+  char waitForKey();
   bool keyStateChanged();
   byte numKeys();
 

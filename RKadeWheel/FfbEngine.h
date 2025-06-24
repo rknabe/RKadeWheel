@@ -26,7 +26,6 @@
 #include <Arduino.h>
 #include "HIDReportType.h"
 #include "FfbReportHandler.h"
-#include "movavg.h"
 #include "axis.h"
 #include "settings.h"
 #include "trig_fixed.h"

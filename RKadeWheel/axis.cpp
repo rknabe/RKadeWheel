@@ -1,7 +1,7 @@
 #include "axis.h"
 
 Axis::Axis(uint8_t smoothLevel) {
-  filter = new MovingAverage32(smoothLevel);
+  filter.set_window(smoothLevel);
 }
 
 void Axis::setValue(int32_t rawValue_) {
@@ -15,7 +15,7 @@ void Axis::setValue(int32_t rawValue_) {
   }
 
   value = constrain(rawValue, axisMin, axisMax);
-  value = filter->setValue(value);
+  value = round(filter.add(value));
 
   if (bitTrim) {
     if (value >= 0)
@@ -70,7 +70,6 @@ void Axis::setAutoLimits(bool _auto) {
   if (_auto) {
     axisMin = rawValue;
     axisMax = rawValue;
-    autoCenter = true;
     updateRangeFactor();
   }
   autoLimit = _auto;
@@ -93,8 +92,8 @@ void Axis::updateRangeFactor() {
 
 AxisWheel::AxisWheel()
   : Axis(MA_LEVEL_AXIS_ST_ANALOG) {
-  filterVelocity = new MovingAverage16(MA_LEVEL_WHEEL_VELOCITY);
-  filterAcceleration = new MovingAverage16(MA_LEVEL_WHEEL_ACCELERATION);
+  filterVelocity.set_window(MA_LEVEL_WHEEL_VELOCITY);
+  filterAcceleration.set_window(MA_LEVEL_WHEEL_ACCELERATION);
 }
 
 void AxisWheel::setValue(int32_t rawValue_) {
@@ -133,17 +132,18 @@ void AxisWheel::setValue(int32_t rawValue_) {
 
   int32_t val = constrain(rawValue, axisMin, axisMax);
   value = val * rangeFactor;
-  absValue = filter->setValue(value);
+  value = round(filter.add(value));
+  absValue = round(value);
   int16_t tmpUs = micros();
   int16_t td = tmpUs - lastUs;
   lastUs = tmpUs;
 
   //Velocity and acceleration calculation for damper/friction/inertia effects
   //These parameters do not depend on wheel range
-  int16_t newVelocity = filterVelocity->setValue(((absValue - lastPosition) << 15) / td);
+  int16_t newVelocity = round(filterVelocity.add(((absValue - lastPosition) << 15) / td));
   lastPosition = absValue;
 
-  acceleration = filterAcceleration->setValue(((int32_t)(newVelocity - velocity) << 15) / td);
+  acceleration = round(filterAcceleration.add(((int32_t)(newVelocity - velocity) << 15) / td));
   velocity = newVelocity;
 }
 
@@ -157,7 +157,4 @@ void AxisWheel::setCenterZero() {
   lastPosition = 0;
   velocity = 0;
   acceleration = 0;
-  filter->reset();
-  filterVelocity->reset();
-  filterAcceleration->reset();
 }

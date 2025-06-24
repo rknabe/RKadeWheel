@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include "config.h"
-#include "movavg.h"
+#include <Smooth.h>
 
 /*
  * Analog axes
@@ -27,7 +27,7 @@ public:
   void setLimits(int16_t _min, int16_t _max, bool _auto = false);
   void setAutoLimits(bool _auto);
   void updateRangeFactor();
-  MovingAverage32* filter;
+  Smooth filter;
 
   int16_t getCenter();
   int16_t getDZ();
@@ -47,8 +47,8 @@ public:
   int16_t acceleration;
   uint16_t lastUs;
 
-  MovingAverage16* filterVelocity;
-  MovingAverage16* filterAcceleration;
+  Smooth filterVelocity;
+  Smooth filterAcceleration;
 
   AxisWheel();
   void setValue(int32_t rawValue_);
