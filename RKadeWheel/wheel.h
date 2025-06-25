@@ -1,6 +1,7 @@
 #pragma once
 
 #include "axis.h"
+#include "limits.h"
 #include "FfbEngine.h"
 #include "WHID.h"
 #include "hidDescriptor.h"
@@ -8,7 +9,7 @@
 
 //Input Report
 typedef struct {
-  int16_t axes[AXIS_COUNT] = { -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768 };
+  int16_t axes[AXIS_COUNT] = { SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN };
   uint32_t buttons;
 } wheelData;
 

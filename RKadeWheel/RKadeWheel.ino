@@ -4,23 +4,24 @@
 #include "wheel.h"
 #include "motor.h"
 #include "settings.h"
-#include <HID-Project.h>
+#include "Keyboard.h"
 #include "Keypad.h"
+#include "limits.h"
 #include <ArduinoShrink.h>
 
-#define KEYPAD_ROWS 4  //four rows
-#define KEYPAD_COLS 3  //three columns
-char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
+#define KEY_KP_ROWS 4  //four rows
+#define KEY_KP_COLS 3  //three columns
+char keys[KEY_KP_ROWS][KEY_KP_COLS] = {
   { '1', '2', '3' },
   { '4', '5', '6' },
   { '7', '8', '9' },
   { '*', '0', '#' }
 };
-byte rowPins[KEYPAD_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
-byte colPins[KEYPAD_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
+byte rowPins[KEY_KP_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
+byte colPins[KEY_KP_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
 long lastKeypadCheck = 0;
 PCF8574 keypadIO(0x20);
-Keypad keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
+Keypad keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEY_KP_ROWS, KEY_KP_COLS);
 
 //global variables
 Wheel_ wheel;
@@ -41,9 +42,6 @@ int32_t getWheelPositionAnalog();
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(50);
-
-  //Keyboard.begin();
-  //System.begin();
 
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
@@ -88,58 +86,58 @@ void processKeypad() {
           char keycode = 0;
           switch (key) {
             case '*':
-              keycode = KEYPAD_MULTIPLY;
+              keycode = KEY_KP_ASTERISK;
               break;
             case '#':
-              keycode = KEYPAD_DOT;
+              keycode = KEY_KP_DOT;
               break;
             case '1':
-              keycode = KEYPAD_1;
+              keycode = KEY_KP_1;
               break;
             case '2':
-              keycode = KEYPAD_2;
+              keycode = KEY_KP_2;
               break;
             case '3':
-              keycode = KEYPAD_3;
+              keycode = KEY_KP_3;
               break;
             case '4':
-              keycode = KEYPAD_4;
+              keycode = KEY_KP_4;
               break;
             case '5':
-              keycode = KEYPAD_5;
+              keycode = KEY_KP_5;
               break;
             case '6':
-              keycode = KEYPAD_6;
+              keycode = KEY_KP_6;
               break;
             case '7':
-              keycode = KEYPAD_7;
+              keycode = KEY_KP_7;
               break;
             case '8':
-              keycode = KEYPAD_8;
+              keycode = KEY_KP_8;
               break;
             case '9':
-              keycode = KEYPAD_9;
+              keycode = KEY_KP_9;
               break;
             case '0':
-              keycode = KEYPAD_0;
+              keycode = KEY_KP_0;
               break;
           }
 
           switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
             case PRESSED:
               if (key == '#' && (isHeld('*') || isPressed('*'))) {
-                Keyboard.write(KEYPAD_ENTER);
+                Keyboard.write(KEY_KP_ENTER);
               } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
                 //*6 will toggle numlock mode
                 Keyboard.write(KEY_NUM_LOCK);
               } else {
-                Keyboard.press(KeyboardKeycode(keycode));
+                Keyboard.press(keycode);
               }
               break;
             case HOLD:
               break;
             case RELEASED:
-              Keyboard.release(KeyboardKeycode(keycode));
+              Keyboard.release(keycode);
               break;
             case IDLE:
               break;
@@ -502,21 +500,22 @@ void processSerial() {
   if (Serial.available()) {
     char cmd[16];
     uint8_t cmdLength;
-    int32_t arg1, arg2, arg3;
+    int32_t arg1;  //, arg2, arg3;
 
-    arg1 = -32768;
-    arg2 = -32768;
-    arg3 = -32768;
+    arg1 = SHRT_MIN;
+    //arg2 = SHRT_MIN;
+    //arg3 = SHRT_MIN;
 
     cmdLength = Serial.readBytesUntil(' ', cmd, 15);
     cmd[cmdLength] = 0;
 
-    if (Serial.available())
+    if (Serial.available()) {
       arg1 = Serial.parseInt(SKIP_WHITESPACE);
-    if (Serial.available())
-      arg2 = Serial.parseInt(SKIP_WHITESPACE);
-    if (Serial.available())
-      arg3 = Serial.parseInt(SKIP_WHITESPACE);
+    }
+    //if (Serial.available())
+    // arg2 = Serial.parseInt(SKIP_WHITESPACE);
+    //if (Serial.available())
+    //arg3 = Serial.parseInt(SKIP_WHITESPACE);
 
     //center
     //if (strcmp_P(cmd, PSTR("center")) == 0)
@@ -530,6 +529,14 @@ void processSerial() {
 
     if (strcmp_P(cmd, PSTR("save")) == 0)
       save();
+
+    if (strcmp_P(cmd, PSTR("spring")) == 0) {
+      if (arg1 >= 0) {
+        settings.constantSpring = arg1;
+      }
+      //Serial.print(F("spring:"));
+      //Serial.println(settings.constantSpring);
+    }
 
     /*if (strcmp_P(cmd, PSTR("shiftbtn")) == 0) {
       if ((arg1 >= 0) && (arg1 <= 32)) {
@@ -675,7 +682,7 @@ void processSerial() {
     if (strcmp_P(cmd, PSTR("autolimit")) == 0)
       if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
         wheel.analogAxes[arg1 - 1]->setAutoLimits(!wheel.analogAxes[arg1 - 1]->autoLimit);
-        /*Serial.print(F("Axis #"));
+        Serial.print(F("Axis #"));
         Serial.print(arg1);
         Serial.print(F(" autolimit"));
         if (wheel.analogAxes[arg1 - 1]->autoLimit)
@@ -702,14 +709,6 @@ void processSerial() {
       //Serial.println(settings.debounce);
     } 
 */
-    if (strcmp_P(cmd, PSTR("spring")) == 0) {
-      if (arg1 >= 0) {
-        settings.constantSpring = arg1;
-      }
-      //Serial.print(F("spring:"));
-      //Serial.println(settings.constantSpring);
-    }
-
     /*if (strcmp_P(cmd, PSTR("version")) == 0) {
       Serial.print(F(FIRMWARE_TYPE));
       Serial.print(F(":"));
@@ -770,7 +769,7 @@ void load(bool defaults) {
       } else {
         settingsE.axes[i].axisOutputDisabled = 1;
       }
-      settingsE.axes[i].axisCenter = -32768;  //no center
+      settingsE.axes[i].axisCenter = SHRT_MIN;  //no center
       settingsE.axes[i].axisDZ = 0;
       settingsE.axes[i].axisBitTrim = 0;
     }
@@ -829,7 +828,7 @@ void save() {
   if (!wheel.axisWheel->autoCenter) {
     settingsE.axisCenter = wheel.axisWheel->getCenter();
   } else {
-    settingsE.axisCenter = -32768;
+    settingsE.axisCenter = SHRT_MIN;
   }
   settingsE.axisDZ = wheel.axisWheel->getDZ();
   settingsE.axisBitTrim = wheel.axisWheel->bitTrim;
@@ -841,7 +840,7 @@ void save() {
     if (!wheel.analogAxes[i]->autoCenter)
       settingsE.axes[i].axisCenter = wheel.analogAxes[i]->getCenter();
     else
-      settingsE.axes[i].axisCenter = -32768;
+      settingsE.axes[i].axisCenter = SHRT_MIN;
     settingsE.axes[i].axisDZ = wheel.analogAxes[i]->getDZ();
 
     settingsE.axes[i].axisBitTrim = wheel.analogAxes[i]->bitTrim;
