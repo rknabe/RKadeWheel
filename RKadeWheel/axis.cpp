@@ -70,6 +70,7 @@ void Axis::setAutoLimits(bool _auto) {
   if (_auto) {
     axisMin = rawValue;
     axisMax = rawValue;
+    autoCenter = true;
     updateRangeFactor();
   }
   autoLimit = _auto;

@@ -785,7 +785,10 @@ void load(bool defaults) {
     settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
     settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
 
+    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
+    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
     settingsE.data.constantSpring = 0;
+    settingsE.data.afcOnStartup = 0;
     settingsE.data.mplexShifter = 0;
   }
 
