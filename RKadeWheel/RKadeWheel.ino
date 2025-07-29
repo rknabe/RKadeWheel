@@ -4,7 +4,6 @@
 #include "wheel.h"
 #include "motor.h"
 #include "settings.h"
-//#include "Keyboard.h"
 #include <HID-Project.h>
 #include "Keypad.h"
 #include "limits.h"
@@ -53,8 +52,6 @@ void setup() {
 
   //motor setup
   motor.begin();
-
-  System.begin();
 
   //while (!Serial) {  // Wait for serial port to connect
   //  ;                // do nothing (loop until Serial is ready)
@@ -488,18 +485,7 @@ void readButtons() {
     delay(2);
     Keyboard.release(KEY_ESC);
   } else if ((wheel.buttons & (uint32_t)pow(2, BTN_SHTDN_INDEX)) != 0) {
-    Serial.println("shutdown");
-    Keyboard.press(KEY_LEFT_WINDOWS);
-    Keyboard.press(KEY_X);
-    delay(20);
-    Keyboard.release(KEY_LEFT_WINDOWS);
-    Keyboard.release(KEY_X);
-    delay(1000);
-    Keyboard.press(KEY_U);
-    Keyboard.release(KEY_U);
-    delay(500);
-    Keyboard.press(KEY_U);
-    Keyboard.release(KEY_U);
+    System.write(SYSTEM_POWER_DOWN);
   }
 }
 //---------------------------------------- end buttons ----------------------------------------------
@@ -537,14 +523,14 @@ void processSerial() {
     //if (strcmp_P(cmd, PSTR("center")) == 0)
     // center();
 
-    if (strcmp_P(cmd, PSTR("load")) == 0)
+    /*if (strcmp_P(cmd, PSTR("load")) == 0)
       load();
 
     if (strcmp_P(cmd, PSTR("defaults")) == 0)
       load(true);
 
     if (strcmp_P(cmd, PSTR("save")) == 0)
-      save();
+      save();*/
 
     if (strcmp_P(cmd, PSTR("spring")) == 0) {
       if (arg1 >= 0) {

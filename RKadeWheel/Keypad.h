@@ -58,7 +58,7 @@ public:
   bool getKeys();
   KeyState getState();
   void begin(char *userKeymap);
-  bool isPressed(char keyChar);
+  //bool isPressed(char keyChar);
   void setDebounceTime(uint);
   void setHoldTime(uint);
   //void addEventListener(void (*listener)(char));

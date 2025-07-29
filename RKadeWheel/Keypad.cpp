@@ -149,6 +149,7 @@ void Keypad::nextKeyState(byte idx, boolean button) {
 }
 
 // New in 2.1
+/*
 bool Keypad::isPressed(char keyChar) {
   for (byte i = 0; i < LIST_MAX; i++) {
     if (key[i].kchar == keyChar) {
@@ -157,7 +158,7 @@ bool Keypad::isPressed(char keyChar) {
     }
   }
   return false;  // Not pressed.
-}
+}*/
 
 // Search by character for a key in the list of active keys.
 // Returns -1 if not found or the index into the list of active keys.
