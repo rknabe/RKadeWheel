@@ -4,7 +4,8 @@
 #include "wheel.h"
 #include "motor.h"
 #include "settings.h"
-#include "Keyboard.h"
+//#include "Keyboard.h"
+#include <HID-Project.h>
 #include "Keypad.h"
 #include "limits.h"
 #include <ArduinoShrink.h>
@@ -53,6 +54,8 @@ void setup() {
   //motor setup
   motor.begin();
 
+  System.begin();
+
   //while (!Serial) {  // Wait for serial port to connect
   //  ;                // do nothing (loop until Serial is ready)
   //}
@@ -86,58 +89,58 @@ void processKeypad() {
           char keycode = 0;
           switch (key) {
             case '*':
-              keycode = KEY_KP_ASTERISK;
+              keycode = KEYPAD_MULTIPLY;
               break;
             case '#':
-              keycode = KEY_KP_DOT;
+              keycode = KEYPAD_DOT;
               break;
             case '1':
-              keycode = KEY_KP_1;
+              keycode = KEYPAD_1;
               break;
             case '2':
-              keycode = KEY_KP_2;
+              keycode = KEYPAD_2;
               break;
             case '3':
-              keycode = KEY_KP_3;
+              keycode = KEYPAD_3;
               break;
             case '4':
-              keycode = KEY_KP_4;
+              keycode = KEYPAD_4;
               break;
             case '5':
-              keycode = KEY_KP_5;
+              keycode = KEYPAD_5;
               break;
             case '6':
-              keycode = KEY_KP_6;
+              keycode = KEYPAD_6;
               break;
             case '7':
-              keycode = KEY_KP_7;
+              keycode = KEYPAD_7;
               break;
             case '8':
-              keycode = KEY_KP_8;
+              keycode = KEYPAD_8;
               break;
             case '9':
-              keycode = KEY_KP_9;
+              keycode = KEYPAD_9;
               break;
             case '0':
-              keycode = KEY_KP_0;
+              keycode = KEYPAD_0;
               break;
           }
 
           switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
             case PRESSED:
               if (key == '#' && (isHeld('*') || isPressed('*'))) {
-                Keyboard.write(KEY_KP_ENTER);
+                Keyboard.write(KEYPAD_ENTER);
               } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
                 //*6 will toggle numlock mode
                 Keyboard.write(KEY_NUM_LOCK);
               } else {
-                Keyboard.press(keycode);
+                Keyboard.press(KeyboardKeycode(keycode));
               }
               break;
             case HOLD:
               break;
             case RELEASED:
-              Keyboard.release(keycode);
+              Keyboard.release(KeyboardKeycode(keycode));
               break;
             case IDLE:
               break;
@@ -482,8 +485,21 @@ void readButtons() {
 
   if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
     Keyboard.press(KEY_ESC);
-    delay(5);
+    delay(2);
     Keyboard.release(KEY_ESC);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_SHTDN_INDEX)) != 0) {
+    Serial.println("shutdown");
+    Keyboard.press(KEY_LEFT_WINDOWS);
+    Keyboard.press(KEY_X);
+    delay(20);
+    Keyboard.release(KEY_LEFT_WINDOWS);
+    Keyboard.release(KEY_X);
+    delay(1000);
+    Keyboard.press(KEY_U);
+    Keyboard.release(KEY_U);
+    delay(500);
+    Keyboard.press(KEY_U);
+    Keyboard.release(KEY_U);
   }
 }
 //---------------------------------------- end buttons ----------------------------------------------

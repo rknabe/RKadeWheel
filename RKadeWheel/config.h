@@ -65,7 +65,8 @@
 #define GEAR_BTN_IDX_5 30
 #define GEAR_BTN_IDX_6 31
 
-#define BTN_ESC_INDEX 11  //zero-based index, 16
+#define BTN_SHTDN_INDEX 10  //zero-based index, 15
+#define BTN_ESC_INDEX 11    //zero-based index, 16
 
 //----------------------------FFB settings-------------------------------
 //rknabe, use motor option 2, enabled next line
