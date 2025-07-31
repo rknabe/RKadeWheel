@@ -6,8 +6,6 @@
 #include "settings.h"
 #include <HID-Project.h>
 #include "Keypad.h"
-#include "limits.h"
-#include <ArduinoShrink.h>
 
 #define KEY_KP_ROWS 4  //four rows
 #define KEY_KP_COLS 3  //three columns
@@ -67,7 +65,7 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
-  processSerial();
+  //processSerial();
   if (keypadConnected) {
     processKeypad();
   }
@@ -91,32 +89,8 @@ void processKeypad() {
             case '#':
               keycode = KEYPAD_DOT;
               break;
-            case '1':
-              keycode = KEYPAD_1;
-              break;
-            case '2':
-              keycode = KEYPAD_2;
-              break;
-            case '3':
-              keycode = KEYPAD_3;
-              break;
-            case '4':
-              keycode = KEYPAD_4;
-              break;
-            case '5':
-              keycode = KEYPAD_5;
-              break;
-            case '6':
-              keycode = KEYPAD_6;
-              break;
-            case '7':
-              keycode = KEYPAD_7;
-              break;
-            case '8':
-              keycode = KEYPAD_8;
-              break;
-            case '9':
-              keycode = KEYPAD_9;
+            case '1' ... '9':
+              keycode = KEYPAD_1 + (key - 49);
               break;
             case '0':
               keycode = KEYPAD_0;
@@ -497,7 +471,7 @@ int32_t getWheelPositionAnalog() {
 }
 
 //Serial port - commands and output.
-void processSerial() {
+/*void processSerial() {
 
   if (Serial.available()) {
     char cmd[16];
@@ -513,17 +487,17 @@ void processSerial() {
 
     if (Serial.available()) {
       arg1 = Serial.parseInt(SKIP_WHITESPACE);
-    }
-    //if (Serial.available())
-    // arg2 = Serial.parseInt(SKIP_WHITESPACE);
-    //if (Serial.available())
-    //arg3 = Serial.parseInt(SKIP_WHITESPACE);
+    }*/
+//if (Serial.available())
+// arg2 = Serial.parseInt(SKIP_WHITESPACE);
+//if (Serial.available())
+//arg3 = Serial.parseInt(SKIP_WHITESPACE);
 
-    //center
-    //if (strcmp_P(cmd, PSTR("center")) == 0)
-    // center();
+//center
+//if (strcmp_P(cmd, PSTR("center")) == 0)
+// center();
 
-    /*if (strcmp_P(cmd, PSTR("load")) == 0)
+/*if (strcmp_P(cmd, PSTR("load")) == 0)
       load();
 
     if (strcmp_P(cmd, PSTR("defaults")) == 0)
@@ -532,15 +506,15 @@ void processSerial() {
     if (strcmp_P(cmd, PSTR("save")) == 0)
       save();*/
 
-    if (strcmp_P(cmd, PSTR("spring")) == 0) {
-      if (arg1 >= 0) {
-        settings.constantSpring = arg1;
-      }
-      //Serial.print(F("spring:"));
-      //Serial.println(settings.constantSpring);
-    }
+//if (strcmp_P(cmd, PSTR("spring")) == 0) {
+//   if (arg1 >= 0) {
+//settings.constantSpring = arg1;
+//  }
+//Serial.print(F("spring:"));
+//Serial.println(settings.constantSpring);
+//}
 
-    /*if (strcmp_P(cmd, PSTR("shiftbtn")) == 0) {
+/*if (strcmp_P(cmd, PSTR("shiftbtn")) == 0) {
       if ((arg1 >= 0) && (arg1 <= 32)) {
         settings.shiftButton = arg1 - 1;
       }
@@ -548,7 +522,7 @@ void processSerial() {
       Serial.println(settings.shiftButton + 1);
     }*/
 
-    /*
+/*
     if (strcmp_P(cmd, PSTR("range")) == 0) {
       if (arg1 > 0) {
         wheel.axisWheel->setRange(arg1);
@@ -711,13 +685,13 @@ void processSerial() {
       //Serial.println(settings.debounce);
     } 
 */
-    /*if (strcmp_P(cmd, PSTR("version")) == 0) {
+/*if (strcmp_P(cmd, PSTR("version")) == 0) {
       Serial.print(F(FIRMWARE_TYPE));
       Serial.print(F(":"));
       Serial.println(F(FIRMWARE_VER));
     }*/
-  }
-}
+// }
+//}
 
 //load and save settings
 void load(bool defaults) {
