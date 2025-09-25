@@ -8,6 +8,7 @@
 #include "wheel.h"
 #include "settings.h"
 #include "Keypad.h"
+#include <FastLED.h>
 
 const byte KEYPAD_ROWS = 4;  //four rows
 const byte KEYPAD_COLS = 3;  //three columns
@@ -29,8 +30,8 @@ float accelPct = 0;
 bool keypadConnected = false;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
-AnalogOut lShaker(LEFT_SHAKER_PIN);
-AnalogOut rShaker(RIGHT_SHAKER_PIN);
+//AnalogOut lShaker(LEFT_SHAKER_PIN);
+//AnalogOut rShaker(RIGHT_SHAKER_PIN);
 AnalogOut blower(BLOWER_PIN);
 AnalogOut brakeLed(BRAKE_LIGHT_PIN);
 AnalogOut trak1Led(TRAK1_LIGHT_PIN);
@@ -45,6 +46,11 @@ long trak3TurnOffMs = 0;
 long lastKeypadCheck = 0;
 Smooth smoothAcc(350);
 static const uint8_t dpb[] = { BUTTON_PINS };
+#define NUM_LEDS 21
+#define WHEEL_LITE_DATA_PIN 5
+CRGB leds[NUM_LEDS];
+uint8_t wheelLed = 0;
+long timeUntilNextWheelLite = -1;
 
 void load(bool defaults = false);
 
@@ -68,6 +74,9 @@ void setup() {
 
   Wire.begin();
   keypadConnected = keypadIO.begin() && keypadIO.isConnected();
+
+  FastLED.addLeds<WS2811, WHEEL_LITE_DATA_PIN, BRG>(leds, NUM_LEDS);
+  FastLED.setBrightness(255);
 }
 
 void loop() {
@@ -75,7 +84,7 @@ void loop() {
   readButtons();
   processUsbCmd();
   wheel.update();
-  processFFB();
+  //processFFB();
   if (keypadConnected) {
     processKeypad();
   }
@@ -84,7 +93,7 @@ void loop() {
   processBlower();
   processLights();
 
-  delay(6);
+  delay(4);
 }
 
 void calcAccelPct() {
@@ -112,6 +121,36 @@ void processBlower() {
   blower.write(pwmValBlower);
 }
 
+void incrementWheelLed() {
+  ++wheelLed;
+  if (wheelLed >= NUM_LEDS) {
+    wheelLed = 0;
+  }
+}
+
+void turnOffAllWheelLites() {
+  FastLED.clear();  // clear all pixel data
+  FastLED.show();
+}
+
+void processWheelLites(long time) {
+  if (accelPct > 0.03) {
+    if (time > timeUntilNextWheelLite) {
+      leds[wheelLed] = CRGB::Blue;
+      if (wheelLed > 0) {
+        leds[wheelLed - 1] = CRGB::Black;
+      } else if (wheelLed == 0) {
+        leds[NUM_LEDS - 1] = CRGB::Black;
+      }
+      FastLED.show();
+      timeUntilNextWheelLite = time + ((1 - accelPct) * 30);
+      incrementWheelLed();
+    }
+  } else {
+    turnOffAllWheelLites();
+  }
+}
+
 void processLights() {
   if (accelPct > 0.01) {
     if (!isTrakLedOn()) {
@@ -137,6 +176,8 @@ void processLights() {
   } else {
     brakeLed.write(0);
   }
+
+  processWheelLites(time);
 }
 
 void turnOnTrakLed1() {
@@ -285,7 +326,7 @@ bool isPressed(char keyChar) {
   return false;  // Not pressed.
 }
 
-void processFFB() {
+/*void processFFB() {
   int16_t force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
   force = applyForceLimit(force);
   if (abs(force) < 1200) {
@@ -303,7 +344,7 @@ void processFFB() {
     lShaker.write(0);
     rShaker.write(pwm);
   }
-}
+}*/
 
 //scaling force to minForce & maxForce and cut at cutForce
 int16_t applyForceLimit(int16_t force) {

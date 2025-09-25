@@ -25,8 +25,8 @@
 #define BTN_ESC_INDEX 10       //zero-based index, A3
 #define BTN_SHUTDOWN_INDEX 11  //zero-based index, A4
 
-#define LEFT_SHAKER_PIN 9
-#define RIGHT_SHAKER_PIN 10
+//#define LEFT_SHAKER_PIN 9
+//#define RIGHT_SHAKER_PIN 10
 #define BLOWER_PIN 11
 #define BRAKE_LIGHT_PIN 16
 #define TRAK1_LIGHT_PIN 5
