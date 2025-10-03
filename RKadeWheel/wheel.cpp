@@ -8,14 +8,9 @@ Wheel_::Wheel_(void) {
 
   axisWheel = new AxisWheel();
 
-  analogAxes[AXIS_ACC] = new Axis(MA_LEVEL_AXIS_ACC);
-  analogAxes[AXIS_BRAKE] = new Axis(MA_LEVEL_AXIS_BRAKE);
-  analogAxes[AXIS_CLUTCH] = new Axis(MA_LEVEL_AXIS_CLUTCH);
-  analogAxes[AXIS_AUX1] = new Axis(MA_LEVEL_AXIS_AUX1);
-  analogAxes[AXIS_AUX2] = new Axis(MA_LEVEL_AXIS_AUX2);
-  analogAxes[AXIS_AUX3] = new Axis(MA_LEVEL_AXIS_AUX3);
-  analogAxes[AXIS_AUX4] = new Axis(MA_LEVEL_AXIS_AUX4);
-  analogAxes[AXIS_AUX5] = new Axis(MA_LEVEL_AXIS_AUX5);
+  for (int i = 0; i < AXIS_COUNT; i++) {
+    analogAxes[i] = new Axis(MA_LEVEL_AXIS);
+  }
 }
 
 void Wheel_::update(void) {
@@ -23,10 +18,10 @@ void Wheel_::update(void) {
   wheelData data;
   data.axes[0] = axisWheel->value;
 
-  int8_t i;
-  for (i = 0; i < AXIS_REPORT_COUNT; i++) {
-    if (!analogAxes[i]->outputDisabled)
+  for (int i = 0; i < AXIS_REPORT_COUNT; i++) {
+    if (i < AXIS_COUNT && !analogAxes[i]->outputDisabled) {
       data.axes[i + 1] = analogAxes[i]->value;
+    }
   }
 
   data.buttons = buttons;

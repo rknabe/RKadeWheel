@@ -9,7 +9,7 @@
 
 //Input Report
 typedef struct {
-  int16_t axes[AXIS_COUNT] = { SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN };
+  int16_t axes[AXIS_REPORT_COUNT] = { SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN, SHRT_MIN };
   uint32_t buttons;
 } wheelData;
 

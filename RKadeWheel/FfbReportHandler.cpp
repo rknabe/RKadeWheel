@@ -139,13 +139,6 @@ void FfbReportHandler::FfbHandle_DeviceGain(USB_FFBReport_DeviceGain_Output_Data
   deviceGain = data->gain;
 }
 
-void FfbReportHandler::FfbHandle_SetCustomForce(USB_FFBReport_SetCustomForce_Output_Data_t* data) {
-}
-void FfbReportHandler::FfbHandle_SetCustomForceData(USB_FFBReport_SetCustomForceData_Output_Data_t* data) {
-}
-void FfbReportHandler::FfbHandle_SetDownloadForceSample(USB_FFBReport_SetDownloadForceSample_Output_Data_t* data) {
-}
-
 void FfbReportHandler::FfbHandle_SetEffect(USB_FFBReport_SetEffect_Output_Data_t* data) {
   volatile TEffectState* effect = &gEffectStates[data->effectBlockIndex];
 
@@ -242,7 +235,7 @@ void FfbReportHandler::SetRampForce(USB_FFBReport_SetRampForce_Output_Data_t* da
   effect->magnitude = ((int32_t)data->endMagnitude - data->startMagnitude) >> 1;
 }
 
-void FfbReportHandler::FfbOnCreateNewEffect(USB_FFBReport_CreateNewEffect_Feature_Data_t* inData) {
+void FfbReportHandler::FfbOnCreateNewEffect() {
   pidBlockLoad.reportId = 6;
   pidBlockLoad.effectBlockIndex = GetNextFreeEffect();
 
@@ -278,7 +271,7 @@ uint8_t* FfbReportHandler::FfbOnPIDStatus() {
 }
 
 
-void FfbReportHandler::FfbOnUsbData(uint8_t* data, uint16_t len) {
+void FfbReportHandler::FfbOnUsbData(uint8_t* data) {
   uint8_t effectId = data[1];  // effectBlockIndex is always the second byte.
   switch (data[0])             // reportID
   {
@@ -299,14 +292,6 @@ void FfbReportHandler::FfbOnUsbData(uint8_t* data, uint16_t len) {
       break;
     case 6:
       SetRampForce((USB_FFBReport_SetRampForce_Output_Data_t*)data, &gEffectStates[effectId]);
-      break;
-    case 7:
-      //FfbHandle_SetCustomForceData((USB_FFBReport_SetCustomForceData_Output_Data_t*)data);
-      break;
-    case 8:
-      //FfbHandle_SetDownloadForceSample((USB_FFBReport_SetDownloadForceSample_Output_Data_t*)data);
-      break;
-    case 9:
       break;
     case 10:
       FfbHandle_EffectOperation((USB_FFBReport_EffectOperation_Output_Data_t*)data);

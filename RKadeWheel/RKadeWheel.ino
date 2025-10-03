@@ -28,18 +28,15 @@ SettingsData settings;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
 static const uint8_t dpb[] = { DPB_PINS };
-bool keypadConnected = false;
+char lastKeyHeld = ' ';
+bool numPadMode = true;
 
 void load(bool defaults = false);
-int32_t getWheelPositionAnalog();
-
-//------------------------ steering wheel sensor ----------------------------
-#define GET_WHEEL_POS getWheelPositionAnalog()
 
 //-------------------------------------------------------------------------------------
 void setup() {
-  Serial.begin(SERIAL_BAUDRATE);
-  Serial.setTimeout(50);
+  //Serial.begin(SERIAL_BAUDRATE);
+  //Serial.setTimeout(50);
 
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
@@ -55,7 +52,8 @@ void setup() {
   //  ;                // do nothing (loop until Serial is ready)
   //}
   Wire.begin();
-  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
+  //BootKeyboard.begin();
+  keypadIO.begin();
 }
 
 void loop() {
@@ -66,7 +64,9 @@ void loop() {
   wheel.update();
   processFFB();
   //processSerial();
-  if (keypadConnected) {
+
+  if (millis() - lastKeypadCheck > 50) {
+    lastKeypadCheck = millis();
     processKeypad();
   }
 
@@ -74,72 +74,79 @@ void loop() {
 }
 
 void processKeypad() {
-  if (millis() - lastKeypadCheck > 50) {
-    lastKeypadCheck = millis();
-
-    if (keypad.getKeys()) {
-      for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
-        if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
-          char key = keypad.key[i].kchar;
-          char keycode = 0;
-          switch (key) {
-            case '*':
+  if (keypad.getKeys()) {
+    for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
+      if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
+        char key = keypad.key[i].kchar;
+        char keycode = 0;
+        switch (key) {
+          case '*':
+            keycode = KEY_N;
+            if (numPadMode) {
               keycode = KEYPAD_MULTIPLY;
-              break;
-            case '#':
+            }
+            break;
+          case '#':
+            keycode = KEY_ENTER;
+            if (numPadMode) {
               keycode = KEYPAD_DOT;
-              break;
-            case '1' ... '9':
+            }
+            break;
+          case '1' ... '9':
+            keycode = KEY_1 + (key - 49);
+            if (numPadMode) {
               keycode = KEYPAD_1 + (key - 49);
-              break;
-            case '0':
+            }
+            break;
+          case '0':
+            keycode = KEY_0;
+            if (numPadMode) {
               keycode = KEYPAD_0;
-              break;
-          }
+            }
+            break;
+        }
 
-          switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
-            case PRESSED:
-              if (key == '#' && (isHeld('*') || isPressed('*'))) {
-                Keyboard.write(KEYPAD_ENTER);
-              } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
-                //*6 will toggle numlock mode
-                Keyboard.write(KEY_NUM_LOCK);
-              } else {
-                Keyboard.press(KeyboardKeycode(keycode));
-              }
-              break;
-            case HOLD:
-              break;
-            case RELEASED:
-              Keyboard.release(KeyboardKeycode(keycode));
-              break;
-            case IDLE:
-              break;
-          }
+        switch (keypad.key[i].kstate) {
+          case PRESSED:
+            //if (!(BootKeyboard.getLeds() & LED_NUM_LOCK)) {
+            //  BootKeyboard.write(KEY_NUM_LOCK);
+            //}
+            break;
+          case HOLD:
+            lastKeyHeld = key;
+            switch (key) {
+              case '#':
+                send(KEYPAD_ENTER);
+                break;
+              case '*':
+                send(KEYPAD_DIVIDE);
+                break;
+              case '6':
+                send(KEY_NUM_LOCK);
+                break;
+              case '0':
+                numPadMode = !numPadMode;
+                break;
+            }
+            break;
+          case RELEASED:
+            if (key != lastKeyHeld) {
+              send(keycode);
+            }
+            lastKeyHeld = ' ';
+            break;
+          case IDLE:
+            break;
         }
       }
     }
   }
 }
 
-bool isHeld(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == HOLD))
-        return true;
-    }
-  }
-  return false;  // Not held.
-}
-
-bool isPressed(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == PRESSED))
-        return true;
-    }
-  }
-  return false;  // Not pressed.
+void send(char keycode) {
+  Keyboard.press(KeyboardKeycode(keycode));
+  delay(40);
+  Keyboard.release(KeyboardKeycode(keycode));
 }
 
 //Processing endstop and force feedback
@@ -319,9 +326,6 @@ void processUsbCmd() {
       case 22:  //load defaults
         load(true);
         break;
-      case 23:  //center wheel
-        //center();
-        break;
       case 24:  //wheel limits
         wheel.axisWheel->setLimits(usbCmd->arg[0], usbCmd->arg[1]);
         break;
@@ -358,17 +362,8 @@ void readAnalogAxes() {
 #ifdef PIN_AUX2
   wheel.analogAxes[AXIS_AUX2]->setValue(analogRead(PIN_AUX2));
 #endif
-#ifdef PIN_AUX3
-  wheel.analogAxes[AXIS_AUX3]->setValue(analogRead(PIN_AUX3));
-#endif
-#ifdef PIN_AUX4
-  wheel.analogAxes[AXIS_AUX4]->setValue(analogRead(PIN_AUX4));
-#endif
-#ifdef PIN_AUX5
-  wheel.analogAxes[AXIS_AUX5]->setValue(analogRead(PIN_AUX5));
-#endif
 #ifdef PIN_ST_ANALOG
-  GET_WHEEL_POS;
+  wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
 #endif
 }
 
@@ -386,14 +381,14 @@ void readButtons() {
     d = (uint8_t *)&wheel.buttons;
   }
 
-  int i = 0;
+  uint i = 0;
   if (settings.mplexShifter > 0) {
     //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
     bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
     bool switch2 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_2])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_2])) == 0;
     bool switch3 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_3])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_3])) == 0;
     bool switch4 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_4])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_4])) == 0;
-    uint8_t gear = 32767;
+    uint8_t gear = 255;
     if (switch3) {
       gear = GEAR_BTN_IDX_3;
       if (switch1) {
@@ -409,7 +404,7 @@ void readButtons() {
         gear = GEAR_BTN_IDX_6;
       }
     }
-    if (gear >= 0 && gear <= 31) {
+    if (gear <= 31) {
       bitWrite(*((uint32_t *)d), gear, gear + 1);
     }
     i = 4;
@@ -455,243 +450,12 @@ void readButtons() {
 
 
   if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
-    Keyboard.press(KEY_ESC);
-    delay(2);
-    Keyboard.release(KEY_ESC);
+    send(KEY_ESC);
   } else if ((wheel.buttons & (uint32_t)pow(2, BTN_SHTDN_INDEX)) != 0) {
     System.write(SYSTEM_POWER_DOWN);
   }
 }
 //---------------------------------------- end buttons ----------------------------------------------
-
-
-int32_t getWheelPositionAnalog() {
-  wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
-  return wheel.axisWheel->value;
-}
-
-//Serial port - commands and output.
-/*void processSerial() {
-
-  if (Serial.available()) {
-    char cmd[16];
-    uint8_t cmdLength;
-    int32_t arg1;  //, arg2, arg3;
-
-    arg1 = SHRT_MIN;
-    //arg2 = SHRT_MIN;
-    //arg3 = SHRT_MIN;
-
-    cmdLength = Serial.readBytesUntil(' ', cmd, 15);
-    cmd[cmdLength] = 0;
-
-    if (Serial.available()) {
-      arg1 = Serial.parseInt(SKIP_WHITESPACE);
-    }*/
-//if (Serial.available())
-// arg2 = Serial.parseInt(SKIP_WHITESPACE);
-//if (Serial.available())
-//arg3 = Serial.parseInt(SKIP_WHITESPACE);
-
-//center
-//if (strcmp_P(cmd, PSTR("center")) == 0)
-// center();
-
-/*if (strcmp_P(cmd, PSTR("load")) == 0)
-      load();
-
-    if (strcmp_P(cmd, PSTR("defaults")) == 0)
-      load(true);
-
-    if (strcmp_P(cmd, PSTR("save")) == 0)
-      save();*/
-
-//if (strcmp_P(cmd, PSTR("spring")) == 0) {
-//   if (arg1 >= 0) {
-//settings.constantSpring = arg1;
-//  }
-//Serial.print(F("spring:"));
-//Serial.println(settings.constantSpring);
-//}
-
-/*if (strcmp_P(cmd, PSTR("shiftbtn")) == 0) {
-      if ((arg1 >= 0) && (arg1 <= 32)) {
-        settings.shiftButton = arg1 - 1;
-      }
-      Serial.print(F("Shift button: "));
-      Serial.println(settings.shiftButton + 1);
-    }*/
-
-/*
-    if (strcmp_P(cmd, PSTR("range")) == 0) {
-      if (arg1 > 0) {
-        wheel.axisWheel->setRange(arg1);
-      }
-      //Serial.print(F("Wheel range: "));
-      //Serial.println(wheel.axisWheel->range);
-    }
-
-    if (strcmp_P(cmd, PSTR("maxvd")) == 0) {
-      if (arg1 > 0) {
-        wheel.ffbEngine.maxVelocityDamperC = 16384.0 / arg1;
-      }
-      //Serial.print(F("max velocity damper: "));
-      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityDamperC));
-    }
-
-    if (strcmp_P(cmd, PSTR("maxvf")) == 0) {
-      if (arg1 > 0) {
-        wheel.ffbEngine.maxVelocityFrictionC = 16384.0 / arg1;
-      }
-      //Serial.print(F("max velocity friction: "));
-      //Serial.println(round(16384.0 / wheel.ffbEngine.maxVelocityFrictionC));
-    }
-
-    if (strcmp_P(cmd, PSTR("maxacc")) == 0) {
-      if (arg1 > 0) {
-        wheel.ffbEngine.maxAccelerationInertiaC = 16384.0 / arg1;
-      }
-      //Serial.print(F("max acceleration: "));
-      //Serial.println(round(16384.0 / wheel.ffbEngine.maxAccelerationInertiaC));
-    }
-
-    if (strcmp_P(cmd, PSTR("forcelimit")) == 0) {
-      if ((arg1 >= 0) && (arg1 <= 16383))
-        settings.minForce = arg1;
-      if ((arg2 >= 0) && (arg2 <= 16383))
-        settings.maxForce = arg2;
-      if ((arg3 >= 0) && (arg3 <= 16383))
-        settings.cutForce = arg3;
-
-      //Serial.print(F("MinForce: "));
-      //Serial.print(settings.minForce);
-      //Serial.print(F(" MaxForce: "));
-      //Serial.print(settings.maxForce);
-      //Serial.print(F(" CutForce: "));
-      //Serial.println(settings.cutForce);
-    }
-
-    if (strcmp_P(cmd, PSTR("gain")) == 0) {
-      if ((arg1 >= 0) && (arg1 <= 12)) {
-        if ((arg2 >= 0) && (arg2 <= 32767)) {
-          settings.gain[arg1] = arg2;
-        }
-        //Serial.print(F("Gain "));
-        //Serial.print(arg1);
-        //Serial.print(" ");
-        //printEffect(arg1);
-        //Serial.print(F(": "));
-        //Serial.println(settings.gain[arg1]);
-      }
-    }
-
-    //axisinfo <axis>
-    if (strcmp_P(cmd, PSTR("axisinfo")) == 0) {
-      if ((arg1 >= 0) && (arg1 <= AXIS_COUNT))
-        axisInfo = arg1;
-      else
-        axisInfo = -1;
-    }
-
-    //limits <axis> <min> <max>
-    if (strcmp_P(cmd, PSTR("limit")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        if ((arg2 > -32768) && (arg3 > -32768))
-          wheel.analogAxes[arg1 - 1]->setLimits(arg2, arg3);
-
-        //Serial.print(F("Limits axis#"));
-        //Serial.print(arg1);
-        //Serial.print(F(": "));
-        //Serial.print(wheel.analogAxes[arg1 - 1]->axisMin);
-        //Serial.print(" ");
-        //Serial.println(wheel.analogAxes[arg1 - 1]->axisMax);
-      }
-
-    //axiscenter <axis> <pos>
-    if (strcmp_P(cmd, PSTR("axiscenter")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        if (arg2 > -32768)
-          wheel.analogAxes[arg1 - 1]->setCenter(arg2);
-        //Serial.print(F("Axis#"));
-        //Serial.print(arg1);
-        //Serial.print(F(" center:"));
-        //Serial.println(wheel.analogAxes[arg1 - 1]->getCenter());
-      }
-
-    //axisdz <axis> <pos>
-    if (strcmp_P(cmd, PSTR("axisdz")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        if (arg2 > -32768)
-          wheel.analogAxes[arg1 - 1]->setDZ(arg2);
-        //Serial.print(F("Axis#"));
-        //Serial.print(arg1);
-        //Serial.print(F(" Deadzone:"));
-        //Serial.println(wheel.analogAxes[arg1 - 1]->getDZ());
-      }
-
-    //axisdisable <axis> <pos>
-    if (strcmp_P(cmd, PSTR("axisdisable")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        wheel.analogAxes[arg1 - 1]->outputDisabled = !wheel.analogAxes[arg1 - 1]->outputDisabled;
-
-        //Serial.print(F("Axis#"));
-        //Serial.print(arg1);
-        //if (wheel.analogAxes[arg1 - 1]->outputDisabled)
-        //  Serial.println(F(" disabled"));
-        // else
-        //  Serial.println(F(" enabled"));
-      }
-
-    //axistrim <axis> <level>
-    if (strcmp_P(cmd, PSTR("axistrim")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        if ((arg2 >= 0) && (arg2 < 8))
-          wheel.analogAxes[arg1 - 1]->bitTrim = arg2;
-
-        //Serial.print(F("Axis#"));
-        //Serial.print(arg1);
-        //Serial.print(F(" trim:"));
-        //Serial.println(wheel.analogAxes[arg1 - 1]->bitTrim);
-      }
-
-    //autolimits <axis>
-    if (strcmp_P(cmd, PSTR("autolimit")) == 0)
-      if ((arg1 >= 1) && (arg1 <= AXIS_COUNT)) {
-        wheel.analogAxes[arg1 - 1]->setAutoLimits(!wheel.analogAxes[arg1 - 1]->autoLimit);
-        Serial.print(F("Axis #"));
-        Serial.print(arg1);
-        Serial.print(F(" autolimit"));
-        if (wheel.analogAxes[arg1 - 1]->autoLimit)
-          Serial.println(F(" on"));
-        else
-          Serial.println(F(" off"));
-      }
-
-    //FFB PWM bitdepth/frequency
-    if (strcmp_P(cmd, PSTR("ffbbd")) == 0) {
-      if (arg1 > 0)
-        motor.setBitDepth(arg1);
-      //Serial.print(F("FFB Bitdepth:"));
-      // Serial.print(motor.bitDepth);
-      // Serial.print(F(" Freq:"));
-      // Serial.println(16000000 / ((uint16_t)1 << (motor.bitDepth + 1)));
-    }
-
-    //Debounce
-    if (strcmp_P(cmd, PSTR("debounce")) == 0) {
-      if (arg1 >= 0)
-        settings.debounce = arg1;
-      //Serial.print(F("Debounce:"));
-      //Serial.println(settings.debounce);
-    } 
-*/
-/*if (strcmp_P(cmd, PSTR("version")) == 0) {
-      Serial.print(F(FIRMWARE_TYPE));
-      Serial.print(F(":"));
-      Serial.println(F(FIRMWARE_VER));
-    }*/
-// }
-//}
 
 //load and save settings
 void load(bool defaults) {
@@ -705,21 +469,15 @@ void load(bool defaults) {
   //Loading defaults
   if (defaults || (settingsE.checksum != checksum)) {
 
-    //Serial.println(F("Loading defaults"));
+    for (i = 0; i < GAIN_COUNT; i++) {
+      settingsE.data.gain[i] = 1024;
+    }
 
-    settingsE.data.gain[0] = 1024;
-    settingsE.data.gain[1] = 1024;
     settingsE.data.gain[2] = 768;
-    settingsE.data.gain[3] = 1024;
     settingsE.data.gain[4] = 1280;
-    settingsE.data.gain[5] = 1024;
-    settingsE.data.gain[6] = 1024;
-    settingsE.data.gain[7] = 1024;
-    settingsE.data.gain[8] = 1024;
     settingsE.data.gain[9] = 410;
-    settingsE.data.gain[10] = 1024;
     settingsE.data.gain[11] = 256;
-    settingsE.data.gain[12] = 0;
+    //settingsE.data.gain[12] = 0;
 
     //wheel settings
     settingsE.range = WHEEL_RANGE_DEFAULT;

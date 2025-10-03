@@ -112,7 +112,7 @@ void HID_FFB::RecvFfbReport() {
     uint8_t out_ffbdata[64];
     uint16_t len = USB_Recv(HID_ENDPOINT_OUT, &out_ffbdata, 64);
     if (len >= 0) {
-      ffbReportHandler.FfbOnUsbData(out_ffbdata, len);
+      ffbReportHandler.FfbOnUsbData(out_ffbdata);
     }
   }
 }
@@ -163,7 +163,7 @@ bool HID_FFB::HID_SetReport(USBSetup& setup) {
     if (report_id == 5) {
       USB_FFBReport_CreateNewEffect_Feature_Data_t ans;
       USB_RecvControl(&ans, sizeof(USB_FFBReport_CreateNewEffect_Feature_Data_t));
-      ffbReportHandler.FfbOnCreateNewEffect(&ans);
+      ffbReportHandler.FfbOnCreateNewEffect();
     }
     return (true);
   }

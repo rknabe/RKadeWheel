@@ -2,8 +2,7 @@
 #include <Arduino.h>
 
 #pragma once
-
-#define FIRMWARE_VER "1.1.8"
+#define FIRMWARE_VER "2.0.1-DX"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
@@ -14,10 +13,10 @@
 #define AXIS_AUX3 5
 #define AXIS_AUX4 6
 #define AXIS_AUX5 7
-#define AXIS_COUNT 8
+#define AXIS_COUNT 5
 #define AXIS_REPORT_COUNT 8
 
-#define GAIN_COUNT 13
+#define GAIN_COUNT 12
 #define GAIN_SPRING 8
 
 struct SettingsAxis {
@@ -33,7 +32,7 @@ struct SettingsAxis {
 struct SettingsData {
   int16_t gain[GAIN_COUNT];
 
-  int8_t shiftButton;
+  uint8_t shiftButton;
   uint8_t debounce;
 
   int16_t minForce;
