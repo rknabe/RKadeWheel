@@ -30,14 +30,12 @@ uint8_t debounceCount = 0;
 static const uint8_t dpb[] = { DPB_PINS };
 char lastKeyHeld = ' ';
 bool numPadMode = true;
+bool keyPadConnected = false;
 
 void load(bool defaults = false);
 
 //-------------------------------------------------------------------------------------
 void setup() {
-  //Serial.begin(SERIAL_BAUDRATE);
-  //Serial.setTimeout(50);
-
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
@@ -48,12 +46,17 @@ void setup() {
   //motor setup
   motor.begin();
 
-  //while (!Serial) {  // Wait for serial port to connect
-  //  ;                // do nothing (loop until Serial is ready)
-  //}
   Wire.begin();
   //BootKeyboard.begin();
-  keypadIO.begin();
+  keyPadConnected = keypadIO.begin();
+
+  /*Serial.begin(SERIAL_BAUDRATE);
+  Serial.setTimeout(50);
+  while (!Serial) {  // Wait for serial port to connect
+    ;                // do nothing (loop until Serial is ready)
+  }
+  Serial.print("keypad:");
+  Serial.println(keyPadConnected);*/
 }
 
 void loop() {
@@ -65,7 +68,7 @@ void loop() {
   processFFB();
   //processSerial();
 
-  if (millis() - lastKeypadCheck > 50) {
+  if (keyPadConnected && (millis() - lastKeypadCheck > 50)) {
     lastKeypadCheck = millis();
     processKeypad();
   }
@@ -126,6 +129,12 @@ void processKeypad() {
                 break;
               case '0':
                 numPadMode = !numPadMode;
+                break;
+              case '1':
+                numPadMode = true;
+                break;
+              case '2':
+                numPadMode = false;
                 break;
             }
             break;
