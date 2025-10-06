@@ -29,6 +29,9 @@ void setup() {
 
   //motor setup
   motor.begin();
+
+  //this helps firmware update
+  delay(1000);
 }
 
 void loop() {
