@@ -73,7 +73,7 @@ void loop() {
     processKeypad();
   }
 
-  delay(6);
+  delay(10);
 }
 
 void processKeypad() {
