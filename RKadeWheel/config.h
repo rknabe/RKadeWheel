@@ -45,15 +45,9 @@
 #define MA_LEVEL_AXIS 10
 #define MA_LEVEL_AXIS_ST_ANALOG 10
 
-#ifdef NO_KEYPAD
 #define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
 #define BTN_SHTDN_INDEX 12  //zero-based index, 15
 #define BTN_ESC_INDEX 13    //zero-based index, 16
-#else
-#define DPB_PINS 0, 1, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
-#define BTN_SHTDN_INDEX 10  //zero-based index, 15
-#define BTN_ESC_INDEX 11    //zero-based index, 16
-#endif
 
 #define DPB_1ST_BTN 1
 #define GEAR_BTN_IDX_1 0

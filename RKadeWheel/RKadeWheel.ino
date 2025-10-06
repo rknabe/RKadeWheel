@@ -5,31 +5,6 @@
 #include "settings.h"
 #include <HID-Project.h>
 
-//#define NO_KEYPAD
-#define KEYPAD
-
-#ifdef KEYPAD
-#include <PCF8574.h>
-#include "Keypad.h"
-
-#define KEY_KP_ROWS 4  //four rows
-#define KEY_KP_COLS 3  //three columns
-char keys[KEY_KP_ROWS][KEY_KP_COLS] = {
-  { '1', '2', '3' },
-  { '4', '5', '6' },
-  { '7', '8', '9' },
-  { '*', '0', '#' }
-};
-byte rowPins[KEY_KP_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
-byte colPins[KEY_KP_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
-long lastKeypadCheck = 0;
-PCF8574 keypadIO(0x20);
-Keypad keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEY_KP_ROWS, KEY_KP_COLS);
-char lastKeyHeld = ' ';
-bool numPadMode = true;
-bool keyPadConnected = false;
-#endif
-
 //global variables
 Wheel_ wheel;
 Motor motor;
@@ -54,17 +29,6 @@ void setup() {
 
   //motor setup
   motor.begin();
-
-#ifdef KEYPAD
-  Wire.begin();
-  keyPadConnected = keypadIO.begin();
-#endif
-
-  /*while (!Serial) {  // Wait for serial port to connect
-    ;                // do nothing (loop until Serial is ready)
-  }
-  Serial.print("keypad:");
-  Serial.println(keyPadConnected);*/
 }
 
 void loop() {
@@ -74,97 +38,10 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
-
-#ifdef KEYPAD
-  if (keyPadConnected && (millis() - lastKeypadCheck > 50)) {
-    lastKeypadCheck = millis();
-    processKeypad();
-  }
-#endif
-  //#else
   processSerial();
-  //#endif
 
   delay(6);
 }
-
-#ifdef KEYPAD
-void processKeypad() {
-  if (keypad.getKeys()) {
-    for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
-      if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
-        char key = keypad.key[i].kchar;
-        char keycode = 0;
-        switch (key) {
-          case '*':
-            keycode = KEY_N;
-            if (numPadMode) {
-              keycode = KEYPAD_MULTIPLY;
-            }
-            break;
-          case '#':
-            keycode = KEY_ENTER;
-            if (numPadMode) {
-              keycode = KEYPAD_DOT;
-            }
-            break;
-          case '1' ... '9':
-            keycode = KEY_1 + (key - 49);
-            if (numPadMode) {
-              keycode = KEYPAD_1 + (key - 49);
-            }
-            break;
-          case '0':
-            keycode = KEY_0;
-            if (numPadMode) {
-              keycode = KEYPAD_0;
-            }
-            break;
-        }
-
-        switch (keypad.key[i].kstate) {
-          case PRESSED:
-            //if (!(BootKeyboard.getLeds() & LED_NUM_LOCK)) {
-            //  BootKeyboard.write(KEY_NUM_LOCK);
-            //}
-            break;
-          case HOLD:
-            lastKeyHeld = key;
-            switch (key) {
-              case '#':
-                send(KEYPAD_ENTER);
-                break;
-              case '*':
-                send(KEYPAD_DIVIDE);
-                break;
-              case '6':
-                send(KEY_NUM_LOCK);
-                break;
-              case '0':
-                numPadMode = !numPadMode;
-                break;
-              case '1':
-                numPadMode = true;
-                break;
-              case '2':
-                numPadMode = false;
-                break;
-            }
-            break;
-          case RELEASED:
-            if (key != lastKeyHeld) {
-              send(keycode);
-            }
-            lastKeyHeld = ' ';
-            break;
-          case IDLE:
-            break;
-        }
-      }
-    }
-  }
-}
-#endif
 
 void send(char keycode) {
   Keyboard.press(KeyboardKeycode(keycode));
@@ -616,15 +493,13 @@ void save() {
   EEPROM.put(0, settingsE);
 }
 
-//#ifdef NO_KEYPAD
-//Serial port - commands and output.
 void processSerial() {
   if (Serial.available()) {
-    char cmd[11];
+    char cmd[16];
     uint8_t cmdLength;
     int32_t arg1 = -32768;
 
-    cmdLength = Serial.readBytesUntil(' ', cmd, 10);
+    cmdLength = Serial.readBytesUntil(' ', cmd, 15);
     cmd[cmdLength] = 0;
 
     if (Serial.available())
@@ -637,4 +512,3 @@ void processSerial() {
     }
   }
 }
-//#endif

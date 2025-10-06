@@ -2,11 +2,7 @@
 #include <Arduino.h>
 
 #pragma once
-#ifdef NO_KEYPAD
-#define FIRMWARE_VER "2.0.4-DXN"
-#else
-#define FIRMWARE_VER "2.0.4-DX"
-#endif
+#define FIRMWARE_VER "3.0.0"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0
