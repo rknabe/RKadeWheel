@@ -1,10 +1,15 @@
 #include <EEPROM.h>
-#include <PCF8574.h>
 #include "config.h"
 #include "wheel.h"
 #include "motor.h"
 #include "settings.h"
 #include <HID-Project.h>
+
+//#define NO_KEYPAD
+#define KEYPAD
+
+#ifdef KEYPAD
+#include <PCF8574.h>
 #include "Keypad.h"
 
 #define KEY_KP_ROWS 4  //four rows
@@ -20,6 +25,10 @@ byte colPins[KEY_KP_COLS] = { 2, 0, 4 };     //connect to the column pinouts of 
 long lastKeypadCheck = 0;
 PCF8574 keypadIO(0x20);
 Keypad keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEY_KP_ROWS, KEY_KP_COLS);
+char lastKeyHeld = ' ';
+bool numPadMode = true;
+bool keyPadConnected = false;
+#endif
 
 //global variables
 Wheel_ wheel;
@@ -28,14 +37,14 @@ SettingsData settings;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
 static const uint8_t dpb[] = { DPB_PINS };
-char lastKeyHeld = ' ';
-bool numPadMode = true;
-bool keyPadConnected = false;
 
 void load(bool defaults = false);
 
 //-------------------------------------------------------------------------------------
 void setup() {
+  Serial.begin(SERIAL_BAUDRATE);
+  Serial.setTimeout(50);
+
   for (uint8_t i = 0; i < sizeof(dpb); i++) {
     pinMode(dpb[i], INPUT_PULLUP);
   }
@@ -46,13 +55,12 @@ void setup() {
   //motor setup
   motor.begin();
 
+#ifdef KEYPAD
   Wire.begin();
-  //BootKeyboard.begin();
   keyPadConnected = keypadIO.begin();
+#endif
 
-  /*Serial.begin(SERIAL_BAUDRATE);
-  Serial.setTimeout(50);
-  while (!Serial) {  // Wait for serial port to connect
+  /*while (!Serial) {  // Wait for serial port to connect
     ;                // do nothing (loop until Serial is ready)
   }
   Serial.print("keypad:");
@@ -66,16 +74,21 @@ void loop() {
   processUsbCmd();
   wheel.update();
   processFFB();
-  //processSerial();
 
+#ifdef KEYPAD
   if (keyPadConnected && (millis() - lastKeypadCheck > 50)) {
     lastKeypadCheck = millis();
     processKeypad();
   }
+#endif
+  //#else
+  processSerial();
+  //#endif
 
   delay(6);
 }
 
+#ifdef KEYPAD
 void processKeypad() {
   if (keypad.getKeys()) {
     for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
@@ -151,6 +164,7 @@ void processKeypad() {
     }
   }
 }
+#endif
 
 void send(char keycode) {
   Keyboard.press(KeyboardKeycode(keycode));
@@ -390,7 +404,7 @@ void readButtons() {
     d = (uint8_t *)&wheel.buttons;
   }
 
-  uint i = 0;
+  uint8_t i = 0;
   if (settings.mplexShifter > 0) {
     //first six buttons are for gear 1-6, but shifter only has 4 switches, multiplex to 1 of 6 buttons
     bool switch1 = (*portInputRegister(digitalPinToPort(dpb[GEAR_BTN_IDX_1])) & digitalPinToBitMask(dpb[GEAR_BTN_IDX_1])) == 0;
@@ -601,3 +615,26 @@ void save() {
 
   EEPROM.put(0, settingsE);
 }
+
+//#ifdef NO_KEYPAD
+//Serial port - commands and output.
+void processSerial() {
+  if (Serial.available()) {
+    char cmd[11];
+    uint8_t cmdLength;
+    int32_t arg1 = -32768;
+
+    cmdLength = Serial.readBytesUntil(' ', cmd, 10);
+    cmd[cmdLength] = 0;
+
+    if (Serial.available())
+      arg1 = Serial.parseInt(SKIP_WHITESPACE);
+
+    if (strcmp_P(cmd, PSTR("spring")) == 0) {
+      if (arg1 >= 0) {
+        settings.constantSpring = arg1;
+      }
+    }
+  }
+}
+//#endif
