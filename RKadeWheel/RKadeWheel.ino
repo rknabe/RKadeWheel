@@ -344,7 +344,7 @@ bool isPressed(char keyChar) {
     lShaker.write(0);
     rShaker.write(pwm);
   }
-}*/
+}
 
 //scaling force to minForce & maxForce and cut at cutForce
 int16_t applyForceLimit(int16_t force) {
@@ -364,7 +364,7 @@ int16_t applyForceLimit(int16_t force) {
     return force;
   else
     return constrain(force, -settings.cutForce, settings.cutForce);
-}
+}*/
 
 /*
   communicating with GUI:
