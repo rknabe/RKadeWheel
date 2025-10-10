@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 #pragma once
-#define FIRMWARE_VER "3.0.0"
+#define FIRMWARE_VER "3.0.1"
 #define FIRMWARE_TYPE "RKADE"
 
 #define AXIS_ACC 0

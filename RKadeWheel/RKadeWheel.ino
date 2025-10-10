@@ -43,7 +43,7 @@ void loop() {
   processFFB();
   processSerial();
 
-  delay(6);
+  delay(10);
 }
 
 void send(char keycode) {
