@@ -1,37 +1,18 @@
 #include <EEPROM.h>
 #include <AnalogIO.h>
 #include <Smooth.h>
-#include <PCF8574.h>
 #include <HID-Project.h>
-
 #include "config.h"
 #include "wheel.h"
 #include "settings.h"
-#include "Keypad.h"
 #include <FastLED.h>
-
-const byte KEYPAD_ROWS = 4;  //four rows
-const byte KEYPAD_COLS = 3;  //three columns
-char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
-  { '1', '2', '3' },
-  { '4', '5', '6' },
-  { '7', '8', '9' },
-  { '*', '0', '#' }
-};
-byte rowPins[KEYPAD_ROWS] = { 1, 6, 5, 3 };  //connect to the row pinouts of the kpd
-byte colPins[KEYPAD_COLS] = { 2, 0, 4 };     //connect to the column pinouts of the kpd
-PCF8574 keypadIO(0x20);
-Keypad keypad = Keypad(&keypadIO, makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 //global variables
 Wheel_ wheel;
 SettingsData settings;
 float accelPct = 0;
-bool keypadConnected = false;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
-//AnalogOut lShaker(LEFT_SHAKER_PIN);
-//AnalogOut rShaker(RIGHT_SHAKER_PIN);
 AnalogOut blower(BLOWER_PIN);
 AnalogOut brakeLed(BRAKE_LIGHT_PIN);
 AnalogOut trak1Led(TRAK1_LIGHT_PIN);
@@ -43,7 +24,6 @@ bool trak3LedOn = false;
 long trak1TurnOffMs = 0;
 long trak2TurnOffMs = 0;
 long trak3TurnOffMs = 0;
-long lastKeypadCheck = 0;
 Smooth smoothAcc(350);
 static const uint8_t dpb[] = { BUTTON_PINS };
 #define NUM_LEDS 21
@@ -72,9 +52,6 @@ void setup() {
   //load settings
   load();
 
-  Wire.begin();
-  keypadConnected = keypadIO.begin() && keypadIO.isConnected();
-
   FastLED.addLeds<WS2811, WHEEL_LITE_DATA_PIN, BRG>(leds, NUM_LEDS);
   FastLED.setBrightness(255);
 }
@@ -85,9 +62,6 @@ void loop() {
   processUsbCmd();
   wheel.update();
   //processFFB();
-  if (keypadConnected) {
-    processKeypad();
-  }
 
   calcAccelPct();
   processBlower();
@@ -232,139 +206,6 @@ unsigned long getTrakLedDelay() {
 bool isTrakLedOn() {
   return trak1LedOn || trak2LedOn || trak3LedOn;
 }
-
-void processKeypad() {
-  if (millis() - lastKeypadCheck > 50) {
-    lastKeypadCheck = millis();
-
-    if (keypad.getKeys()) {
-      for (int i = 0; i < LIST_MAX; i++) {  // Scan the whole key list.
-        if (keypad.key[i].stateChanged) {   // Only find keys that have changed state.
-          char key = keypad.key[i].kchar;
-          char keycode = 0;
-          switch (key) {
-            case '*':
-              keycode = KEYPAD_MULTIPLY;
-              break;
-            case '#':
-              keycode = KEYPAD_DOT;
-              break;
-            case '1':
-              keycode = KEYPAD_1;
-              break;
-            case '2':
-              keycode = KEYPAD_2;
-              break;
-            case '3':
-              keycode = KEYPAD_3;
-              break;
-            case '4':
-              keycode = KEYPAD_4;
-              break;
-            case '5':
-              keycode = KEYPAD_5;
-              break;
-            case '6':
-              keycode = KEYPAD_6;
-              break;
-            case '7':
-              keycode = KEYPAD_7;
-              break;
-            case '8':
-              keycode = KEYPAD_8;
-              break;
-            case '9':
-              keycode = KEYPAD_9;
-              break;
-            case '0':
-              keycode = KEYPAD_0;
-              break;
-          }
-
-          switch (keypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
-            case PRESSED:
-              if (key == '#' && (isHeld('*') || isPressed('*'))) {
-                Keyboard.write(KEYPAD_ENTER);
-              } else if (key == '6' && (isHeld('*') || isPressed('*'))) {
-                //*6 will toggle numlock mode
-                Keyboard.write(KEY_NUM_LOCK);
-              } else {
-                Keyboard.press(KeyboardKeycode(keycode));
-              }
-              break;
-            case HOLD:
-              break;
-            case RELEASED:
-              Keyboard.release(KeyboardKeycode(keycode));
-              break;
-            case IDLE:
-              break;
-          }
-        }
-      }
-    }
-  }
-}
-
-bool isHeld(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == HOLD))
-        return true;
-    }
-  }
-  return false;  // Not held.
-}
-
-bool isPressed(char keyChar) {
-  for (byte i = 0; i < LIST_MAX; i++) {
-    if (keypad.key[i].kchar == keyChar) {
-      if ((keypad.key[i].kstate == PRESSED))
-        return true;
-    }
-  }
-  return false;  // Not pressed.
-}
-
-/*void processFFB() {
-  int16_t force = wheel.ffbEngine.calculateForce(wheel.axisWheel);
-  force = applyForceLimit(force);
-  if (abs(force) < 1200) {
-    lShaker.write(0);
-    rShaker.write(0);
-    return;
-  }
-
-  float forcePct = (((float)abs(force)) / ((float)16383));
-  int16_t pwm = forcePct * 255;
-  if (force < 0) {
-    rShaker.write(0);
-    lShaker.write(pwm);
-  } else {
-    lShaker.write(0);
-    rShaker.write(pwm);
-  }
-}
-
-//scaling force to minForce & maxForce and cut at cutForce
-int16_t applyForceLimit(int16_t force) {
-  if (force == 0)
-    return 0;
-
-  if ((settings.minForce != 0) || (settings.maxForce < 16383)) {
-    if (abs(force) < 1024)  //slope
-    {
-      int32_t v = (((settings.maxForce - settings.minForce)) >> 4) + settings.minForce;
-      force = (force * v) >> 10;
-    } else
-      force = (int16_t)((int32_t)force * (settings.maxForce - settings.minForce) >> 14) + sign(force) * settings.minForce;
-  }
-
-  if (settings.cutForce >= 16383)
-    return force;
-  else
-    return constrain(force, -settings.cutForce, settings.cutForce);
-}*/
 
 /*
   communicating with GUI:
@@ -522,7 +363,7 @@ void processUsbCmd() {
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
   wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
-  getWheelPositionAnalog();
+  wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
 }
 
 //-----------------------------------reading buttons------------------------------
@@ -585,11 +426,6 @@ void readButtons() {
 }
 //---------------------------------------- end buttons ----------------------------------------------
 
-
-int32_t getWheelPositionAnalog() {
-  wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
-  return wheel.axisWheel->value;
-}
 
 //load and save settings
 void load(bool defaults) {
