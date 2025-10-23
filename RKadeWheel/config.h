@@ -46,8 +46,10 @@
 #define MA_LEVEL_AXIS_ST_ANALOG 10
 
 #define DPB_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
-#define BTN_SHTDN_INDEX 12  //zero-based index, 15
-#define BTN_ESC_INDEX 13    //zero-based index, 16
+#define BTN_ACTION_1_INDEX 10  //zero-based index
+#define BTN_ACTION_2_INDEX 11
+#define BTN_ACTION_3_INDEX 12
+#define BTN_ACTION_4_INDEX 13
 
 #define DPB_1ST_BTN 1
 #define GEAR_BTN_IDX_1 0

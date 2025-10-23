@@ -39,8 +39,11 @@ struct SettingsData {
   int16_t maxForce;
   int16_t cutForce;
 
-  int16_t endstopOffset;
-  int16_t endstopWidth;
+  int8_t btn11ActionKey;
+  int8_t btn12ActionKey;
+  int8_t btn13ActionKey;
+  int8_t btn14ActionKey;
+
   uint8_t constantSpring;
   uint8_t afcOnStartup;
   uint8_t mplexShifter;
@@ -72,4 +75,11 @@ public:
   //void print();
 
   uint8_t calcChecksum();
+};
+
+enum ButtonAction {
+  NONE,
+  PAUSE,
+  SHUTDOWN,
+  ESC
 };

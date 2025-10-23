@@ -139,6 +139,10 @@ void processUsbCmd() {
         ((GUI_Report_Buttons *)data)->shiftButton = settings.shiftButton;
         ((GUI_Report_Buttons *)data)->debounce = settings.debounce;
         ((GUI_Report_Buttons *)data)->mplexShifter = settings.mplexShifter;
+        ((GUI_Report_Buttons *)data)->btn11ActionKey = settings.btn11ActionKey;
+        ((GUI_Report_Buttons *)data)->btn12ActionKey = settings.btn12ActionKey;
+        ((GUI_Report_Buttons *)data)->btn13ActionKey = settings.btn13ActionKey;
+        ((GUI_Report_Buttons *)data)->btn14ActionKey = settings.btn14ActionKey;
         break;
       case 5:  //return gains
         memcpy(data, settings.gain, sizeof(settings.gain));
@@ -247,6 +251,22 @@ void processUsbCmd() {
       case 29:  //set inversion for wheel
         wheel.axisWheel->invertRotation = usbCmd->arg[0];
         break;
+      case 30:
+        switch (usbCmd->arg[0]) {
+          case 11:
+            settings.btn11ActionKey = usbCmd->arg[1];
+            break;
+          case 12:
+            settings.btn12ActionKey = usbCmd->arg[1];
+            break;
+          case 13:
+            settings.btn13ActionKey = usbCmd->arg[1];
+            break;
+          case 14:
+            settings.btn14ActionKey = usbCmd->arg[1];
+            break;
+        }
+        break;
     }
   }
   usbCmd->command = 0;
@@ -273,6 +293,19 @@ void readAnalogAxes() {
 //-----------------------------------end analog axes------------------------------
 
 //-----------------------------------reading buttons------------------------------
+
+void doButtonAction(ButtonAction action) {
+  if (action == ButtonAction::NONE) {
+    return;
+  } else if (action == ButtonAction::ESC) {
+    send(KEY_ESC);
+  } else if (action == ButtonAction::SHUTDOWN) {
+    System.write(SYSTEM_POWER_DOWN);
+  } else if (action == ButtonAction::PAUSE) {
+    send(KEY_PAUSE);
+  }
+}
+
 void readButtons() {
   uint32_t buttons = 0;
 
@@ -351,13 +384,17 @@ void readButtons() {
     }
   }
 
-
-  if ((wheel.buttons & (uint32_t)pow(2, BTN_ESC_INDEX)) != 0) {
-    send(KEY_ESC);
-  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_SHTDN_INDEX)) != 0) {
-    System.write(SYSTEM_POWER_DOWN);
+  if ((wheel.buttons & (uint32_t)pow(2, BTN_ACTION_1_INDEX)) != 0) {
+    doButtonAction(settings.btn11ActionKey);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ACTION_2_INDEX)) != 0) {
+    doButtonAction(settings.btn12ActionKey);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ACTION_3_INDEX)) != 0) {
+    doButtonAction(settings.btn13ActionKey);
+  } else if ((wheel.buttons & (uint32_t)pow(2, BTN_ACTION_4_INDEX)) != 0) {
+    doButtonAction(settings.btn14ActionKey);
   }
 }
+
 //---------------------------------------- end buttons ----------------------------------------------
 
 //load and save settings
@@ -420,8 +457,11 @@ void load(bool defaults) {
     settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
     settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
 
-    settingsE.data.endstopOffset = DEFAULT_ENDSTOP_OFFSET;
-    settingsE.data.endstopWidth = DEFAULT_ENDSTOP_WIDTH;
+    settingsE.data.btn11ActionKey = ButtonAction::NONE;
+    settingsE.data.btn12ActionKey = ButtonAction::NONE;
+    settingsE.data.btn13ActionKey = ButtonAction::SHUTDOWN;
+    settingsE.data.btn14ActionKey = ButtonAction::ESC;
+
     settingsE.data.constantSpring = 0;
     settingsE.data.afcOnStartup = 0;
     settingsE.data.mplexShifter = 0;

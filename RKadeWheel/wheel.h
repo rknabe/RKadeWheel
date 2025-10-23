@@ -58,6 +58,10 @@ typedef struct {
   int8_t shiftButton;
   int8_t debounce;
   uint8_t mplexShifter;
+  int8_t btn11ActionKey;
+  int8_t btn12ActionKey;
+  int8_t btn13ActionKey;
+  int8_t btn14ActionKey;
 } GUI_Report_Buttons;
 
 typedef struct {
