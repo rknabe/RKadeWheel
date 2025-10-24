@@ -1,6 +1,6 @@
 #include "wheel.h"
 
-Wheel_::Wheel_(void) {
+Wheel::Wheel(void) {
   static HID_SubDescriptor node(wheelHIDDescriptor, sizeof(wheelHIDDescriptor));
   NEW_HID().AppendDescriptor(&node);
 
@@ -13,7 +13,7 @@ Wheel_::Wheel_(void) {
   }
 }
 
-void Wheel_::update(void) {
+void Wheel::update(void) {
 
   wheelData data;
   data.axes[0] = axisWheel->value;

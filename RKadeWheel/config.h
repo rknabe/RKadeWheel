@@ -1,6 +1,9 @@
 #pragma once
 
 //---------------------------Configuration-------------------------------
+#define FFB
+
+//#define LIGHTING
 
 #define SERIAL_BAUDRATE 115200
 

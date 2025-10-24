@@ -1,13 +1,26 @@
 #include <EEPROM.h>
 #include "config.h"
 #include "wheel.h"
-#include "motor.h"
 #include "settings.h"
 #include <HID-Project.h>
 
-//global variables
-Wheel_ wheel;
+#ifdef FFB
+#include "motor.h"
 Motor motor;
+#endif
+
+#ifdef LIGHTING
+#include "Lighting.h"
+CRGB leds[NUM_LEDS];
+uint8_t wheelLed = 0;
+long timeUntilNextWheelLite = -1;
+Lighting lighting;
+float accelPct = 0;
+Smooth smoothAcc(350);
+#endif
+
+//global variables
+Wheel wheel;
 SettingsData settings;
 uint32_t tempButtons;
 uint8_t debounceCount = 0;
@@ -27,8 +40,10 @@ void setup() {
   //load settings
   load();
 
-  //motor setup
+//motor setup
+#ifdef FFB
   motor.begin();
+#endif
 
   //this helps firmware update
   delay(1000);
@@ -40,7 +55,16 @@ void loop() {
   readButtons();
   processUsbCmd();
   wheel.update();
+
+#ifdef FFB
   processFFB();
+#endif
+
+#ifdef LIGHTING
+  calcAccelPct();
+  lighting.update(accelPct);
+#endif
+
   processSerial();
 
   delay(10);
@@ -53,6 +77,7 @@ void send(char keycode) {
 }
 
 //Processing endstop and force feedback
+#ifdef FFB
 void processFFB() {
 
   wheel.ffbEngine.constantSpringForce();
@@ -82,6 +107,7 @@ int16_t applyForceLimit(int16_t force) {
   else
     return constrain(force, -settings.cutForce, settings.cutForce);
 }
+#endif
 
 /*
   communicating with GUI:
@@ -158,7 +184,9 @@ void processUsbCmd() {
         ((GUI_Report_Settings *)data)->maxForce = settings.maxForce;
         ((GUI_Report_Settings *)data)->cutForce = settings.cutForce;
 
+#ifdef FFB
         ((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
+#endif
 
         ((GUI_Report_Settings *)data)->constantSpring = settings.constantSpring;
         break;
@@ -209,7 +237,9 @@ void processUsbCmd() {
             settings.cutForce = usbCmd->arg[1];
             break;
           case 6:
+#ifdef FFB
             motor.setBitDepth(usbCmd->arg[1]);
+#endif
             break;
           case 8:
             settings.constantSpring = usbCmd->arg[1];
@@ -294,7 +324,7 @@ void readAnalogAxes() {
 
 //-----------------------------------reading buttons------------------------------
 
-void doButtonAction(ButtonAction action) {
+void doButtonAction(int8_t action) {
   if (action == ButtonAction::NONE) {
     return;
   } else if (action == ButtonAction::ESC) {
@@ -535,6 +565,23 @@ void save() {
 
   EEPROM.put(0, settingsE);
 }
+
+#ifdef LIGHTING
+void calcAccelPct() {
+  int16_t accVal = wheel.analogAxes[AXIS_ACC]->rawValue;
+  accVal = round(smoothAcc.add(accVal));
+  int16_t accMax = wheel.analogAxes[AXIS_ACC]->axisMax;
+  int16_t accMin = wheel.analogAxes[AXIS_ACC]->axisMin;
+  if (accVal < accMin) {
+    accVal = accMin;
+  }
+  if (accVal > accMax) {
+    accVal = accMax;
+  }
+
+  accelPct = (((float)accVal - accMin) / ((float)accMax - accMin));
+}
+#endif
 
 void processSerial() {
   if (Serial.available()) {

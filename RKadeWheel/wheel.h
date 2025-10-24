@@ -81,12 +81,12 @@ typedef struct {
   uint8_t afcOnStartup;
 } GUI_Report_Settings;
 
-class Wheel_ {
+class Wheel {
 public:
   AxisWheel* axisWheel;
   Axis* analogAxes[AXIS_COUNT];
   uint32_t buttons;
-  Wheel_();
+  Wheel();
   void update();
   FfbEngine ffbEngine;
 
