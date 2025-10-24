@@ -1,5 +1,4 @@
 #pragma once
-#ifdef LIGHTING
 #include <FastLED.h>
 #include "config.h"
 
@@ -17,4 +16,3 @@ private:
   uint8_t wheelLed;
   long timeUntilNextWheelLite;
 };
-#endif

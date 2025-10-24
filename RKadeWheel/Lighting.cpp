@@ -1,5 +1,5 @@
 #include "Lighting.h"
-#ifdef LIGHTING
+
 extern CRGB leds[];
 
 Lighting::Lighting(void) {
@@ -40,4 +40,3 @@ void Lighting::processWheelLites(long time, float accelPct) {
     turnOffAllWheelLites();
   }
 }
-#endif

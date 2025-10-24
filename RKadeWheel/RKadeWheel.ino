@@ -186,6 +186,8 @@ void processUsbCmd() {
 
 #ifdef FFB
         ((GUI_Report_Settings *)data)->ffbBD = motor.bitDepth;
+#else
+        ((GUI_Report_Settings *)data)->ffbBD = DEFAULT_FFB_BITDEPTH;
 #endif
 
         ((GUI_Report_Settings *)data)->constantSpring = settings.constantSpring;
