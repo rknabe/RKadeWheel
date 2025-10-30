@@ -9,11 +9,8 @@
 Motor motor;
 #endif
 
-#ifdef LIGHTING
+#ifdef MOTOGP
 #include "Lighting.h"
-CRGB leds[NUM_LEDS];
-uint8_t wheelLed = 0;
-long timeUntilNextWheelLite = -1;
 Lighting lighting;
 float accelPct = 0;
 Smooth smoothAcc(350);
@@ -60,7 +57,7 @@ void loop() {
   processFFB();
 #endif
 
-#ifdef LIGHTING
+#ifdef MOTOGP
   calcAccelPct();
   lighting.update(accelPct);
 #endif
@@ -327,7 +324,7 @@ void readAnalogAxes() {
 //-----------------------------------reading buttons------------------------------
 
 void doButtonAction(int8_t action) {
-  if (action == ButtonAction::NONE) {
+  if (action == ButtonAction::ACTION_NONE) {
     return;
   } else if (action == ButtonAction::ESC) {
     send(KEY_ESC);
@@ -489,8 +486,8 @@ void load(bool defaults) {
     settingsE.maxVelocityFriction = DEFAULT_MAX_VELOCITY;
     settingsE.maxAcceleration = DEFAULT_MAX_ACCELERATION;
 
-    settingsE.data.btn11ActionKey = ButtonAction::NONE;
-    settingsE.data.btn12ActionKey = ButtonAction::NONE;
+    settingsE.data.btn11ActionKey = ButtonAction::ACTION_NONE;
+    settingsE.data.btn12ActionKey = ButtonAction::ACTION_NONE;
     settingsE.data.btn13ActionKey = ButtonAction::SHUTDOWN;
     settingsE.data.btn14ActionKey = ButtonAction::ESC;
 
@@ -568,7 +565,7 @@ void save() {
   EEPROM.put(0, settingsE);
 }
 
-#ifdef LIGHTING
+#ifdef MOTOGP
 void calcAccelPct() {
   int16_t accVal = wheel.analogAxes[AXIS_ACC]->rawValue;
   accVal = round(smoothAcc.add(accVal));

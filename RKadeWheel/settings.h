@@ -2,8 +2,12 @@
 #include <Arduino.h>
 
 #pragma once
-#define FIRMWARE_VER "3.0.1"
+#define FIRMWARE_VER "3.0.2"
+#ifdef MOTOGP
+#define FIRMWARE_TYPE "RKADE-MOTO"
+#else
 #define FIRMWARE_TYPE "RKADE"
+#endif
 
 #define AXIS_ACC 0
 #define AXIS_BRAKE 1
@@ -78,7 +82,7 @@ public:
 };
 
 enum ButtonAction {
-  NONE,
+  ACTION_NONE,
   PAUSE,
   SHUTDOWN,
   ESC

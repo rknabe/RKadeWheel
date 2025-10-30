@@ -21,7 +21,7 @@ typedef struct {
 } GUI_Report;
 
 typedef struct {
-  char id[6] = FIRMWARE_TYPE;
+  char id[12] = FIRMWARE_TYPE;
   char ver[12];
 } GUI_Report_Version;
 

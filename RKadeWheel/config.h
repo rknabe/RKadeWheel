@@ -1,9 +1,8 @@
 #pragma once
 
 //---------------------------Configuration-------------------------------
-#define FFB
-
-//#define LIGHTING
+//#define FFB
+#define MOTOGP
 
 #define SERIAL_BAUDRATE 115200
 
@@ -53,6 +52,7 @@
 #define BTN_ACTION_2_INDEX 11
 #define BTN_ACTION_3_INDEX 12
 #define BTN_ACTION_4_INDEX 13
+#define BTN_BRAKE_INDEX 9  //zero-based index, 12
 
 #define DPB_1ST_BTN 1
 #define GEAR_BTN_IDX_1 0
