@@ -363,7 +363,18 @@ void processUsbCmd() {
 //------------------------- Reading all analog axes ----------------------------------
 void readAnalogAxes() {
   wheel.analogAxes[AXIS_ACC]->setValue(analogRead(PIN_ACC));
+  wheel.analogAxes[AXIS_BRAKE]->setValue(analogRead(PIN_BRAKE));
+  wheel.analogAxes[AXIS_CLUTCH]->setValue(analogRead(PIN_CLUTCH));
+
+#ifdef PIN_AUX1
+  wheel.analogAxes[AXIS_AUX1]->setValue(analogRead(PIN_AUX1));
+#endif
+#ifdef PIN_AUX2
+  wheel.analogAxes[AXIS_AUX2]->setValue(analogRead(PIN_AUX2));
+#endif
+#ifdef PIN_ST_ANALOG
   wheel.axisWheel->setValue(analogRead(PIN_ST_ANALOG));
+#endif
 }
 
 //-----------------------------------reading buttons------------------------------

@@ -16,14 +16,20 @@
 //---------------------------pins---------------------------
 //analog axes pins
 #define PIN_ACC A0
+#define PIN_BRAKE A1
+#define PIN_CLUTCH A2
+//aux analog axes pins
+//If aux axis is not needed, comment out corresponding line.
+#define PIN_AUX1 A3
+#define PIN_AUX2 A4
 #define PIN_ST_ANALOG A5
 
 //----------------------------Buttons-------------------------------------
-#define BUTTON_PINS 0, 1, A1, 4, 7, 8, 12, 14, 15, A2, A3, A4
+#define BUTTON_PINS 0, 1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16
+#define BTN_SHTDN_INDEX 12  //zero-based index, 15
+#define BTN_ESC_INDEX 13    //zero-based index, 16
 #define BTN_1 1
-#define BTN_BRAKE_INDEX 9      //zero-based index, A2
-#define BTN_ESC_INDEX 10       //zero-based index, A3
-#define BTN_SHUTDOWN_INDEX 11  //zero-based index, A4
+#define BTN_BRAKE_INDEX 9  //zero-based index, A2
 
 //#define LEFT_SHAKER_PIN 9
 //#define RIGHT_SHAKER_PIN 10
