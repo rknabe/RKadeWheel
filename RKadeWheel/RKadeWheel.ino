@@ -102,6 +102,9 @@ void setup() {
     autoFindCenter();
 #endif
   }
+
+  //this helps firmware update
+  delay(1000);
 }
 
 void loop() {
@@ -119,7 +122,7 @@ void loop() {
 
   processSerial();
 
-  delay(6);
+  delay(10);
 }
 
 //Processing endstop and force feedback
