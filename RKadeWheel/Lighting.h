@@ -1,5 +1,6 @@
-//#ifdef MOTOGP
+#ifdef MOTOGP
 #pragma once
+
 #include <FastLED.h>
 #include <AnalogIO.h>
 
@@ -14,7 +15,7 @@
 class Lighting {
 public:
   Lighting();
-  void update(float accelPct);
+  void update(float accelPct, bool breakOn);
   void incrementWheelLed();
   void turnOffAllWheelLites();
   void processWheelLites(long time, float accelPct);
@@ -26,4 +27,4 @@ private:
   AnalogOut *blower;
   AnalogOut *brakeLed;
 };
-//#endif
+#endif

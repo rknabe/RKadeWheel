@@ -59,7 +59,7 @@ void loop() {
 
 #ifdef MOTOGP
   calcAccelPct();
-  lighting.update(accelPct);
+  lighting.update(accelPct, ((wheel.buttons & (uint32_t)pow(2, BTN_BRAKE_INDEX)) != 0));
 #endif
 
   processSerial();

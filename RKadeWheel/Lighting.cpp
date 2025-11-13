@@ -1,9 +1,5 @@
-//#ifdef MOTOGP
+#ifdef MOTOGP
 #include "Lighting.h"
-#include "config.h"
-#include "wheel.h"
-
-extern Wheel wheel;
 
 Lighting::Lighting(void) {
   FastLED.addLeds<WS2811, WHEEL_LITE_DATA_PIN, BRG>(leds, NUM_LEDS);
@@ -12,10 +8,10 @@ Lighting::Lighting(void) {
   brakeLed = new AnalogOut(BRAKE_LIGHT_PIN);
 }
 
-void Lighting::update(float accelPct) {
+void Lighting::update(float accelPct, bool breakOn) {
   processWheelLites(millis(), accelPct);
   processBlower(accelPct);
-  if ((wheel.buttons & (uint32_t)pow(2, BTN_BRAKE_INDEX)) != 0) {
+  if (breakOn) {
     brakeLed->write(MAX_LIGHT_PWM);
   } else {
     brakeLed->write(0);
@@ -61,4 +57,4 @@ void Lighting::processBlower(float accelPct) {
   }
   blower->write(pwmValBlower);
 }
-//#endif
+#endif
