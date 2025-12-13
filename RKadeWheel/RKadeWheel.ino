@@ -13,6 +13,7 @@ Motor motor;
 #include "Lighting.h"
 Lighting lighting;
 float accelPct = 0;
+float brakePct = 0;
 Smooth smoothAcc(350);
 #endif
 
@@ -59,7 +60,8 @@ void loop() {
 
 #ifdef MOTOGP
   calcAccelPct();
-  lighting.update(accelPct, ((wheel.buttons & (uint32_t)pow(2, BTN_BRAKE_INDEX)) != 0));
+  calcBrakePct();
+  lighting.update(accelPct, brakePct);
 #endif
 
   processSerial();
@@ -579,6 +581,22 @@ void calcAccelPct() {
   }
 
   accelPct = (((float)accVal - accMin) / ((float)accMax - accMin));
+}
+#endif
+
+#ifdef MOTOGP
+void calcBrakePct() {
+  int16_t val = wheel.analogAxes[AXIS_BRAKE]->rawValue;
+  int16_t max = wheel.analogAxes[AXIS_BRAKE]->axisMax;
+  int16_t min = wheel.analogAxes[AXIS_BRAKE]->axisMin;
+  if (val < min) {
+    val = min;
+  }
+  if (val > max) {
+    val = max;
+  }
+
+  brakePct = (((float)val - min) / ((float)max - min));
 }
 #endif
 

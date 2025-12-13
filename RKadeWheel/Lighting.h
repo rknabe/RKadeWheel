@@ -1,4 +1,4 @@
-#ifdef MOTOGP
+//#ifdef MOTOGP
 #pragma once
 
 #include <FastLED.h>
@@ -15,10 +15,11 @@
 class Lighting {
 public:
   Lighting();
-  void update(float accelPct, bool breakOn);
+  void update(float accelPct, float brakePct);
   void incrementWheelLed();
   void turnOffAllWheelLites();
   void processWheelLites(long time, float accelPct);
+  void Lighting::processBrake(float brakePct);
   void processBlower(float accelPct);
 private:
   CRGB leds[NUM_LEDS];
@@ -27,4 +28,4 @@ private:
   AnalogOut *blower;
   AnalogOut *brakeLed;
 };
-#endif
+//#endif

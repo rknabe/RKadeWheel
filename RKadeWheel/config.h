@@ -1,8 +1,8 @@
 #pragma once
 
 //---------------------------Configuration-------------------------------
-#define FFB
-//#define MOTOGP
+//#define FFB
+#define MOTOGP
 
 #define SERIAL_BAUDRATE 115200
 

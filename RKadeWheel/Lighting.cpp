@@ -1,4 +1,4 @@
-#ifdef MOTOGP
+//#ifdef MOTOGP
 #include "Lighting.h"
 
 Lighting::Lighting(void) {
@@ -8,15 +8,22 @@ Lighting::Lighting(void) {
   brakeLed = new AnalogOut(BRAKE_LIGHT_PIN);
 }
 
-void Lighting::update(float accelPct, bool breakOn) {
+void Lighting::update(float accelPct, float brakePct) {
   processWheelLites(millis(), accelPct);
   processBlower(accelPct);
-  if (breakOn) {
-    brakeLed->write(MAX_LIGHT_PWM);
-  } else {
-    brakeLed->write(0);
-  }
+  processBrake(brakePct);
 }
+
+void Lighting::processBlower(float accelPct) {
+  int16_t pwmValBlower = accelPct * MAX_BLOWER_PWM;
+  if (pwmValBlower < 0) {
+    pwmValBlower = 0;
+  } else if (pwmValBlower > MAX_BLOWER_PWM) {
+    pwmValBlower = MAX_BLOWER_PWM;
+  }
+  blower->write(pwmValBlower);
+}
+
 
 void Lighting::incrementWheelLed() {
   ++wheelLed;
@@ -28,6 +35,16 @@ void Lighting::incrementWheelLed() {
 void Lighting::turnOffAllWheelLites() {
   FastLED.clear();  // clear all pixel data
   FastLED.show();
+}
+
+void Lighting::processBrake(float brakePct) {
+  int16_t pwmVal = brakePct * MAX_LIGHT_PWM;
+  if (pwmVal < 0) {
+    pwmVal = 0;
+  } else if (pwmVal > MAX_LIGHT_PWM) {
+    pwmVal = MAX_LIGHT_PWM;
+  }
+  brakeLed->write(pwmVal);
 }
 
 void Lighting::processWheelLites(long time, float accelPct) {
@@ -47,14 +64,4 @@ void Lighting::processWheelLites(long time, float accelPct) {
     turnOffAllWheelLites();
   }
 }
-
-void Lighting::processBlower(float accelPct) {
-  int16_t pwmValBlower = accelPct * MAX_BLOWER_PWM;
-  if (pwmValBlower < 0) {
-    pwmValBlower = 0;
-  } else if (pwmValBlower > MAX_BLOWER_PWM) {
-    pwmValBlower = MAX_BLOWER_PWM;
-  }
-  blower->write(pwmValBlower);
-}
-#endif
+//#endif
