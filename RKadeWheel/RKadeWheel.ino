@@ -9,13 +9,13 @@
 Motor motor;
 #endif
 
-#ifdef MOTOGP
+//#ifdef MOTOGP
 #include "Lighting.h"
 Lighting lighting;
 float accelPct = 0;
 float brakePct = 0;
 Smooth smoothAcc(350);
-#endif
+//#endif
 
 //global variables
 Wheel wheel;
