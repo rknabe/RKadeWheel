@@ -1,4 +1,4 @@
-//#ifdef MOTOGP
+#ifdef MOTOGP
 #pragma once
 
 #include <FastLED.h>
@@ -28,4 +28,4 @@ private:
   AnalogOut *blower;
   AnalogOut *brakeLed;
 };
-//#endif
+#endif

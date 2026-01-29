@@ -1,4 +1,4 @@
-//#ifdef MOTOGP
+#ifdef MOTOGP
 #include "Lighting.h"
 
 Lighting::Lighting(void) {
@@ -64,4 +64,4 @@ void Lighting::processWheelLites(long time, float accelPct) {
     turnOffAllWheelLites();
   }
 }
-//#endif
+#endif

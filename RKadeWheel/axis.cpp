@@ -150,7 +150,7 @@ void AxisWheel::setValue(int32_t rawValue_) {
 
 void AxisWheel::setRange(uint16_t _deg) {
   range = _deg;
-  rangeFactor = (360.0 / (float)range) * 48;
+  rangeFactor = 64;
 }
 
 void AxisWheel::setCenterZero() {

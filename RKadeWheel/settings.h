@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 #pragma once
-#define FIRMWARE_VER "3.0.2"
+#define FIRMWARE_VER "3.0.3"
 #ifdef MOTOGP
 #define FIRMWARE_TYPE "RKADE-MOTO"
 #else
